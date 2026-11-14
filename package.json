@@ -1,0 +1,13 @@
+{
+  "name": "ccna-trouble-ticket",
+  "version": "1.0.0",
+  "description": "A CCNA troubleshooting game with a simulated Cisco CLI",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "build": "node build.mjs",
+    "dev": "node build.mjs && npx --yes serve dist"
+  },
+  "license": "MIT"
+}
