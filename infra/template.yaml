@@ -112,7 +112,15 @@ Resources:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
               StringLike:
-                token.actions.githubusercontent.com:sub: !Sub 'repo:${GitHubRepo}:ref:refs/heads/main'
+                # Accept both GitHub OIDC subject formats: classic (owner/repo) and the
+                # immutable-ID format GitHub uses for repos created after June 18, 2026
+                # (owner@ownerId/repo@repoId). Both stay locked to this repo's main branch.
+                token.actions.githubusercontent.com:sub:
+                  - !Sub 'repo:${GitHubRepo}:ref:refs/heads/main'
+                  - !Sub
+                    - 'repo:${Owner}@*/${Repo}@*:ref:refs/heads/main'
+                    - Owner: !Select [0, !Split ['/', !Ref GitHubRepo]]
+                      Repo: !Select [1, !Split ['/', !Ref GitHubRepo]]
       Policies:
         - PolicyName: deploy-site
           PolicyDocument:
