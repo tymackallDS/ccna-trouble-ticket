@@ -72,7 +72,7 @@
     linear-gradient(90deg, transparent 16px, color-mix(in srgb, var(--stamp) 45%, transparent) 16px, color-mix(in srgb, var(--stamp) 45%, transparent) 17.5px, transparent 17.5px),
     repeating-linear-gradient(transparent 0 31px, var(--grid) 31px 32px);
   background-position: 0 0, 0 48px;
-  box-shadow: 0 1px 0 var(--line), 0 10px 24px -18px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 1px 0 var(--line), var(--shadow-hover);
   overflow-wrap: anywhere;
 }
 .fc-back { transform: rotateY(180deg); }
@@ -140,3 +140,19 @@
   .fc-card.fc-flipped .fc-front { visibility: hidden; }
   .fc-stamp.fresh { animation: none; }
 }
+
+/* night-shift polish */
+.fc-deck { box-shadow: var(--shadow); transition: border-color 0.18s var(--ease), box-shadow 0.22s var(--ease); }
+.fc-deck:hover { box-shadow: var(--shadow-hover); }
+.fc-deck:focus-within { border-color: var(--accent); }
+.fc-deck-open:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; border-radius: var(--radius) var(--radius) 0 0; }
+.fc-due-all { transition: box-shadow 0.22s var(--ease), border-color 0.18s var(--ease); }
+.fc-due-all:hover:not(:disabled) { box-shadow: var(--glow-accent); }
+.fc-due-n { text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 40%, transparent); }
+:root[data-theme='light'] .fc-due-n { text-shadow: none; }
+.fc-rate { transition: border-color 0.18s var(--ease), background-color 0.18s var(--ease), box-shadow 0.22s var(--ease); }
+.fc-rate:hover { background: color-mix(in srgb, currentColor 7%, var(--sheet)); }
+.fc-input { color: var(--ink); }
+.fc-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.fc-link { transition: color 0.18s var(--ease); }
+@media (prefers-reduced-motion: reduce) { .fc-deck, .fc-due-all, .fc-rate, .fc-link { transition: none; } }

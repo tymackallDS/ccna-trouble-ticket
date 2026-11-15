@@ -192,3 +192,25 @@
 .ex-sets { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
 .ex-set { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
 .ex-set .btn { width: 100%; }
+
+/* night-shift polish */
+.ex-opt, .ex-cell, .ex-oi, .ex-mv button { transition: border-color 0.18s var(--ease), background-color 0.18s var(--ease), box-shadow 0.22s var(--ease); }
+.ex-opt:hover { background: var(--sheet-2); }
+.ex-opt.ex-sel { box-shadow: 0 0 14px -8px var(--accent); }
+.ex-cell:hover { border-color: var(--accent); color: var(--ink); }
+.ex-cell.ex-ans:hover { color: var(--accent); }
+.ex-cell:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.ex-cli, .ex-sol pre { box-shadow: inset 0 0 0 1px var(--term-edge); }
+.ex-cli-t { text-shadow: 0 0 6px color-mix(in srgb, var(--term-prompt) 30%, transparent); }
+:root[data-theme='light'] .ex-cli-t { text-shadow: none; }
+.ex-bar { backdrop-filter: blur(6px); background: color-mix(in srgb, var(--sheet) 92%, transparent); }
+.ex-timer { background: var(--term); color: var(--term-prompt); border-color: var(--term-edge); text-shadow: 0 0 8px color-mix(in srgb, var(--term-prompt) 35%, transparent); }
+.ex-timer .ex-low { color: var(--term-err); }
+.ex-timer .ex-untimed { color: var(--term-dim); }
+:root[data-theme='light'] .ex-timer { text-shadow: none; }
+.ex-meter span { box-shadow: 0 0 10px -2px color-mix(in srgb, var(--accent) 60%, transparent); }
+.ex-meter i { box-shadow: var(--glow-stamp); }
+.ex-mrow select, .ex-filters select, .ex-filters input { color: var(--ink); }
+.ex-mrow select:focus, .ex-filters select:focus, .ex-filters input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.ex-bank-d { background: color-mix(in srgb, var(--sheet-2) 60%, transparent); }
+@media (prefers-reduced-motion: reduce) { .ex-opt, .ex-cell, .ex-oi, .ex-mv button { transition: none; } }

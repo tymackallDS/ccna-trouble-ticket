@@ -1,72 +1,95 @@
 /* Trouble Ticket — styles
- * Layout idea: a NOC trouble-ticket on blueprint grid paper; the console is the one dark object on the page,
- * and the red RESOLVED stamp is the single loud moment.
+ * Layout idea: a NOC trouble-ticket on blueprint grid paper. The default theme is the night shift:
+ * a network operations center at 2 a.m. (deep navy and charcoal, amber and green status lights,
+ * red for alerts and the RESOLVED stamp). Light ("day shift") is opt-in with <html data-theme="light">.
  */
 :root {
-  --paper: #eef2f4;
-  --sheet: #fbfcfd;
-  --grid: rgba(38, 86, 140, 0.07);
-  --ink: #15212d;
-  --muted: #586877;
-  --line: #ccd6dd;
-  --accent: #1d4fc4;
-  --accent-soft: rgba(29, 79, 196, 0.1);
-  --stamp: #c4352b;
-  --good: #1b7a4a;
-  --warn: #a86a00;
-  --term: #0f1922;
-  --term-ink: #d5e1ea;
-  --term-dim: #7f93a3;
-  --term-prompt: #f2b53c;
-  --term-sys: #7fb7ff;
-  --term-err: #ff8a80;
+  /* ---- night shift (default) ---- */
+  --paper: #0a1019;
+  --sheet: #111a26;
+  --sheet-2: #162130;
+  --grid: rgba(122, 168, 228, 0.055);
+  --grid-major: rgba(122, 168, 228, 0.085);
+  --ink: #e2e9f0;
+  --muted: #98a9ba;
+  --line: #243245;
+  --line-strong: #33465d;
+  --accent: #82b4ff;
+  --accent-soft: rgba(130, 180, 255, 0.13);
+  --on-accent: #07101d;
+  --on-status: #06120c;
+  --stamp: #ff6f63;
+  --good: #4fd394;
+  --warn: #f4b648;
+  --term: #060b12;
+  --term-edge: #1d2a3b;
+  --term-ink: #d8e3ec;
+  --term-dim: #8597a8;
+  --term-prompt: #f4b648;
+  --term-sys: #86bcff;
+  --term-err: #ff8f85;
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.025) inset, 0 12px 28px -18px rgba(0, 0, 0, 0.75);
+  --shadow-hover: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 16px 34px -18px rgba(0, 0, 0, 0.85);
+  --glow-accent: 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent), 0 0 18px -4px color-mix(in srgb, var(--accent) 55%, transparent);
+  --glow-warn: 0 0 6px color-mix(in srgb, var(--warn) 70%, transparent), 0 0 14px color-mix(in srgb, var(--warn) 30%, transparent);
+  --glow-good: 0 0 6px color-mix(in srgb, var(--good) 70%, transparent), 0 0 14px color-mix(in srgb, var(--good) 30%, transparent);
+  --glow-stamp: 0 0 10px color-mix(in srgb, var(--stamp) 35%, transparent);
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --room-glow: rgba(70, 120, 200, 0.12);
   --display: 'Big Shoulders Display', 'Arial Narrow', Impact, sans-serif;
   --body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
   --radius: 10px;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --paper: #0d151c;
-    --sheet: #131e27;
-    --grid: rgba(120, 170, 225, 0.06);
-    --ink: #dbe6ee;
-    --muted: #8fa1b0;
-    --line: #26343f;
-    --accent: #7ea6ff;
-    --accent-soft: rgba(126, 166, 255, 0.14);
-    --stamp: #ff6f61;
-    --good: #4cc38a;
-    --warn: #e0a83a;
-    --term: #070d12;
-    color-scheme: dark;
-  }
-}
-:root[data-theme='dark'] {
-  --paper: #0d151c;
-  --sheet: #131e27;
-  --grid: rgba(120, 170, 225, 0.06);
-  --ink: #dbe6ee;
-  --muted: #8fa1b0;
-  --line: #26343f;
-  --accent: #7ea6ff;
-  --accent-soft: rgba(126, 166, 255, 0.14);
-  --stamp: #ff6f61;
-  --good: #4cc38a;
-  --warn: #e0a83a;
-  --term: #070d12;
   color-scheme: dark;
 }
+:root[data-theme='light'] {
+  /* ---- day shift ---- */
+  --paper: #eef2f4;
+  --sheet: #fbfcfd;
+  --sheet-2: #f4f7f9;
+  --grid: rgba(38, 86, 140, 0.07);
+  --grid-major: rgba(38, 86, 140, 0.1);
+  --ink: #15212d;
+  --muted: #55657a;
+  --line: #ccd6dd;
+  --line-strong: #b3c0ca;
+  --accent: #1d4fc4;
+  --accent-soft: rgba(29, 79, 196, 0.1);
+  --on-accent: #ffffff;
+  --on-status: #ffffff;
+  --stamp: #b52f26;
+  --good: #17703f;
+  --warn: #8c5800;
+  --term: #0f1922;
+  --term-edge: #0f1922;
+  --term-ink: #d5e1ea;
+  --term-dim: #8b9dac;
+  --term-prompt: #f2b53c;
+  --term-sys: #7fb7ff;
+  --term-err: #ff8a80;
+  --shadow: 0 1px 2px rgba(21, 33, 45, 0.04);
+  --shadow-hover: 0 8px 22px -14px rgba(21, 33, 45, 0.35);
+  --glow-accent: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent), 0 4px 14px -6px color-mix(in srgb, var(--accent) 45%, transparent);
+  --glow-warn: 0 0 0 2px color-mix(in srgb, var(--warn) 22%, transparent);
+  --glow-good: 0 0 0 2px color-mix(in srgb, var(--good) 22%, transparent);
+  --glow-stamp: none;
+  --room-glow: transparent;
+  color-scheme: light;
+}
+:root[data-theme='dark'] { color-scheme: dark; }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body {
   background-color: var(--paper);
   background-image:
+    radial-gradient(1100px 520px at 50% -160px, var(--room-glow, transparent), transparent 70%),
+    linear-gradient(var(--grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
     linear-gradient(var(--grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-size: 100% 100%, 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+  background-attachment: fixed, scroll, scroll, scroll, scroll;
   color: var(--ink);
   font: 15px/1.55 var(--body);
   min-height: 100vh;
@@ -108,8 +131,24 @@ nav.tabs a {
   border-radius: 8px;
   border: 1px solid transparent;
 }
-nav.tabs a:hover { color: var(--ink); border-color: var(--line); }
-nav.tabs a[aria-current='page'] { color: var(--ink); background: var(--sheet); border-color: var(--line); }
+nav.tabs a { position: relative; transition: color 0.18s var(--ease), border-color 0.18s var(--ease), background-color 0.18s var(--ease), box-shadow 0.25s var(--ease); }
+nav.tabs a:hover { color: var(--ink); border-color: var(--line); background: color-mix(in srgb, var(--sheet) 60%, transparent); }
+nav.tabs a[aria-current='page'] {
+  color: var(--ink);
+  background: var(--sheet);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  box-shadow: var(--glow-accent), inset 0 -2px 0 color-mix(in srgb, var(--warn) 85%, transparent);
+}
+/* the active tab carries a small amber status light in its corner */
+nav.tabs a[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  top: 4px; right: 4px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--warn);
+  box-shadow: var(--glow-warn);
+}
 
 main { max-width: 1240px; margin: 0 auto; padding: 18px 20px 60px; }
 
@@ -181,12 +220,12 @@ main { max-width: 1240px; margin: 0 auto; padding: 18px 20px 60px; }
   border-radius: 6px;
   padding: 2px 12px;
   transform: rotate(-9deg);
-  opacity: 0.88;
-  mix-blend-mode: multiply;
+  opacity: 0.92;
   pointer-events: none;
+  text-shadow: var(--glow-stamp);
+  box-shadow: var(--glow-stamp), inset 0 0 8px color-mix(in srgb, var(--stamp) 18%, transparent);
 }
-:root[data-theme='dark'] .stamp { mix-blend-mode: normal; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .stamp { mix-blend-mode: normal; } }
+:root[data-theme='light'] .stamp { mix-blend-mode: multiply; box-shadow: none; opacity: 0.88; }
 .stamp.fresh { animation: stamp 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both; }
 @keyframes stamp { from { transform: rotate(-9deg) scale(2.2); opacity: 0; } to { transform: rotate(-9deg) scale(1); opacity: 0.88; } }
 @media (prefers-reduced-motion: reduce) { .stamp.fresh { animation: none; } }
@@ -226,7 +265,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 18px 20px 60px; }
 .objs li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start; font-size: 14px; }
 .box { width: 18px; height: 18px; border: 1.5px solid var(--muted); border-radius: 4px; margin-top: 2px; display: grid; place-items: center; }
 .objs li.ok .box { background: var(--good); border-color: var(--good); }
-.objs li.ok .box::after { content: ''; width: 9px; height: 5px; border: 2px solid #fff; border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
+.objs li.ok .box::after { content: ''; width: 9px; height: 5px; border: 2px solid var(--on-status); border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
 .objs li.ok span { color: var(--muted); }
 
 .tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
@@ -243,9 +282,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 18px 20px 60px; }
   font-size: 14px;
 }
 .btn:hover { border-color: var(--accent); }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-:root[data-theme='dark'] .btn.primary { color: #0b1220; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .btn.primary { color: #0b1220; } }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+.btn.primary:hover:not(:disabled) { box-shadow: var(--glow-accent); filter: brightness(1.06); }
 .btn.quiet { color: var(--muted); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -389,7 +427,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
 .mapday .dttl a:hover { text-decoration: underline; }
 .mapday .dlinks { display: flex; flex-wrap: wrap; gap: 6px; }
 .mapday .dlinks a { text-decoration: none; }
-.mapday.done .dnum::after { content: ' ✓'; color: var(--ok, #2f7d4f); }
+.mapday.done .dnum::after { content: ' ✓'; color: var(--good); }
 .mapnote { margin: 0; font-size: 14px; }
 @media (max-width: 640px) { .mapday { grid-template-columns: 56px 1fr; } .mapday .dlinks { grid-column: 1 / -1; } }
 
@@ -417,7 +455,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
 .wl-link { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; }
 .wl-actions { display: flex; gap: 8px; align-items: center; margin: 12px 0; flex-wrap: wrap; }
 .wl-btn { border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 5px 12px; border-radius: 4px; cursor: pointer; font: inherit; }
-.wl-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.wl-btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
 .wl-form { display: grid; gap: 10px; max-width: 520px; }
 .wl-form label:not(.wl-cb) { display: grid; gap: 4px; font-weight: 600; font-size: 12px; }
 .wl-form input:not([type="checkbox"]):not([type="radio"]), .wl-form select, .wl-actions select { font: inherit; padding: 5px 7px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); color: var(--ink); max-width: 100%; }
@@ -442,3 +480,118 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
 .ready-row b { text-align: right; font-family: var(--mono); font-size: 13px; }
 .prog { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
 @media (max-width: 560px) { .ready-row { grid-template-columns: 1fr 48px; } .ready-row .bar { grid-column: 1 / -1; grid-row: 2; } }
+
+/* =====================================================================
+ * Night-shift polish: depth, motion, the theme toggle and status lights.
+ * Everything here reads the theme variables, so it works in both themes.
+ * ===================================================================== */
+.sheet, .card, .map, .wl-tasks, .wl-gui, details.portbox { box-shadow: var(--shadow); }
+.wordmark span { text-shadow: var(--glow-stamp); }
+
+/* smooth hover and focus on buttons and cards */
+.btn, .chip, .opt, .seg button, .devtabs button, .stub, .card, .search, .wl-btn, .wl-menu, .wl-tab, .wl-subtab, .wl-link,
+.qa input, .field input, .roadmap li, .mapday {
+  transition: border-color 0.18s var(--ease), background-color 0.18s var(--ease), color 0.18s var(--ease),
+    box-shadow 0.22s var(--ease), transform 0.22s var(--ease), filter 0.18s var(--ease);
+}
+.btn:hover:not(:disabled) { border-color: var(--accent); background-color: var(--sheet-2); }
+.btn.primary:hover:not(:disabled) { background-color: var(--accent); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn:focus-visible, .chip:focus-visible, .opt:focus-visible, .seg button:focus-visible, .devtabs button:focus-visible,
+.stub:focus-visible, .wl-btn:focus-visible, .wl-menu:focus-visible, nav.tabs a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: var(--glow-accent);
+}
+.chip:hover { border-color: color-mix(in srgb, var(--accent) 60%, var(--line)); color: var(--ink); }
+.chip[aria-pressed='true']:hover { color: var(--accent); }
+.card:hover, .stub:hover { box-shadow: var(--shadow-hover); }
+.card:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
+.stub[aria-current='true'] { box-shadow: 0 0 0 1px var(--accent) inset, var(--glow-accent); }
+.opt:hover:not(:disabled) { background: var(--sheet-2); }
+.mapday:hover { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+.qa input:focus, .field input:focus, .search:focus, .fc-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.search, .qa input, .field input { color: var(--ink); }
+.search::placeholder, input::placeholder { color: color-mix(in srgb, var(--muted) 80%, transparent); }
+.term-help kbd { background: var(--sheet-2); }
+
+/* the console sits in the room instead of floating on it */
+.term { box-shadow: inset 0 0 0 1px var(--term-edge), 0 18px 40px -26px rgba(0, 0, 0, 0.9); }
+.term:focus-within { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--term-prompt) 35%, var(--term-edge)), 0 0 0 2px color-mix(in srgb, var(--accent) 55%, transparent); }
+.devtabs button[aria-selected='true'] { box-shadow: inset 0 2px 0 var(--term-prompt); text-shadow: 0 0 8px color-mix(in srgb, var(--term-prompt) 45%, transparent); }
+.devtabs button:hover:not([aria-selected='true']) { color: var(--ink); border-color: var(--line-strong); }
+.term .out .p, .term .line .p { text-shadow: 0 0 6px color-mix(in srgb, var(--term-prompt) 30%, transparent); }
+:root[data-theme='light'] .term .out .p, :root[data-theme='light'] .term .line .p,
+:root[data-theme='light'] .devtabs button[aria-selected='true'] { text-shadow: none; }
+
+/* status pills light up a little at night */
+.pill.p1 { box-shadow: 0 0 10px -4px color-mix(in srgb, var(--stamp) 70%, transparent); }
+.debrief { box-shadow: 0 0 24px -14px color-mix(in srgb, var(--good) 60%, transparent); }
+
+/* ---------- theme toggle (injected by theme.js) ---------- */
+.mast { position: relative; }
+.tt-hud { display: flex; align-items: center; gap: 12px; align-self: flex-start; margin-left: auto; min-height: 42px; }
+.cr-hud + .tt-hud { margin-left: -10px; }
+.tt-onshift { display: inline-flex; align-items: center; gap: 7px; font: 500 11.5px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.tt-theme {
+  display: inline-grid; place-items: center;
+  width: 40px; height: 40px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--sheet);
+  color: var(--warn);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: border-color 0.18s var(--ease), color 0.18s var(--ease), box-shadow 0.25s var(--ease), transform 0.25s var(--ease);
+}
+.tt-theme svg { width: 20px; height: 20px; display: block; }
+.tt-theme:hover { border-color: var(--accent); color: var(--accent); box-shadow: var(--glow-accent); }
+.tt-theme:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: var(--glow-accent); }
+.tt-theme:active { transform: scale(0.94); }
+:root[data-theme='light'] .tt-theme { color: var(--accent); }
+@media (max-width: 600px) {
+  .tt-hud { position: absolute; top: 14px; right: 14px; margin: 0; min-height: 0; }
+  .tt-onshift { display: none; }
+  .brand { padding-right: 52px; }
+}
+
+/* ---------- "live" status lights ----------
+ * Any element with class live-dot (or tt-live) is a small glowing status LED that breathes slowly.
+ * Add .warn or .bad for amber or red. Pair it with text: color is never the only signal. */
+.live-dot, .tt-live {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--good);
+  box-shadow: var(--glow-good);
+  flex: none;
+  animation: tt-live 2.8s ease-in-out infinite;
+}
+.live-dot.warn, .tt-live.warn { background: var(--warn); box-shadow: var(--glow-warn); }
+.live-dot.bad, .tt-live.bad { background: var(--stamp); box-shadow: var(--glow-stamp); }
+@keyframes tt-live {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.82); }
+}
+
+/* ---------- hardware lab drawings (hardware.js uses a few fixed fills) ---------- */
+:root:not([data-theme='light']) .topo svg rect[fill='#c9d2d8'] { fill: #2a394b; }
+:root:not([data-theme='light']) .topo svg text[fill='#2f7fd8'] { fill: var(--term-sys); }
+:root:not([data-theme='light']) .topo svg [stroke='#5b6b78'] { stroke: #9aabbb; }
+:root:not([data-theme='light']) .topo svg [stroke='#7a4fd1'] { stroke: #a688f2; }
+:root:not([data-theme='light']) .topo svg [stroke='#2f7fd8'], :root:not([data-theme='light']) .opt svg [stroke='#2f7fd8'] { stroke: #5c9df0; }
+:root:not([data-theme='light']) .opt svg [stroke='#5b6b78'] { stroke: #9aabbb; }
+:root:not([data-theme='light']) .opt svg [stroke='#7a4fd1'] { stroke: #a688f2; }
+:root:not([data-theme='light']) .topo svg [stroke='#a86a00'], :root:not([data-theme='light']) .opt svg [stroke='#a86a00'] { stroke: #dc9a2e; }
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot, .tt-live { animation: none; }
+  .btn, .chip, .opt, .seg button, .devtabs button, .stub, .card, .tt-theme, nav.tabs a, .mapday { transition: none; }
+  .btn:active:not(:disabled), .tt-theme:active { transform: none; }
+}
+@media (max-width: 600px) { nav.tabs a { padding: 9px 12px; } }
