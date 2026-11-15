@@ -69,6 +69,251 @@
    * 1.0 NETWORK FUNDAMENTALS
    * ================================================================ */
 
+  /* ---------- 1.0 primer: the layer models (not a blueprint objective) ---------- */
+  // `show ip interface brief` rows padded the way IOS prints them
+  const sipib = (i, ip, m, s, p) => i.padEnd(23) + ip.padEnd(16) + 'YES ' + m.padEnd(7) + s.padEnd(22) + p;
+  const SIPIB_HEAD = 'Interface'.padEnd(23) + 'IP-Address'.padEnd(16) + 'OK? Method Status'.padEnd(33) + 'Protocol';
+  const encapRow = (y, name, parts) => {
+    let out = t(12, y + 22, name, 'ls-b', 'start');
+    for (const [x, w, label, cls, sub] of parts) out += box(x, y, w, 36, label, cls, sub);
+    return out;
+  };
+  const DATA = [380, 180, 'HTTP GET', 'ls-box', 'the actual message'];
+  const TCPH = [300, 80, 'TCP', 'ls-goodf', 'ports'];
+  const IPH = [220, 80, 'IPv4', 'ls-accf', 'IPs, TTL'];
+  const ETHH = [140, 80, 'Ethernet', 'ls-warnf', 'MACs, Type'];
+  const FCS = [560, 70, 'FCS', 'ls-warnf', 'trailer'];
+
+  L.push({
+    id: 'l1-0',
+    obj: '1.0',
+    primer: true, // foundation lesson: not a numbered v1.1 objective, but every objective assumes it
+    domain: 'fund',
+    title: 'The layers: how a message gets wrapped for the trip',
+    minutes: 16,
+    caseFile:
+      "Your first ticket of the night just says \"the internet is down at dispatch.\" Kenji reads it over your shoulder, sets down his coffee and asks one question: \"Down at which layer?\" You don't have an answer yet. By the end of this lesson you will, and so will every ticket after it, because every later lesson is really about one or two of these layers.",
+    sections: [
+      {
+        h: 'Why networking comes in layers',
+        body: [
+          'Getting a web page from a server to a dispatcher\'s screen involves a dozen separate problems: which program gets the data, how to recover lost pieces, how to find a path across networks, how to reach the next box on this cable, how to turn ones and zeros into voltage. A **layer model** gives each problem its own layer, with one job, so a change in one layer does not ripple through the others. Wi-Fi can replace copper and your browser never notices.',
+          'Two rules hold the whole thing together:',
+          {
+            list: [
+              '**Same-layer interaction**: a layer on one device talks to the **same** layer on the other device, using the header it adds. PC1\'s TCP writes a sequence number; the server\'s TCP reads it. Nothing in between needs to understand it.',
+              '**Adjacent-layer interaction**: on one device, each layer serves the layer above it and uses the layer below. TCP hands its segment down to IP to deliver; IP hands its packet down to Ethernet to put on the wire.',
+            ],
+          },
+          'There are two models you need: **OSI**, the seven-layer reference model everyone uses for vocabulary ("that is a Layer 2 problem"), and **TCP/IP**, the model the actual internet protocols were built on. Same ideas, different number of boxes.',
+        ],
+      },
+      {
+        h: 'The seven OSI layers',
+        body: [
+          'Read this table from the bottom up, because that is the order a signal arrives in.',
+          {
+            table: [
+              ['#', 'Layer', 'Its job', 'Examples', 'Gear that works here'],
+              ['7', '**Application**', 'The network services programs use', 'HTTP/HTTPS, DNS, DHCP, SSH, SMTP, SNMP, FTP', 'Hosts and servers; NGFWs inspect it'],
+              ['6', '**Presentation**', 'Data format: encoding, compression, encryption', 'ASCII/UTF-8, JPEG, MPEG; TLS is often filed here', 'Hosts'],
+              ['5', '**Session**', 'Opens, manages and closes conversations between programs', 'RPC, NetBIOS sessions', 'Hosts'],
+              ['4', '**Transport**', 'Host-to-host delivery to the right program: ports, segmenting, reliability', 'TCP, UDP', 'Hosts; stateful firewalls track it'],
+              ['3', '**Network**', 'Logical addressing and finding a path across networks', 'IPv4, IPv6, ICMP, OSPF, EIGRP', 'Routers, Layer 3 switches'],
+              ['2', '**Data Link**', 'Delivery across one link or LAN: framing, MAC addresses, error detection', 'Ethernet (802.3), Wi-Fi (802.11), 802.1Q, PPP, HDLC, STP', 'Switches, bridges, NICs, APs'],
+              ['1', '**Physical**', 'Bits as signals: voltage, light, radio; cables, connectors, speed and duplex', '1000BASE-T, RJ45, single-mode fiber, 802.11 radio', 'Hubs, repeaters, cables, transceivers'],
+            ],
+          },
+          'Layers 5, 6 and 7 are the **upper layers**: they live inside the software on the end hosts. Layers 1 to 4 are where network engineers spend their nights. Layer 2 is sometimes split into two sublayers, **LLC** on top and **MAC** underneath.',
+          { note: 'A Harbor Point way to remember the order. From Layer 1 up: **Pallets Dock Nightly; Trucks Shuttle Parcels Away** (Physical, Data Link, Network, Transport, Session, Presentation, Application). From Layer 7 down: **Any Parcel Shipped Tonight Needs Dock Paperwork.** Pick one direction and drill it until you can write the layers in ten seconds.' },
+        ],
+      },
+      {
+        h: 'The TCP/IP model: four layers, sometimes five',
+        body: [
+          'The TCP/IP model (RFC 1122) folds OSI into four layers. **Application** covers OSI 5, 6 and 7, because real protocols like HTTP handle their own formatting and sessions. **Transport** is OSI 4. **Internet** is OSI 3. **Link** (also called Network Access or Network Interface) covers OSI 1 and 2.',
+          'Many textbooks, Cisco\'s included, use a **five-layer** version that splits Link back into Data Link and Physical, and calls Internet "Network". Exam questions can use either; the mapping below is what they test.',
+          {
+            svg: svg(
+              640,
+              320,
+              'OSI seven layers mapped to the four-layer TCP/IP model and the five-layer variant',
+              t(115, 24, 'OSI (7)', 'ls-b') + t(325, 24, 'TCP/IP (4)', 'ls-b') + t(530, 24, 'TCP/IP, 5-layer view', 'ls-b') +
+                ['7 Application', '6 Presentation', '5 Session', '4 Transport', '3 Network', '2 Data Link', '1 Physical']
+                  .map((n, i) => box(20, 40 + i * 38, 190, 34, n, i < 3 ? 'ls-goodf' : i === 3 ? 'ls-accf' : i === 4 ? 'ls-warnf' : 'ls-dev'))
+                  .join('') +
+                box(240, 40, 170, 110, 'Application', 'ls-goodf', 'HTTP, DNS, SSH') +
+                box(240, 154, 170, 34, 'Transport', 'ls-accf') +
+                box(240, 192, 170, 34, 'Internet', 'ls-warnf') +
+                box(240, 230, 170, 72, 'Link', 'ls-dev', 'Ethernet, Wi-Fi') +
+                box(440, 40, 180, 110, 'Application', 'ls-goodf') +
+                box(440, 154, 180, 34, 'Transport', 'ls-accf') +
+                box(440, 192, 180, 34, 'Network', 'ls-warnf') +
+                box(440, 230, 180, 34, 'Data Link', 'ls-dev') +
+                box(440, 268, 180, 34, 'Physical', 'ls-dev') +
+                ln(210, 95, 240, 95, 'ls-thin ls-dash') + ln(410, 95, 440, 95, 'ls-thin ls-dash')
+            ),
+            caption: 'Same stack, three ways of drawing it. The colors line up the layers that match.',
+          },
+        ],
+      },
+      {
+        h: 'PDUs: what the thing is called at each layer',
+        body: [
+          'The unit of data a layer works with is its **protocol data unit (PDU)**. The exam uses these words precisely, so you should too.',
+          {
+            table: [
+              ['Layer', 'PDU', 'What makes it that'],
+              ['5-7 (Application)', '**Data**', 'The message itself: an HTTP request, a DNS query'],
+              ['4 (Transport)', '**Segment** (TCP) or **datagram** (UDP)', 'Data plus a TCP or UDP header with port numbers'],
+              ['3 (Network)', '**Packet**', 'Segment plus an IP header with source and destination IP'],
+              ['2 (Data Link)', '**Frame**', 'Packet plus a header with MAC addresses **and a trailer** (the FCS)'],
+              ['1 (Physical)', '**Bits**', 'The frame as signals on copper, glass or air'],
+            ],
+          },
+          'Down the stack, in order: **data, segment, packet, frame, bits.** A switch forwards frames. A router forwards packets. If a question says a router "forwards frames", read it again.',
+        ],
+      },
+      {
+        h: 'Encapsulation, one header at a time',
+        body: [
+          'When dispatch PC1 (10.20.30.15) asks the web server HPL-WEB01 (10.20.60.80) for a page, each layer wraps what it got from the layer above in its own header. That is **encapsulation**:',
+          {
+            steps: [
+              '**Application**: the browser creates `GET /status`. That is the data.',
+              '**Transport**: TCP adds a header with source port 49732 (a random ephemeral port) and destination port 80, plus sequence and acknowledgment numbers. Now it is a segment.',
+              '**Network**: IP adds a header with source 10.20.30.15, destination 10.20.60.80, Protocol 6 (TCP) and a TTL. Now it is a packet.',
+              '**Data Link**: Ethernet adds a header (destination MAC, source MAC, Type 0x0800 for IPv4) **and** a 4-byte FCS trailer so the receiver can detect corruption. Now it is a frame. This is the only layer that adds a trailer.',
+              '**Physical**: the NIC sends the frame as bits, after a preamble that lets the receiver lock on to the signal.',
+            ],
+          },
+          {
+            svg: svg(
+              660,
+              262,
+              'Encapsulation: data, then a TCP header makes a segment, an IP header makes a packet, an Ethernet header and FCS trailer make a frame, and the frame is sent as bits',
+              encapRow(6, 'Data', [DATA]) +
+                encapRow(56, 'Segment', [TCPH, DATA]) +
+                encapRow(106, 'Packet', [IPH, TCPH, DATA]) +
+                encapRow(156, 'Frame', [ETHH, IPH, TCPH, DATA, FCS]) +
+                t(12, 228, 'Bits', 'ls-b', 'start') +
+                `<rect x="140" y="206" width="490" height="36" rx="6" class="ls-box"/>` +
+                t(385, 229, '10110100 01011100 00101101 ...', 'ls-mono ls-t-mut') +
+                arrow(648, 14, 648, 240, 'ls-acc') +
+                t(642, 254, 'down the stack', 'ls-sm ls-t-mut', 'end')
+            ),
+            caption: 'Each layer wraps the one above it. Only Layer 2 adds something at the end as well as the front.',
+          },
+          '**De-encapsulation** is the same thing in reverse. The receiver checks the FCS and its own MAC, strips the frame; checks the destination IP, strips the packet; reads the destination port to find the program, strips the segment; and hands the data to the web server. Each layer reads only its own header, then passes the rest up.',
+          'In between, devices only open as many layers as they need. A switch reads the frame header and forwards. A router strips the frame, reads the packet, then builds a **new** frame for the next link. Watch it happen in the scene at the top of this lesson.',
+        ],
+      },
+      {
+        h: 'Three addresses, three layers',
+        body: [
+          'Every frame you send carries three kinds of address, and each one answers a different question.',
+          {
+            table: [
+              ['Address', 'Layer', 'Answers', 'Example', 'Changes at a router?'],
+              ['**Port number**', '4', 'Which program on that host?', 'TCP 80, UDP 53', 'No (unless NAT/PAT rewrites it)'],
+              ['**IP address**', '3', 'Which host, on which network, end to end?', '10.20.60.80', 'No (unless NAT rewrites it)'],
+              ['**MAC address**', '2', 'Which device on this link is next?', '0050.7966.0a15', '**Yes, every routed hop**'],
+            ],
+          },
+          'That last column is the exam favorite. The IP addresses describe the whole trip, so they stay put. The MAC addresses describe only the current hop, so each router throws away the old frame and writes new source and destination MACs. The router also lowers the TTL by one and, because the frame is new, calculates a new FCS.',
+          'This is also why PC1 needs ARP. To reach a server in another subnet, PC1 puts the server\'s IP in the packet but its **default gateway\'s** MAC in the frame. Lesson [1.13](#learn-l1-13) covers how switches use those MACs, and [1.5](#learn-l1-5) covers ports, TCP and UDP.',
+        ],
+      },
+      {
+        h: 'Which box works at which layer',
+        body: [
+          'A device "works at" the highest layer it reads to make its forwarding decision. Lesson [1.1](#learn-l1-1) covers each box in detail; here is the layer view.',
+          {
+            list: [
+              '**Hub (Layer 1)**: repeats bits out every other port. It understands no addresses at all.',
+              '**Switch (Layer 2)**: forwards frames by destination MAC using its MAC address table. An **access point** is also a Layer 2 device: it bridges 802.11 frames onto 802.3 Ethernet.',
+              '**Router (Layer 3)**: forwards packets by destination IP using its routing table, and rebuilds the frame at every hop.',
+              '**Layer 3 switch (Layers 2 and 3)**: switches frames inside a VLAN and routes packets between VLANs, both in hardware.',
+              '**Firewall (Layers 3 and 4, and up to 7)**: a classic stateful firewall filters on IPs, protocols and ports and tracks sessions. A **next-generation firewall** reads all the way up to Layer 7, so it can tell one application from another even when both use TCP 443.',
+            ],
+          },
+          'Hosts (PCs, servers, phones) run all seven layers, because they are where the data starts and ends.',
+        ],
+      },
+      {
+        h: 'Troubleshoot from the bottom up',
+        body: [
+          'Every layer depends on the one below it, so a fault low in the stack looks like a fault everywhere above it. "The internet is down" can be a cut cable. The fast, honest method is **bottom-up**: prove Layer 1, then 2, then 3, and only then blame the application.',
+          'Cisco hands you the first two layers in one command. In `show ip interface brief`, the **Status** column is roughly Layer 1 (is the port enabled, and is there a signal?) and the **Protocol** column is Layer 2 (is the line protocol up: keepalives, matching encapsulation?).',
+          {
+            cli: [
+              'HPL-BR2-R1# show ip interface brief',
+              SIPIB_HEAD,
+              sipib('GigabitEthernet0/0/0', '10.40.1.1', 'NVRAM', 'up', 'up'),
+              sipib('GigabitEthernet0/0/1', '10.40.2.1', 'NVRAM', 'down', 'down'),
+              sipib('GigabitEthernet0/0/2', 'unassigned', 'NVRAM', 'administratively down', 'down'),
+              sipib('Serial0/1/0', '10.255.0.6', 'NVRAM', 'up', 'down'),
+            ],
+          },
+          {
+            table: [
+              ['Status / Protocol', 'What it means', 'Look at'],
+              ['up / up', 'Layers 1 and 2 are fine', 'Move up: IP address, mask, gateway, routing (Layer 3)'],
+              ['down / down', 'No usable signal', 'Layer 1: cable, far-end port, transceiver, speed. (An err-disabled switch port also shows down/down.)'],
+              ['administratively down / down', 'Someone typed `shutdown`', 'Type `no shutdown`, after finding out why it was shut'],
+              ['up / down', 'Signal is there, but Layer 2 will not come up', 'Layer 2: on serial links, an HDLC vs PPP encapsulation mismatch or failed keepalives'],
+            ],
+          },
+          'Once both columns say up, step up the stack: does the host have the right IP, mask and gateway, and does a ping to the gateway work (Layer 3)? Is an ACL or firewall blocking the port (Layer 4)? Does the name resolve and does the service answer (Layer 7)? Skip a layer and you will spend an hour on DNS while the cable sits unplugged.',
+        ],
+      },
+    ],
+    techNotes: [
+      'Say the layer in your ticket notes: "L1: replaced patch cable on Fa0/12" tells the morning shift exactly what you proved and what you did not.',
+      'A successful ping proves Layers 1 to 3 end to end. It says nothing about Layer 4 and up, so "ping works but the web page does not load" points you at ports, ACLs, firewalls or the service itself.',
+      'When someone says "Layer 2 issue" they nearly always mean switching: VLANs, trunks, STP, MAC table or port security. "Layer 3" means addressing and routing.',
+    ],
+    examTraps: [
+      'Only Layer 2 adds a trailer (the FCS). Layers 3 and 4 add headers only.',
+      'At every routed hop the source and destination **MAC** addresses change; the source and destination **IP** addresses do not (unless NAT is involved). The TTL drops by one.',
+      'TCP\'s PDU is a segment; UDP\'s is a datagram. The Layer 3 PDU is a packet, the Layer 2 PDU is a frame.',
+      'The four-layer TCP/IP model\'s Application layer covers OSI Layers 5, 6 and 7, and its Link (Network Access) layer covers OSI 1 and 2.',
+      'up/down on `show ip interface brief` is a Layer 2 problem, not Layer 1: the Status column already says the physical side is up.',
+    ],
+    tryIt: [
+      {
+        device: 'router',
+        mode: 'priv',
+        prompt: 'Start at the bottom. Read the Status column (Layer 1) and the Protocol column (Layer 2) for each interface: one is up/up, one is administratively down. Then look at the Layer 3 view, the routing table.',
+        cmds: ['show ip interface brief', 'show ip route'],
+      },
+      {
+        device: 'pc',
+        mode: 'priv',
+        prompt: 'From LAB-PC1, check the Layer 3 settings, then ping the gateway. A reply proves Layers 1, 2 and 3 all work between the PC and the router.',
+        cmds: ['ipconfig', 'ping 10.10.10.1'],
+      },
+      {
+        device: 'switch',
+        mode: 'priv',
+        prompt: 'The switch only ever looks at Layer 2. See which MAC addresses it has learned and which port each one lives on. There is not an IP address in sight.',
+        cmds: ['show mac address-table'],
+      },
+      {
+        device: 'router',
+        mode: 'priv',
+        prompt: 'The router\'s ARP table is the glue between Layer 3 and Layer 2: each neighbor\'s IP address next to the MAC address the router will put in the frame.',
+        cmds: ['show arp'],
+      },
+    ],
+    check: [
+      ['Which layer adds both a header and a trailer to the data it receives from the layer above?', ['Transport', 'Network', 'Data Link', 'Physical'], 2, 'The Data Link layer adds a header with MAC addresses and an FCS trailer for error detection. Transport and Network add headers only, and the Physical layer sends bits.'],
+      ['PC1 sends a packet to a server in another subnet through one router. Compared with the frame PC1 sent, what is different in the frame the router sends toward the server?', ['The source and destination IP addresses', 'The source and destination MAC addresses (and the TTL in the packet is one lower)', 'The TCP source and destination ports', 'Nothing; the router forwards the original frame unchanged'], 1, 'A router strips the incoming frame and builds a new one with its own exit-interface MAC as the source and the next device\'s MAC as the destination. The IP addresses and ports stay the same without NAT; the TTL is decremented.'],
+      ['`show ip interface brief` shows Serial0/1/0 with Status up and Protocol down. Where should you look first?', ['Layer 1: the cable is unplugged', 'Layer 2: an encapsulation mismatch or keepalive problem on the link', 'Layer 3: a wrong IP address', 'Layer 7: the application server is down'], 1, 'Status up means the physical side has a signal. Protocol down means the data link layer is not coming up, commonly an HDLC/PPP encapsulation mismatch or failed keepalives. A wrong IP address does not bring the line protocol down.'],
+    ],
+    related: { tickets: ['t01'], cards: ['osi', 'ethernet', 'tcp', 'ipv4hdr'], hw: null, drill: false },
+  });
+
   L.push({
     id: 'l1-1',
     obj: '1.1',
@@ -82,7 +327,7 @@
         h: 'Every box decides something',
         body: [
           'The easiest way to keep network devices straight is to ask one question about each: **what does it look at to make its decision, and what does it decide?** A switch looks at MAC addresses and decides which port a frame leaves from. A router looks at IP addresses and decides which network a packet goes to next. A firewall looks at addresses, ports, sessions and even applications, and decides whether the traffic is allowed at all.',
-          'Here is the Harbor Point HQ network you just inherited. Read it from the top (the internet) down to the people.',
+          'If "Layer 2" and "Layer 3" are not second nature yet, read the [1.0 primer on the layers](#learn-l1-0) first. Here is the Harbor Point HQ network you just inherited. Read it from the top (the internet) down to the people.',
           {
             svg: svg(
               640,

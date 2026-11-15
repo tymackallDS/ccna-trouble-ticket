@@ -81,6 +81,8 @@
     const lessons = (TT.lessons || []).slice().sort((a, b) => cmpObj(a.obj, b.obj)).map((l) => ({
       id: l.id, obj: l.obj, domain: l.domain || domOf(l.obj)[1], title: l.title, minutes: Math.max(5, Number(l.minutes) || 15),
       scenes: scenesFor(l.id).map((s) => ({ id: s.id, title: s.title, minutes: Math.max(5, Math.min(12, Math.round(((s.steps && s.steps.length) || 6) * 1.2))) })),
+      // flashcard decks that drill this lesson (flashDecks[].lesson), e.g. the OSI deck with the 1.0 layers primer
+      decks: (TT.flashDecks || []).filter((d) => d && d.lesson === l.id).map((d) => d.id),
     }));
     const objs = new Set(lessons.map((l) => l.obj));
     const ticketObjs = {};
@@ -276,7 +278,7 @@
       for (let i = 0; i < nights.length; i++) {
         const n = nights[i];
         const lastNight = i === nights.length - 1;
-        const target = Math.max(left / (nights.length - i), Math.min(B, B * 0.8));
+        const target = Math.max(left / (nights.length - i), B * 0.9);
         const fits = (m) => lastNight || !n.items.length || n.minutes + m <= target + 8;
         const put = (x) => { n.items.push(x); n.minutes += x.minutes; left -= x.minutes; if (!n.domain) n.domain = x.domain || null; };
         while (queue.length && queue[0].eligible <= i && fits(queue[0].item.minutes)) put(queue.shift().item);
@@ -296,18 +298,27 @@
 
     // flashcards fill spare minutes on learning nights; empty nights become buffer nights
     const turn = {};
+    const lessonById = Object.fromEntries(cat.lessons.map((l) => [l.id, l]));
     const learnNights = packed.nights.map((n, i) => {
       const date = learnDates[i];
       const items = n.items.slice();
       let minutes = n.minutes;
+      // a deck tied to a lesson (flashDecks[].lesson, e.g. OSI with the 1.0 primer) takes that night's flashcard slot
+      const tied = [];
+      for (const x of items) if (x.kind === 'lesson') for (const d of (lessonById[x.id] || {}).decks || []) if (!tied.includes(d)) tied.push(d);
+      for (const d of tied) {
+        const f = Object.assign(flashItem(cat, d, Math.max(MIN.flashMin, Math.min(MIN.flash, B - minutes)), date), { lesson: items.find((x) => x.kind === 'lesson' && (lessonById[x.id].decks || []).includes(d)).id });
+        items.push(f);
+        minutes += f.minutes;
+      }
       if (!items.length) {
         items.push(flashItem(cat, 'due', Math.min(MIN.flash, B), date));
         if (B - MIN.flash >= 20) items.push(weakItem(date, Math.min(MIN.weak, B - MIN.flash)));
         return { date, phase: 'buffer', domain: null, items, minutes: items.reduce((m, x) => m + x.minutes, 0) };
       }
       const spare = B - minutes;
-      if (spare >= MIN.flashMin && n.domain && DECKS[n.domain]) {
-        const list = DECKS[n.domain].filter((d) => !Object.keys(cat.decks).length || cat.decks[d]);
+      if (!tied.length && spare >= MIN.flashMin && n.domain && DECKS[n.domain]) {
+        const list = DECKS[n.domain].filter((d) => (!Object.keys(cat.decks).length || cat.decks[d]) && !items.some((x) => x.kind === 'flash' && x.id === d));
         if (list.length) {
           const t = (turn[n.domain] = (turn[n.domain] || 0));
           turn[n.domain] = t + 1;

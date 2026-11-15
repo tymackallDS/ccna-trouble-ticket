@@ -20,6 +20,112 @@
   const sub = (target, s) => ({ do: 'label', target, sub: s });
   const nw = (cells) => ({ new: true, cells });
 
+  /* ------------------------------------------------------------------ 1.0 primer: encapsulation */
+  const STACK_DOWN = ['Layer', 'Adds', 'PDU'];
+  const L7 = ['7 HTTP', 'GET /status', 'data'];
+  const PHY = ['1 Physical', 'preamble + signal', 'bits'];
+  const L4 = ['4 TCP', 'ports 49732 > 80', 'segment'];
+  const L3 = ['3 IPv4', '.30.15 > .60.80, TTL', 'packet'];
+  const L2 = ['2 Ether', 'MACs + FCS trailer', 'frame'];
+  const encapsulation = {
+    id: 'sc-encapsulation',
+    lesson: 'l1-0',
+    obj: '1.0',
+    title: 'Wrapped, switched, rewrapped: one web request down and up the stack',
+    summary: 'PC1 asks a web server for a page. Watch each layer add its header, the switch read only the frame, and the router swap the frame while the packet rides through.',
+    stage: { w: 720, h: 360 },
+    actors: [
+      { id: 'PC1', kind: 'pc', x: 70, y: 270, label: 'PC1', sub: '10.20.30.15' },
+      { id: 'SW1', kind: 'switch', x: 230, y: 270, label: 'SW1', sub: 'dispatch' },
+      { id: 'R1', kind: 'router', x: 450, y: 270, label: 'R1', sub: '.30.1 | .60.1' },
+      { id: 'SRV', kind: 'server', x: 650, y: 270, label: 'HPL-WEB01', sub: '10.20.60.80' },
+    ],
+    links: [
+      { id: 'L1', a: 'PC1', b: 'SW1', kind: 'eth', label: 'Fa0/5' },
+      { id: 'L2', a: 'SW1', b: 'R1', kind: 'eth', label: 'Gi0/1 > Gi0/0' },
+      { id: 'L3', a: 'R1', b: 'SRV', kind: 'eth', label: 'Gi0/1' },
+    ],
+    steps: [
+      {
+        caption: 'PC1 opens `http://10.20.60.80/status`. The TCP handshake is already done, so the browser hands `GET /status` to the stack. At Layer 7 it is just **data**: no addresses yet.',
+        actions: [hl('PC1'), badge('PC1', 'data'), table('PC1', 'Going down the stack', STACK_DOWN, [nw(L7)], 'top')],
+      },
+      {
+        caption: 'Transport adds a **TCP header**: source port 49732 (a random ephemeral port) and destination port 80. Ports name the program at each end. Data plus TCP header is a **segment**.',
+        actions: [badge('PC1', 'segment', 'good'), table('PC1', 'Going down the stack', STACK_DOWN, [L7, nw(L4)], 'top')],
+      },
+      {
+        caption: 'Network adds an **IPv4 header**: source 10.20.30.15, destination 10.20.60.80, Protocol 6 (TCP), TTL 128. The server is on another subnet, so this **packet** goes to the default gateway, R1.',
+        actions: [badge('PC1', 'packet'), table('PC1', 'Going down the stack', STACK_DOWN, [L7, L4, nw(L3)], 'top'), hl('R1', 'muted')],
+      },
+      {
+        caption: "Data Link adds an **Ethernet header** (destination MAC = R1 Gi0/0, found by ARP; source = PC1; Type 0x0800) and an **FCS trailer**. Now it is a **frame**. Layer 2 is the only layer that adds a trailer.",
+        actions: [badge('PC1', 'frame', 'warn'), table('PC1', 'Going down the stack', STACK_DOWN, [L7, L4, L3, nw(L2)], 'top')],
+      },
+      {
+        caption: 'Physical turns the frame into **bits**: voltage changes on the copper, led by a preamble so the far end can sync. The frame leaves PC1 for SW1, the first box on this link.',
+        actions: [badge('PC1', 'bits', 'warn'), table('PC1', 'Going down the stack', STACK_DOWN, [L7, L4, L3, L2, nw(PHY)], 'top'), pk('PC1', 'SW1', 'bits', { tone: 'warn' })],
+      },
+      {
+        caption: "SW1 reads only the **Ethernet header**. It learns PC1's MAC on Fa0/5, finds R1's MAC on Gi0/1 and forwards the frame out that port **unchanged**. It never looks at the IP addresses.",
+        actions: [
+          hide('PC1'),
+          badge('PC1', null),
+          table('SW1', 'show mac address-table', ['Vlan', 'Mac Address', 'Ports'], [nw(['30', '0050.7966.0a15', 'Fa0/5']), ['30', '00a3.d1f4.0001', 'Gi0/1']], 'top'),
+          badge('SW1', 'L2 only', 'muted'),
+          pk('SW1', 'R1', 'same frame', { tone: 'warn' }),
+        ],
+      },
+      {
+        caption: 'R1 checks the FCS, sees its own MAC, and **strips the frame**. Then it reads the destination IP and does a **route lookup**: 10.20.60.0/24, connected on Gi0/1. It lowers the TTL to 127. Ports and HTTP are not its business.',
+        actions: [
+          hide('SW1'),
+          hl('R1'),
+          badge('R1', 'packet'),
+          table('R1', 'show ip route (excerpt)', ['Code', 'Network', 'Out'], [['C', '10.20.30.0/24', 'Gi0/0'], nw(['C', '10.20.60.0/24', 'Gi0/1']), ['S*', '0.0.0.0/0', 'via 10.20.0.1']], 'top'),
+        ],
+      },
+      {
+        caption: "R1 builds a **brand-new frame** for the next link: source MAC = R1 Gi0/1, destination MAC = HPL-WEB01 (from R1's ARP cache), fresh FCS. The IP addresses inside have not changed.",
+        actions: [
+          badge('R1', 'new frame', 'warn'),
+          table('R1', 'Frame in vs frame out', ['Field', 'In on Gi0/0', 'Out Gi0/1'], [
+            nw(['Dst MAC', 'R1 Gi0/0', 'HPL-WEB01']),
+            nw(['Src MAC', 'PC1', 'R1 Gi0/1']),
+            ['Src IP', '10.20.30.15', '10.20.30.15'],
+            ['Dst IP', '10.20.60.80', '10.20.60.80'],
+            nw(['TTL', '128', '127']),
+          ], 'top'),
+          pk('R1', 'SRV', 'new frame', { tone: 'warn', delay: 600 }),
+        ],
+      },
+      {
+        caption: 'HPL-WEB01 de-encapsulates all the way up. Its own MAC: strip the frame. Its own IP, Protocol 6: strip the packet, hand it to TCP. Port 80: strip the segment, hand it to the web server, which finally reads `GET /status`.',
+        actions: [
+          hide('R1'),
+          badge('R1', null),
+          hl('SRV', 'good'),
+          table('SRV', 'Going up the stack', ['Layer', 'Checks', 'Leaves'], [
+            ['2 Ethernet', 'dst MAC is mine, FCS ok', 'packet'],
+            ['3 IPv4', 'dst IP is mine, proto 6', 'segment'],
+            ['4 TCP', 'dst port 80', 'data'],
+            nw(['7 HTTP', 'GET /status', 'page!']),
+          ], 'top'),
+          badge('SRV', 'HTTP', 'good'),
+        ],
+      },
+      {
+        caption: 'The reply, **HTTP 200 OK**, makes the same trip backwards: port 80 to 49732, IP 10.20.60.80 to 10.20.30.15. R1 rewrites the frame again; SW1 just switches it. Layer 2 changes every hop; Layer 3 rides end to end.',
+        actions: [
+          hide('SRV'),
+          via(['SRV', 'R1', 'SW1', 'PC1'], '200 OK', { tone: 'good', labels: ['frame to R1', 'new frame to PC1', 'same frame'] }),
+          hl('PC1', 'good'),
+        ],
+      },
+    ],
+    takeaway: 'Each layer adds its own header on the way down and reads only its own header on the way up; a switch reads the frame, a router swaps the frame but keeps the packet, and only the end hosts open the segment and data.',
+  };
+
   /* ------------------------------------------------------------------ 1.13 */
   const MAC = ['Vlan', 'Mac Address', 'Type', 'Ports'];
   const A = ['1', 'aaaa.0000.000a', 'DYNAMIC', 'Fa0/1'];
@@ -857,5 +963,5 @@
     takeaway: 'Telnet sends usernames, passwords and commands in cleartext; SSH encrypts the whole session, so use SSH version 2 and `transport input ssh` on the vty lines.',
   };
 
-  TT.scenes.push(macLearning, arp, tcpUdp, duplex, privateNat, slaac, wifi, vswitch, dot1q, cdp, ether, stp, capwap, ssh);
+  TT.scenes.push(encapsulation, macLearning, arp, tcpUdp, duplex, privateNat, slaac, wifi, vswitch, dot1q, cdp, ether, stp, capwap, ssh);
 })(typeof globalThis !== 'undefined' ? globalThis : window);

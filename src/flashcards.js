@@ -15,7 +15,7 @@
     { id: 'protocols', name: 'Protocols', blurb: 'What each protocol does and the facts the exam pokes at.' },
     { id: 'defaults', name: 'Defaults and timers', blurb: 'AD values, timers, priorities, costs, ranges.' },
     { id: 'commands', name: 'IOS commands', blurb: 'Task to command, and command to meaning.' },
-    { id: 'osi', name: 'OSI and layers', blurb: 'Layers, PDUs, and who works where.' },
+    { id: 'osi', name: 'OSI and layers', blurb: 'Layers, PDUs, and who works where.', lesson: 'l1-0' }, // drills the 1.0 primer; plan.js schedules it with that lesson
     { id: 'subnetting', name: 'Subnetting and IPv6', blurb: 'Masks, block sizes, host counts, ranges, IPv6 prefixes.' },
     { id: 'wireless', name: 'Wireless', blurb: 'Bands, channels, RF behavior, WLC and AP modes.' },
     { id: 'security', name: 'Security', blurb: 'Threats, AAA, ACLs, Layer 2 security, VPNs, Wi-Fi security.' },
@@ -639,7 +639,7 @@
     { id: 'fc-0613', deck: 'osi', domain: 'fund', obj: '1.5', front: 'OSI Layer 5', back: 'Session' },
     { id: 'fc-0614', deck: 'osi', domain: 'fund', obj: '1.5', front: 'OSI Layer 6', back: 'Presentation', extra: 'Encoding, encryption, compression.' },
     { id: 'fc-0615', deck: 'osi', domain: 'fund', obj: '1.5', front: 'OSI Layer 7', back: 'Application' },
-    { id: 'fc-0616', deck: 'osi', domain: 'fund', obj: '1.5', front: 'OSI mnemonic, layer 1 up', back: 'Please Do Not Throw Sausage Pizza Away' },
+    { id: 'fc-0616', deck: 'osi', domain: 'fund', obj: '1.5', front: 'OSI mnemonic, layer 1 up', back: 'Pallets Dock Nightly; Trucks Shuttle Parcels Away', extra: 'Physical, Data Link, Network, Transport, Session, Presentation, Application. Top down: Any Parcel Shipped Tonight Needs Dock Paperwork. Any mnemonic works if it sticks.', accept: ['physical data link network transport session presentation application'] },
     { id: 'fc-0617', deck: 'osi', domain: 'fund', obj: '1.5', front: 'PDU at Layer 2', back: 'Frame' },
     { id: 'fc-0618', deck: 'osi', domain: 'fund', obj: '1.5', front: 'PDU at Layer 3', back: 'Packet' },
     { id: 'fc-0619', deck: 'osi', domain: 'fund', obj: '1.5', front: 'PDU at Layer 4 (TCP)', back: 'Segment' },

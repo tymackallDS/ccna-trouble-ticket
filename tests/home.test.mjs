@@ -77,12 +77,13 @@ test('Clock in: plan first, then the first unfinished lesson in blueprint order,
     TT.plan = { tonight: () => ({ href: '#lab-ospf', label: 'OSPF lab' }) };
     assert.equal(H.clockIn({}).href, '#lab-ospf');
     TT.plan = { tonight: () => null };
-    assert.equal(H.clockIn({}).href, '#learn-l1-1');
-    assert.equal(H.clockIn({ lessons: { done: { 'l1-1': true } } }).href, '#learn-l1-2');
+    assert.equal(H.clockIn({}).href, '#learn-l1-0', 'a new user starts on the 1.0 layers primer');
+    assert.equal(H.clockIn({ lessons: { done: { 'l1-0': true } } }).href, '#learn-l1-1');
+    assert.equal(H.clockIn({ lessons: { done: { 'l1-0': true, 'l1-1': true } } }).href, '#learn-l1-2');
     const all = Object.fromEntries(TT.lessons.map((l) => [l.id, true]));
     assert.equal(H.clockIn({ lessons: { done: all } }).href, '#tickets');
     TT.plan = { tonight: () => { throw new Error('boom'); } };
-    assert.equal(H.clockIn({}).href, '#learn-l1-1');
+    assert.equal(H.clockIn({}).href, '#learn-l1-0');
   } finally { TT.plan = saved; }
 });
 

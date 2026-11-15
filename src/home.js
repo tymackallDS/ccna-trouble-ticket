@@ -17,7 +17,7 @@
   const ROOMS = [
     {
       id: 'training', name: 'Training Room', short: 'Training',
-      line: 'Read the binder: every v1.1 objective in plain English, with animated scenes.',
+      line: 'Read the binder: a primer on the layers, then every v1.1 objective in plain English, with animated scenes.',
       subs: [
         { id: 'lessons', label: 'Lessons', href: '#learn', view: 'learn' },
         { id: 'scenes', label: 'Watch it happen', href: '#scenes', view: 'learn' },

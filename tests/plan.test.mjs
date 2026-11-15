@@ -270,8 +270,8 @@ test('career hook: the pager prefers tonight\'s shift, and on-time nights pay XP
   const n = plan.nights[0];
   const tonight = { date: n.date, isToday: true, items: n.items, item: n.items[0], href: n.items[0].href, label: `${n.items[0].title} (+${n.items.length - 1} more)` };
   const t = C.nextTask(st, C.catalog(), 'learn', tonight);
-  assert.equal(t.href, '#learn-l1-1');
-  assert.match(t.line, /^Tonight's shift: Lesson 1\.1 .+ \(\+\d+ more\)$/);
+  assert.equal(t.href, '#learn-l1-0');
+  assert.match(t.line, /^Tonight's shift: Lesson 1\.0 .+ \(\+\d+ more\)$/);
   assert.equal(C.nextTask(st, C.catalog(), 'tickets', null).kind, 'ticket', 'no plan: the old behaviour');
   const later = C.nextTask(st, C.catalog(), 'tickets', Object.assign({}, tonight, { isToday: false, date: '2026-11-17' }));
   assert.match(later.line, /^Next shift Tue, Nov 17: /);
@@ -284,4 +284,23 @@ test('career hook: the pager prefers tonight\'s shift, and on-time nights pay XP
   assert.equal(C.compute(C.normalize({}, '2026-11-20')).breakdown.shifts, 0);
   const ev = C.events({ breakdown: { shifts: 0 } }, r1, C.normalize(raw, '2026-11-20'), C.catalog());
   assert.ok(ev.some((e) => e.kind === 'shift' && e.xp === 80));
+});
+
+test('the 1.0 primer goes first, with its scene and the OSI deck on the same night', () => {
+  assert.equal(cat.lessons[0].id, 'l1-0');
+  assert.deepEqual(cat.lessons[0].decks, ['osi']);
+  for (const [name, s] of spans) {
+    const plan = P.build(s, {});
+    const first = plan.nights.find((n) => n.items.some((x) => x.kind === 'lesson'));
+    assert.equal(first.items.find((x) => x.kind === 'lesson').id, 'l1-0', name);
+    const x = first.items.filter((i) => i.lesson === 'l1-0').map((i) => i.key);
+    assert.ok(x.includes('scene:sc-encapsulation'), `${name}: scene with the primer`);
+    assert.ok(x.includes('flash:osi:' + first.date), `${name}: OSI deck with the primer`);
+    assert.ok(first.items.filter((i) => i.kind === 'flash').length === 1, `${name}: one flashcard slot that night`);
+  }
+  // done primer: neither the lesson nor its deck is planned again
+  const later = P.build(mk(60), { lessons: { 'l1-0': true } });
+  assert.ok(!all(later).some((x) => x.id === 'l1-0' || x.lesson === 'l1-0'));
+  // checkpoints stay one per domain: the primer adds no checkpoint of its own
+  assert.equal(all(P.build(mk(60), {})).filter((x) => x.kind === 'checkpoint').length, 6);
 });

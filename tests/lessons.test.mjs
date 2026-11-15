@@ -21,6 +21,9 @@ const validObj = (o) => {
   const m = /^([1-6])\.(\d{1,2})$/.exec(o);
   return !!m && Number(m[2]) >= 1 && Number(m[2]) <= OBJ_COUNT[m[1]];
 };
+// Foundation primers (primer: true) sit before a domain's first objective as <domain>.0. They are not
+// blueprint objectives, so TT.blueprint stays at 53 while the lesson count is 54.
+const validLessonObj = (l) => (l.primer === true ? /^[1-6]\.0$/.test(l.obj) : validObj(l.obj));
 const ticketIds = new Set(TT.tickets.map((t) => t.id));
 const cardIds = new Set(TT.cards.map((c) => c.id));
 const domainIds = new Set(TT.domains.map((d) => d.id));
@@ -62,7 +65,7 @@ test('inline markup escapes HTML and renders only the allowed tags', () => {
 for (const l of lessons) {
   test(`${l.id} "${l.title}" has the required fields`, () => {
     assert.match(l.id, /^l[1-6]-\d{1,2}$/);
-    assert.ok(validObj(l.obj), `bad objective ${l.obj}`);
+    assert.ok(validLessonObj(l), `bad objective ${l.obj}`);
     assert.equal(l.id, 'l' + l.obj.replace('.', '-'), 'id must match objective');
     assert.equal(l.domain, DOMAIN_OF[l.obj.split('.')[0]], 'domain must match the objective number');
     assert.ok(domainIds.has(l.domain), `unknown domain ${l.domain}`);
@@ -135,3 +138,27 @@ for (const l of lessons) {
     }
   });
 }
+
+test('the 1.0 layers primer: first in the binder, not a blueprint objective, with its scene and deck', async () => {
+  await import('../src/course.js');
+  await import('../src/scenes.js');
+  await import('../src/scenes-1.js');
+  await import('../src/flashcards.js');
+  const p = lessons.find((l) => l.id === 'l1-0');
+  assert.ok(p, 'lesson l1-0 exists');
+  assert.equal(p.obj, '1.0');
+  assert.equal(p.primer, true);
+  assert.equal(p.domain, 'fund');
+  assert.equal(lessons.filter((l) => l.primer).length, 1, 'one primer so far');
+  if (hasPart2) assert.equal(lessons.length, 54, '53 objective lessons plus the primer');
+  const objKey = (o) => o.split('.').map(Number);
+  const sorted = lessons.slice().sort((a, b) => { const x = objKey(a.obj); const y = objKey(b.obj); return x[0] - y[0] || x[1] - y[1]; });
+  assert.equal(sorted[0].id, 'l1-0', 'sorts ahead of 1.1');
+  assert.ok(!TT.blueprint.some(([o]) => o === '1.0'), 'the blueprint does not list 1.0');
+  for (const l of lessons.filter((x) => !x.primer)) assert.ok(TT.blueprint.some(([o]) => o === l.obj), `${l.id} maps to a blueprint objective`);
+  assert.deepEqual(TT.scenesFor('l1-0').map((s) => s.id), ['sc-encapsulation']);
+  assert.equal((TT.flashDecks.find((d) => d.id === 'osi') || {}).lesson, 'l1-0');
+  const text = JSON.stringify(p).toLowerCase();
+  for (const bit of ['segment', 'datagram', 'packet', 'frame', 'bits', 'trailer', 'fcs', 'same-layer', 'adjacent-layer', 'rfc 1122', 'five-layer', 'hub', 'next-generation firewall', 'administratively down']) assert.ok(text.includes(bit), `primer covers ${bit}`);
+  assert.ok(!/please do not throw/i.test(text) && !/all people seem/i.test(text), 'the mnemonic is our own');
+});
