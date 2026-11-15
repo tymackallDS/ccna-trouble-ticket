@@ -1,5 +1,7 @@
 /* Trouble Ticket — user interface.
- * Views: #tickets (and #t01..#t06), #drill, #guide, #quiz, #progress
+ * Views: #home (the default), #tickets (and #t01..#t23), #drill, #guide, #quiz, #progress, #map, #plan,
+ * plus the module views (#learn, #lab, #exam, #flash, #hardware). TT.rooms.parse (home.js) maps a hash
+ * to its view, and to the room and sub-tab that light up in the header.
  */
 (function (G) {
   'use strict';
@@ -64,25 +66,112 @@
   };
   const module = (fnName, name, what) => (arg) => (typeof TT[fnName] === 'function' ? TT[fnName]($('#main'), arg || {}) : soon(name, what)());
   const views = {
-    learn: module('renderLessons', 'Learn', 'The lesson library'),
+    home: () => (typeof TT.renderHome === 'function' ? TT.renderHome($('#main')) : renderTickets()),
+    learn: (arg) => {
+      module('renderLessons', 'Learn', 'The lesson library')(arg);
+      // #scenes: the lesson index, scrolled to its "Watch it happen" gallery
+      if (arg && arg.gallery) {
+        const gal = $('#main .sc-gallery');
+        if (gal) { gal.style.scrollMarginTop = '12px'; gal.scrollIntoView({ block: 'start' }); const h = $('h3', gal); if (h) { h.tabIndex = -1; h.style.outline = 'none'; h.focus({ preventScroll: true }); } }
+      }
+    },
     lab: module('renderSandbox', 'Lab', 'The network lab sandbox'),
     exam: module('renderExam', 'Mock exam', 'The mock exam'),
     flash: module('renderFlashcards', 'Flashcards', 'The flashcard trainer'),
-    tickets: renderTickets, map: renderMap, drill: renderDrill, hardware: (tab) => TT.renderHardware($('#main'), tab), guide: renderGuide, quiz: renderQuiz, progress: renderProgress };
+    plan: () => (typeof TT.renderPlan === 'function' ? TT.renderPlan($('#main')) : renderPlanSoon()),
+    tickets: renderTickets, map: renderMap, drill: renderDrill, hardware: (tab) => TT.renderHardware($('#main'), tab), guide: () => renderGuide($('#main'), { page: true }), quiz: renderQuiz, progress: renderProgress };
+  function renderPlanSoon() {
+    $('#main').innerHTML = `<div class="sheet" style="max-width:640px"><p class="label">Shift Record · Study plan</p><h2 style="margin:6px 0">Kenji is still writing the rota</h2><p>The study plan will turn the exam date you pick into one short assignment a night. It is not on the board yet.</p><p>Until then, <a href="#progress">Progress</a> shows the next lesson or ticket to work on.</p></div>`;
+  }
+
+  /* ---------------- rooms navigation (the rooms and their views come from TT.rooms, home.js) ---------------- */
+  const ROOMS = (TT.rooms && TT.rooms.list) || [];
+  function buildNav() {
+    const nav = $('nav.rooms');
+    if (!nav || !ROOMS.length || nav.dataset.built) return;
+    nav.dataset.built = '1';
+    nav.innerHTML = `<ul class="rooms-row">${ROOMS.map((r) => `<li><a class="room" href="${r.subs[0].href}" data-room="${r.id}">${TT.rooms.icon(r.id)}<span class="room-l">${esc(r.name)}</span><span class="room-s" aria-hidden="true">${esc(r.short)}</span></a></li>`).join('')}</ul>`;
+    // phones show the short label; keep the full room name as the accessible name
+    $$('a.room', nav).forEach((a) => a.setAttribute('aria-label', ROOMS.find((r) => r.id === a.dataset.room).name));
+    for (const row of [nav, $('nav.subtabs')]) if (row) row.addEventListener('keydown', arrowKeys);
+    const fm = $('#fm-btn');
+    if (fm) fm.addEventListener('click', (e) => {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const v = TT.rooms.parse(G.location.hash).view;
+      if (v === 'guide' || typeof HTMLDialogElement === 'undefined') return; // already on the Field Manual page
+      e.preventDefault();
+      openManual();
+    });
+  }
+  // Left and Right move between the links of one row, Home and End jump to its ends.
+  function arrowKeys(e) {
+    const links = $$('a', e.currentTarget);
+    const i = links.indexOf(doc.activeElement);
+    if (i < 0) return;
+    const to = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: links.length - 1 }[e.key];
+    if (to === undefined) return;
+    e.preventDefault();
+    links[(to + links.length) % links.length].focus();
+  }
+  function markNav(p) {
+    $$('nav.rooms a.room').forEach((a) => { if (a.dataset.room === p.room) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current'); });
+    const sub = $('nav.subtabs');
+    const r = ROOMS.find((x) => x.id === p.room);
+    if (sub) {
+      if (!r) { sub.hidden = true; sub.innerHTML = ''; sub.removeAttribute('data-room'); }
+      else {
+        if (sub.dataset.room !== r.id) {
+          sub.dataset.room = r.id;
+          sub.setAttribute('aria-label', r.name + ' views');
+          sub.innerHTML = `<span class="sub-room" aria-hidden="true">${esc(r.name)}</span><ul>${r.subs.map((s) => `<li><a href="${s.href}" data-sub="${s.id}">${esc(s.label)}</a></li>`).join('')}</ul>`;
+        }
+        sub.hidden = false;
+        $$('a', sub).forEach((a) => { if (a.dataset.sub === p.sub) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+      }
+    }
+    const fm = $('#fm-btn');
+    if (fm) { if (p.sub === 'guide') fm.setAttribute('aria-current', 'page'); else fm.removeAttribute('aria-current'); }
+    doc.body.dataset.view = p.view;
+  }
+
+  /* ---------------- the Field Manual drawer ---------------- */
+  let drawer = null;
+  function openManual() {
+    if (!drawer) {
+      drawer = doc.createElement('dialog');
+      drawer.className = 'fm-drawer';
+      drawer.setAttribute('aria-labelledby', 'fm-h');
+      drawer.innerHTML = `<div class="fm-panel">
+          <div class="fm-head">${TT.rooms.icon('manual', 'fm-ico')}<h2 id="fm-h">Field Manual</h2>
+            <a class="btn quiet fm-page" href="#guide">Open as a page</a>
+            <button type="button" class="fm-close" aria-label="Close the Field Manual"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
+          <div class="fm-body"></div></div>`;
+      doc.body.appendChild(drawer);
+      $('.fm-close', drawer).addEventListener('click', () => drawer.close());
+      $('.fm-page', drawer).addEventListener('click', () => drawer.close());
+      // a click on the dimmed backdrop (the dialog box itself, outside the panel) closes it
+      drawer.addEventListener('click', (e) => { if (e.target === drawer) drawer.close(); });
+      // Escape always closes (a search box would otherwise spend the first press clearing itself)
+      drawer.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); drawer.close(); } });
+    }
+    guideState.only = null;
+    renderGuide($('.fm-body', drawer));
+    drawer.showModal();
+    const s = $('.search', drawer);
+    if (s) s.focus();
+  }
+
   function route() {
-    let h = (G.location.hash || '').replace('#', '');
-    let ticketId = null;
-    if (TT.tickets.byId[h]) { ticketId = h; h = 'tickets'; }
-    else if (h.startsWith('card-')) { guideState = { domain: 'all', q: '', only: h.slice(5) }; h = 'guide'; }
-    else if (h.startsWith('hw-')) { ticketId = h.slice(3); h = 'hardware'; }
-    else if (h.startsWith('scene-')) { ticketId = { scene: h.slice(6) }; h = 'learn'; }
-    else if (h.startsWith('learn-')) { ticketId = { id: h.slice(6) }; h = 'learn'; }
-    else if (h.startsWith('lab-')) { ticketId = { project: h.slice(4) }; h = 'lab'; }
-    else if (h.startsWith('flash-')) { ticketId = { deck: h.slice(6) }; h = 'flash'; }
-    else if (h === 'guide' && guideState.only) guideState.only = null;
-    if (!views[h]) h = 'tickets';
-    $$('nav.tabs a').forEach((a) => a.setAttribute('aria-current', a.dataset.view === h ? 'page' : 'false'));
-    views[h](ticketId);
+    const P = TT.rooms ? TT.rooms.parse(G.location.hash) : { view: 'tickets', arg: null };
+    // the front door has a name of its own, so the default (empty) hash reads as #home
+    if (!G.location.hash && P.view === 'home' && G.history && G.history.replaceState) {
+      try { G.history.replaceState(null, '', '#home'); } catch (e) { /* file:// in some browsers: fine without it */ }
+    }
+    if (drawer && drawer.open) drawer.close();
+    if (P.view === 'guide') guideState = P.arg && P.arg.card ? { domain: 'all', q: '', only: P.arg.card } : Object.assign(guideState, { only: null });
+    const view = views[P.view] ? P.view : 'home';
+    markNav(P);
+    views[view](P.arg);
   }
 
   /* ======================================================================
@@ -678,37 +767,43 @@
     $$('[data-mv]').forEach((b) => b.addEventListener('click', () => { store.mapView = b.dataset.mv; save(); renderMap(); }));
   }
 
-  function renderGuide() {
-    $('#main').innerHTML = `
+  /* The Field Manual draws into any container: the #guide page, or the header's slide-over drawer.
+   * Every query is scoped to that container, so the two never reach into each other. */
+  function renderGuide(root, opt) {
+    root = root || $('#main');
+    const page = !!(opt && opt.page);
+    const sid = page ? 'gsearch' : 'fm-gsearch';
+    root.innerHTML = `
+      ${page ? `<div class="fm-pagehead">${TT.rooms ? TT.rooms.icon('manual', 'fm-ico') : ''}<div><p class="label">Field Manual</p><h2>Protocol cards, exam traps and port numbers</h2></div></div>` : ''}
       <div class="guide-top">
         <div class="chips" role="group" aria-label="Exam domain">
           <button class="chip" type="button" data-d="all" aria-pressed="${guideState.domain === 'all'}">All topics</button>
           ${TT.domains.map((d) => `<button class="chip" type="button" data-d="${d.id}" aria-pressed="${guideState.domain === d.id}">${esc(d.name)}</button>`).join('')}
         </div>
-        <label class="sr" for="gsearch">Search the guide</label>
-        <input class="search" id="gsearch" type="search" placeholder="Search: ospf, 161, dhcp..." value="${esc(guideState.q)}">
+        <label class="sr" for="${sid}">Search the Field Manual</label>
+        <input class="search" id="${sid}" type="search" placeholder="Search: ospf, 161, dhcp..." value="${esc(guideState.q)}">
       </div>
       <details class="portbox"><summary>Port numbers to memorize (${TT.ports.length})</summary>
         <table class="ports"><thead><tr><th>Protocol</th><th>Transport</th><th>Port</th></tr></thead><tbody>
         ${TT.ports.map(([n, tr, p]) => `<tr><td>${n}</td><td>${tr}</td><td>${p}</td></tr>`).join('')}
         </tbody></table></details>
-      <div class="cards" id="cards"></div>`;
-    $$('.chip').forEach((c) => c.addEventListener('click', () => { guideState.domain = c.dataset.d; renderGuide(); }));
-    $('#gsearch').addEventListener('input', (e) => { guideState.q = e.target.value; drawCards(); });
-    drawCards();
+      <div class="cards"${page ? ' id="cards"' : ''}></div>`;
+    $$('.chip[data-d]', root).forEach((c) => c.addEventListener('click', () => { guideState.domain = c.dataset.d; renderGuide(root, opt); const b = $(`.chip[data-d="${c.dataset.d}"]`, root); if (b) b.focus(); }));
+    $('.search', root).addEventListener('input', (e) => { guideState.q = e.target.value; drawCards(root); });
+    drawCards(root);
   }
-  function drawCards() {
+  function drawCards(root) {
     const q = guideState.q.trim().toLowerCase();
     if (guideState.only) {
       const c1 = TT.cards.filter((c) => c.id === guideState.only);
-      if (c1.length) { renderCardList(c1); $('#cards').insertAdjacentHTML('afterbegin', '<p class="mapnote" style="grid-column:1/-1">Showing one card. <a href="#guide">See all cards</a></p>'); return; }
+      if (c1.length) { renderCardList(root, c1); $('.cards', root).insertAdjacentHTML('afterbegin', '<p class="mapnote" style="grid-column:1/-1">Showing one card. <a href="#guide">See all cards</a></p>'); return; }
     }
     const list = TT.cards.filter((c) => (guideState.domain === 'all' || c.domain === guideState.domain) && (!q || [c.name, c.summary, c.ports, c.trap, ...c.facts].join(' ').toLowerCase().includes(q)));
-    renderCardList(list);
+    renderCardList(root, list);
   }
-  function renderCardList(list) {
+  function renderCardList(root, list) {
     const dn = Object.fromEntries(TT.domains.map((d) => [d.id, d.name]));
-    $('#cards').innerHTML = list.length
+    $('.cards', root).innerHTML = list.length
       ? list.map((c) => `
         <article class="card">
           <h3>${esc(c.name)}</h3>
@@ -719,7 +814,7 @@
           <div><button class="btn" type="button" data-quiz="${c.id}">Quiz me on this (${c.q.length})</button></div>
         </article>`).join('')
       : '<p>No cards match that search.</p>';
-    $$('[data-quiz]').forEach((b) => b.addEventListener('click', () => { startQuiz({ card: b.dataset.quiz }); G.location.hash = 'quiz'; }));
+    $$('[data-quiz]', root).forEach((b) => b.addEventListener('click', () => { startQuiz({ card: b.dataset.quiz }); G.location.hash = 'quiz'; }));
   }
 
   /* ======================================================================
@@ -893,5 +988,6 @@
 
   /* ---------------- boot ---------------- */
   G.addEventListener('hashchange', () => { doc.onkeydown = null; route(); });
+  buildNav();
   route();
 })(window);

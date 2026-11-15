@@ -1,0 +1,234 @@
+/* Trouble Ticket: the front door (#home).
+ * The hero is a window into the 2 a.m. NOC, so it stays a night scene in both themes; its text uses
+ * fixed light-on-dark colors that are checked against the art. Everything below the hero reads the
+ * theme variables. */
+.hm { display: grid; gap: 34px; }
+
+/* ---------- hero ---------- */
+.hm-hero {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #070b15;
+  border: 1px solid var(--line);
+  box-shadow: 0 30px 60px -40px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(130, 180, 255, 0.04) inset;
+  height: clamp(460px, calc((min(100vw, 1240px) - 40px) / 2), 600px);
+  isolation: isolate;
+}
+:root[data-theme='light'] .hm-hero { box-shadow: 0 24px 50px -30px rgba(21, 33, 45, 0.55); border-color: #1d2a3d; }
+.hm-art { position: absolute; inset: 0; z-index: 0; }
+.hm-art .hx { display: block; width: 100%; height: 100%; }
+.hm-hero::after {
+  /* the scrim that keeps the copy readable over the art */
+  content: '';
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(4, 7, 14, 0.94) 0%, rgba(4, 7, 14, 0.82) 24%, rgba(4, 7, 14, 0.35) 38%, rgba(4, 7, 14, 0) 46%),
+    linear-gradient(0deg, rgba(4, 7, 14, 0.55) 0%, rgba(4, 7, 14, 0) 22%);
+}
+.hm-copy {
+  position: relative; z-index: 2;
+  height: 100%;
+  width: min(46%, 520px);
+  padding: clamp(24px, 4vw, 48px);
+  display: flex; flex-direction: column; justify-content: center; gap: 14px;
+  color: #e9eff6;
+}
+.hm-kicker {
+  margin: 0;
+  display: inline-flex; align-items: center; gap: 9px;
+  font: 500 12px var(--mono); letter-spacing: 0.08em; text-transform: uppercase;
+  color: #a6b8cb;
+}
+.hm-kicker .live-dot { background: #4fd394; box-shadow: 0 0 6px rgba(79, 211, 148, 0.7), 0 0 14px rgba(79, 211, 148, 0.3); }
+.hm-title {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(54px, 7.4vw, 104px);
+  line-height: 0.86;
+  letter-spacing: 0.015em;
+  text-transform: uppercase;
+  color: #f1f5f9;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.6);
+}
+.hm-title span { display: block; color: #ff6f63; text-shadow: 0 0 22px rgba(255, 111, 99, 0.35), 0 2px 24px rgba(0, 0, 0, 0.6); }
+.hm-pitch { margin: 0; font-size: clamp(15.5px, 1.45vw, 18.5px); line-height: 1.5; color: #cdd8e4; max-width: 36ch; text-wrap: pretty; }
+.hm-back:empty { display: none; }
+.hm-back { display: grid; gap: 10px; }
+.hm-welcome { margin: 0; font-weight: 600; font-size: 15px; color: #f4c76a; }
+.hm-welcome span { font: 500 12px var(--mono); color: #a6b8cb; margin-left: 6px; letter-spacing: 0.04em; }
+
+/* the pager-style "tonight" card */
+.hm-pager {
+  display: flex; align-items: stretch; gap: 10px;
+  max-width: 400px;
+  padding: 8px;
+  border-radius: 12px;
+  background: #1a202d;
+  border: 1px solid #343f57;
+  box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.18s var(--ease), box-shadow 0.22s var(--ease), transform 0.22s var(--ease);
+}
+.hm-pager:hover { border-color: #f4b648; box-shadow: 0 0 0 1px rgba(244, 182, 72, 0.4), 0 10px 24px -14px rgba(0, 0, 0, 0.9); }
+.hm-pager:focus-visible { outline: 2px solid #f4b648; outline-offset: 2px; }
+.hm-pager-lcd {
+  flex: 1; min-width: 0;
+  display: grid; gap: 1px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #b4e488, #9fd273);
+  color: #142a0c;
+  font-family: var(--mono);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+.hm-pager-tag { font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; }
+.hm-pager-msg { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hm-pager-line { font-size: 12px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.hm-pager-go { align-self: center; padding: 0 6px; font: 600 13px var(--body); color: #f4c76a; white-space: nowrap; }
+
+.hm-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 4px; }
+.hm-cta {
+  display: inline-flex; align-items: center; gap: 10px;
+  min-height: 48px;
+  padding: 12px 24px 12px 20px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffc65e, #f2ab32);
+  color: #1d1303;
+  font: 700 17px var(--body);
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  border: 1px solid #ffd27e;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 10px 28px -10px rgba(244, 182, 72, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  transition: transform 0.2s var(--ease), box-shadow 0.25s var(--ease), filter 0.2s var(--ease);
+}
+.hm-cta:hover { filter: brightness(1.06); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 14px 34px -10px rgba(244, 182, 72, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.5); transform: translateY(-1px); }
+.hm-cta:active { transform: translateY(1px); }
+.hm-cta:focus-visible { outline: 3px solid #f1f5f9; outline-offset: 3px; }
+.hm-cta-why { font-size: 13px; color: #a6b8cb; max-width: 28ch; }
+
+/* ---------- what's on this shift ---------- */
+.hm-shift-h { font-family: var(--display); font-weight: 800; font-size: 30px; letter-spacing: 0.02em; text-transform: uppercase; margin: 0 0 14px; }
+.hm-rooms { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+.hm-room {
+  height: 100%;
+  display: grid; grid-template-rows: auto auto 1fr auto; gap: 8px;
+  padding: 18px 18px 16px;
+  border-radius: var(--radius);
+  background: var(--sheet);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+  text-decoration: none;
+  transition: border-color 0.18s var(--ease), box-shadow 0.22s var(--ease), transform 0.22s var(--ease);
+}
+.hm-room:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+.hm-room:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: var(--glow-accent); }
+.hm-room-ico { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 10px; background: var(--accent-soft); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
+.hm-room-ico svg { width: 24px; height: 24px; }
+.hm-room-name { font-weight: 600; font-size: 16px; }
+.hm-room-line { font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+.hm-room-num { display: grid; gap: 4px; padding-top: 10px; border-top: 1px dashed var(--line); font-size: 13px; color: var(--muted); }
+.hm-room-num b { font-family: var(--display); font-weight: 800; font-size: 30px; line-height: 1; color: var(--ink); letter-spacing: 0.02em; margin-right: 2px; }
+.hm-room-num small { font-size: 12.5px; }
+.hm-foot { margin: 16px 0 0; display: flex; align-items: flex-start; gap: 10px; color: var(--muted); font-size: 14px; }
+.hm-foot-ico { width: 20px; height: 20px; flex: none; color: var(--accent); }
+
+@media (max-width: 1100px) { .hm-rooms { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 980px) {
+  .hm-copy { width: min(58%, 520px); }
+  .hm-hero::after { background: linear-gradient(90deg, rgba(4, 7, 14, 0.95) 0%, rgba(4, 7, 14, 0.85) 36%, rgba(4, 7, 14, 0.4) 52%, rgba(4, 7, 14, 0) 62%); }
+}
+/* phones: the art on top (cropped to the desk and the window), the copy beneath it */
+@media (max-width: 760px) {
+  .hm { gap: 26px; }
+  .hm-hero { height: auto; display: flex; flex-direction: column; }
+  .hm-art { position: relative; inset: auto; aspect-ratio: 5 / 4; }
+  .hm-hero::after { display: none; }
+  .hm-copy { width: auto; height: auto; padding: 18px 18px 22px; gap: 12px; border-top: 1px solid #1a2436; }
+  .hm-k2 { display: none; }
+  .hm-shift-h { font-size: 26px; line-height: 1.05; }
+  .hm-title { font-size: clamp(52px, 16vw, 76px); }
+  .hm-pager { max-width: none; }
+  .hm-rooms { grid-template-columns: 1fr; gap: 10px; }
+  .hm-room { grid-template-columns: 42px 1fr auto; grid-template-rows: auto auto; gap: 2px 14px; padding: 14px; align-items: center; }
+  .hm-room-ico { grid-row: 1 / span 2; }
+  .hm-room-line { grid-column: 2; font-size: 13px; }
+  .hm-room-num { grid-column: 3; grid-row: 1 / span 2; border: 0; padding: 0; text-align: right; }
+  .hm-room-num b { font-size: 26px; }
+  .hm-room-num small { display: none; }
+}
+@media (max-width: 420px) {
+  .hm-room { grid-template-columns: 42px 1fr; }
+  .hm-room-num { grid-column: 2; grid-row: auto; text-align: left; display: block; }
+  .hm-room-num b { font-size: 22px; }
+}
+
+/* ---------- ambient motion in the art ---------- */
+.hx .hx-tw { animation: hx-twinkle 5.5s ease-in-out infinite; }
+.hx .hx-led { animation: hx-led 2.4s steps(1, end) infinite; }
+.hx .hx-led.fast { animation-duration: 0.9s; }
+.hx .hx-led.slow { animation: hx-breathe 3.6s ease-in-out infinite; }
+.hx .hx-beacon { animation: hx-beacon 2.2s ease-in-out infinite; }
+.hx .hx-beacon.b2 { animation-delay: -1.1s; }
+.hx .hx-cursor { animation: hx-cursor 1.05s steps(1, end) infinite; }
+.hx .hx-ref { transform-box: fill-box; transform-origin: 50% 0; animation: hx-ref 5s ease-in-out infinite; }
+.hx .hx-dash { transform-box: fill-box; animation: hx-dash 6s ease-in-out infinite; }
+.hx .hx-moonref { transform-box: fill-box; transform-origin: 50% 0; animation: hx-ref 7s ease-in-out infinite; }
+.hx .hx-pkt { animation: hx-pkt 4.8s linear infinite; }
+.hx .hx-taxi { transform: translate(560px, 256px); animation: hx-taxi 46s linear infinite; }
+.hx .hx-alert { animation: hx-alert 1.8s ease-in-out infinite; }
+.hx .hx-pager { transform-box: fill-box; transform-origin: 50% 50%; animation: hx-buzz 11s linear infinite; }
+.hx .hx-lcd { opacity: 0.28; animation: hx-lcd 11s linear infinite; }
+.hx .hx-pagetxt { opacity: 0.25; animation: hx-lcd 11s linear infinite; }
+.hx .hx-pglow { opacity: 0; animation: hx-glow 11s linear infinite; }
+.hx .hx-buzz { opacity: 0; animation: hx-glow 11s linear infinite; }
+.hx .hx-pled { animation: hx-led 1.2s steps(1, end) infinite; }
+
+@keyframes hx-twinkle { 0%, 100% { opacity: 0.85; } 50% { opacity: 0.2; } }
+@keyframes hx-led { 0%, 62% { opacity: 1; } 63%, 78% { opacity: 0.18; } 79%, 100% { opacity: 1; } }
+@keyframes hx-breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+@keyframes hx-beacon { 0%, 55%, 100% { opacity: 0.15; } 60%, 80% { opacity: 1; } }
+@keyframes hx-cursor { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+@keyframes hx-ref { 0%, 100% { transform: scaleY(1); opacity: 1; } 50% { transform: scaleY(0.82); opacity: 0.7; } }
+@keyframes hx-dash { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
+@keyframes hx-pkt {
+  0% { cx: 565px; cy: 318px; opacity: 0; }
+  4% { opacity: 1; }
+  30% { cx: 520px; cy: 348px; }
+  65% { cx: 612px; cy: 346px; }
+  96% { cx: 565px; cy: 318px; opacity: 1; }
+  100% { cx: 565px; cy: 318px; opacity: 0; }
+}
+@keyframes hx-taxi { 0% { transform: translate(470px, 256px); } 100% { transform: translate(1010px, 262px); } }
+@keyframes hx-alert { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+/* the pager: quiet, then a short buzz and wiggle with the PAGE screen lit */
+@keyframes hx-buzz {
+  0%, 74%, 86%, 100% { transform: translate(0, 0) rotate(0); }
+  75% { transform: translate(-1.6px, 0) rotate(-2.2deg); }
+  76% { transform: translate(1.6px, -0.6px) rotate(2deg); }
+  77% { transform: translate(-1.4px, 0.4px) rotate(-1.8deg); }
+  78% { transform: translate(1.4px, 0) rotate(1.6deg); }
+  79% { transform: translate(0, 0) rotate(0); }
+  81% { transform: translate(-1.4px, 0) rotate(-1.8deg); }
+  82% { transform: translate(1.4px, -0.4px) rotate(1.8deg); }
+  83% { transform: translate(-1.2px, 0.4px) rotate(-1.4deg); }
+  84% { transform: translate(1px, 0) rotate(1deg); }
+}
+@keyframes hx-lcd { 0%, 73% { opacity: 0.28; } 74%, 94% { opacity: 1; } 100% { opacity: 0.28; } }
+@keyframes hx-glow { 0%, 73% { opacity: 0; } 75%, 86% { opacity: 1; } 95%, 100% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .hx *, .hx .hx-taxi { animation: none !important; }
+  /* the still frame: the page has just come in */
+  .hx .hx-lcd, .hx .hx-pagetxt { opacity: 1; }
+  .hx .hx-pglow { opacity: 0.7; }
+  .hx .hx-pkt { cx: 520px; cy: 348px; }
+  .hm-cta, .hm-room, .hm-pager { transition: none; }
+  .hm-cta:hover, .hm-room:hover, .hm-cta:active { transform: none; }
+}
+
+/* the pager card already names tonight's work: don't repeat it under the button */
+.hm-back:has(.hm-pager) ~ .hm-actions .hm-cta-why { display: none; }

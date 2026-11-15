@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Trouble Ticket</title>
-<meta name="description" content="A CCNA troubleshooting game with a simulated Cisco CLI, subnet drill, protocol field guide and quiz.">
+<meta name="description" content="Work the night shift at Harbor Point Logistics: fix real networks in a simulated Cisco CLI and study for the CCNA 200-301 with lessons, animated scenes, drills and mock exams.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -18,27 +18,19 @@
 <link rel="stylesheet" href="scenes.css">
 <link rel="stylesheet" href="career.css">
 <link rel="stylesheet" href="labfx.css">
+<link rel="stylesheet" href="home.css">
+<link rel="stylesheet" href="plan.css">
 <!-- /build:css -->
 </head>
 <body>
 <header class="mast">
   <div class="brand">
-    <div class="wordmark">Trouble <span>Ticket</span></div>
+    <a class="wordmark" href="#home" aria-label="Trouble Ticket: home">Trouble <span>Ticket</span></a>
     <div class="tagline">A CCNA casebook · night shift at Harbor Point Logistics</div>
   </div>
-  <nav class="tabs" aria-label="Sections">
-    <a href="#learn" data-view="learn">Learn</a>
-    <a href="#tickets" data-view="tickets">Tickets</a>
-    <a href="#lab" data-view="lab">Lab</a>
-    <a href="#exam" data-view="exam">Mock exam</a>
-    <a href="#flash" data-view="flash">Flashcards</a>
-    <a href="#map" data-view="map">Course map</a>
-    <a href="#guide" data-view="guide">Field guide</a>
-    <a href="#drill" data-view="drill">Subnet drill</a>
-    <a href="#hardware" data-view="hardware">Hardware lab</a>
-    <a href="#quiz" data-view="quiz">Quick quiz</a>
-    <a href="#progress" data-view="progress">Progress</a>
-  </nav>
+  <a class="fm-btn" id="fm-btn" href="#guide"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 7 4.6 3.5 5v13c3.5-.4 6.5 0 8.5 1.5 2-1.5 5-1.9 8.5-1.5V5C17 4.6 14 5 12 6.5z"/><path d="M12 6.5v13"/></svg><span class="fm-btn-l">Field Manual</span></a>
+  <nav class="rooms" aria-label="Rooms"></nav>
+  <nav class="subtabs" aria-label="Room views" hidden></nav>
 </header>
 <main id="main"></main>
 <footer>Built by Ty Mackall as CCNA practice. Harbor Point Logistics is fictional. Not affiliated with Cisco or Jeremy's IT Lab; CCNA is a Cisco trademark. Video links open YouTube searches for the matching lesson.</footer>
@@ -62,6 +54,8 @@
 <script src="flash-ui.js"></script>
 <script src="sandbox.js"></script>
 <script src="projects.js"></script>
+<script src="home.js"></script>
+<script src="plan.js"></script>
 <script src="app.js"></script>
 <script src="career.js"></script>
 <script src="theme.js"></script>

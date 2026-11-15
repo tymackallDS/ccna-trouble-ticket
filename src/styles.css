@@ -99,7 +99,10 @@ button, input, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 h1, h2, h3 { text-wrap: balance; margin: 0; }
 
-/* ---------- masthead ---------- */
+/* ---------- masthead ----------
+ * Row 1: the wordmark, the Field Manual button, then the rank chip, "On shift" light and theme toggle
+ * (career.js and theme.js inject those as .cr-hud and .tt-hud). Row 2: the five rooms. Row 3: the
+ * active room's views. The flex order keeps that layout whatever order the scripts inject in. */
 .mast {
   max-width: 1240px;
   margin: 0 auto;
@@ -108,9 +111,9 @@ h1, h2, h3 { text-wrap: balance; margin: 0; }
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 14px 24px;
+  gap: 14px 12px;
 }
-.brand { display: flex; flex-direction: column; gap: 2px; }
+.brand { display: flex; flex-direction: column; gap: 2px; order: 0; }
 .wordmark {
   font-family: var(--display);
   font-weight: 800;
@@ -118,36 +121,185 @@ h1, h2, h3 { text-wrap: balance; margin: 0; }
   letter-spacing: 0.02em;
   line-height: 0.9;
   text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  align-self: flex-start;
+  border-radius: 6px;
 }
 .wordmark span { color: var(--stamp); }
+.wordmark:hover span { text-shadow: 0 0 16px color-mix(in srgb, var(--stamp) 55%, transparent); }
 .tagline { color: var(--muted); font-size: 13.5px; }
-nav.tabs { display: flex; flex-wrap: wrap; gap: 4px; }
-nav.tabs a {
+
+/* the Field Manual: a book on the shelf by the door */
+.fm-btn {
+  order: 1;
+  margin-left: auto;
+  align-self: flex-start;
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 42px;
+  padding: 0 14px 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--sheet);
+  color: var(--ink);
+  font-weight: 500; font-size: 14px;
   text-decoration: none;
-  color: var(--muted);
-  font-weight: 500;
-  font-size: 14px;
-  padding: 7px 12px;
-  border-radius: 8px;
-  border: 1px solid transparent;
+  box-shadow: var(--shadow);
+  transition: border-color 0.18s var(--ease), color 0.18s var(--ease), box-shadow 0.25s var(--ease);
 }
-nav.tabs a { position: relative; transition: color 0.18s var(--ease), border-color 0.18s var(--ease), background-color 0.18s var(--ease), box-shadow 0.25s var(--ease); }
-nav.tabs a:hover { color: var(--ink); border-color: var(--line); background: color-mix(in srgb, var(--sheet) 60%, transparent); }
-nav.tabs a[aria-current='page'] {
+.fm-btn svg { color: var(--accent); flex: none; }
+.fm-btn:hover { border-color: var(--accent); box-shadow: var(--glow-accent); }
+.fm-btn[aria-current='page'] { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); box-shadow: var(--glow-accent), inset 0 -2px 0 var(--warn); }
+header.mast > .tt-hud { order: 2; margin-left: 0; }
+.mast > .cr-hud { order: 2; }
+
+/* ---------- rooms ---------- */
+nav.rooms { order: 4; flex: 1 0 100%; min-width: 0; margin-top: 4px; }
+.rooms-row { list-style: none; margin: 0; padding: 0; display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
+.rooms-row li { flex: 0 1 auto; min-width: 0; display: flex; }
+a.room {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 9px;
+  min-height: 46px;
+  margin-bottom: -1px;
+  padding: 0 16px 0 13px;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 10px 10px 0 0;
+  color: var(--muted);
+  font-weight: 500; font-size: 14.5px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.18s var(--ease), background-color 0.18s var(--ease), border-color 0.18s var(--ease);
+}
+a.room .rm-ico { width: 21px; height: 21px; flex: none; }
+a.room .room-s { display: none; }
+a.room:hover { color: var(--ink); background: color-mix(in srgb, var(--sheet) 55%, transparent); }
+a.room:hover .rm-ico { color: var(--accent); }
+a.room[aria-current='true'] {
   color: var(--ink);
   background: var(--sheet);
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
-  box-shadow: var(--glow-accent), inset 0 -2px 0 color-mix(in srgb, var(--warn) 85%, transparent);
+  border-color: var(--line);
+  box-shadow: 0 -10px 24px -18px color-mix(in srgb, var(--accent) 70%, transparent);
 }
-/* the active tab carries a small amber status light in its corner */
-nav.tabs a[aria-current='page']::after {
+a.room[aria-current='true'] .rm-ico { color: var(--accent); filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent) 50%, transparent)); }
+/* the room you are in has its light on */
+a.room[aria-current='true']::after {
   content: '';
   position: absolute;
-  top: 4px; right: 4px;
+  top: 7px; right: 7px;
   width: 5px; height: 5px;
   border-radius: 50%;
   background: var(--warn);
   box-shadow: var(--glow-warn);
+}
+a.room:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; box-shadow: var(--glow-accent); }
+
+/* ---------- the active room's views ---------- */
+nav.subtabs {
+  order: 5; flex: 1 0 100%; min-width: 0;
+  margin-top: -14px;
+  display: flex; align-items: center; gap: 14px;
+  padding: 7px 10px;
+  background: var(--sheet);
+  border: 1px solid var(--line);
+  border-top: 0;
+  border-radius: 0 0 10px 10px;
+  box-shadow: var(--shadow);
+}
+nav.subtabs[hidden] { display: none; }
+.sub-room { font: 600 11px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-left: 4px; white-space: nowrap; }
+nav.subtabs ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+nav.subtabs a {
+  display: inline-flex; align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 14px; font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  transition: color 0.18s var(--ease), background-color 0.18s var(--ease), border-color 0.18s var(--ease);
+}
+nav.subtabs a:hover { color: var(--ink); background: var(--sheet-2); }
+nav.subtabs a[aria-current='page'] {
+  color: var(--ink);
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  box-shadow: inset 0 -2px 0 var(--warn);
+}
+nav.subtabs a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* ---------- the Field Manual drawer and page ---------- */
+.fm-drawer {
+  margin: 0 0 0 auto;
+  width: min(720px, 100vw);
+  max-width: 100vw;
+  height: 100dvh; max-height: 100dvh;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid var(--line-strong);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: -30px 0 60px -30px rgba(0, 0, 0, 0.8);
+}
+.fm-drawer[open] { animation: fm-in 0.28s var(--ease); }
+.fm-drawer::backdrop { background: rgba(3, 6, 12, 0.6); backdrop-filter: blur(2px); }
+@keyframes fm-in { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+.fm-panel { display: flex; flex-direction: column; height: 100%; }
+.fm-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px 14px 20px;
+  border-bottom: 1px solid var(--line);
+  background: var(--sheet);
+}
+.fm-head h2 { font-family: var(--display); font-weight: 800; font-size: 26px; letter-spacing: 0.03em; text-transform: uppercase; margin-right: auto; }
+.fm-ico { width: 26px; height: 26px; color: var(--accent); flex: none; }
+.fm-page { min-height: 40px; display: inline-flex; align-items: center; }
+.fm-close {
+  display: inline-grid; place-items: center;
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--sheet-2);
+  color: var(--ink);
+  cursor: pointer;
+}
+.fm-close:hover { border-color: var(--accent); }
+.fm-body { flex: 1; overflow-y: auto; padding: 16px 20px 40px; overscroll-behavior: contain; }
+.fm-body .cards { grid-template-columns: 1fr; }
+.fm-pagehead { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.fm-pagehead .fm-ico { width: 40px; height: 40px; padding: 7px; border-radius: 10px; background: var(--accent-soft); }
+.fm-pagehead h2 { font-size: 22px; }
+.fm-pagehead .label { margin: 0 0 2px; }
+
+@media (max-width: 900px) {
+  .mast > .cr-hud { order: 3; }
+}
+/* phones: five rooms in one row, icon over a short label; the views sit beneath */
+@media (max-width: 600px) {
+  .mast { padding: 14px 14px 0; gap: 10px; }
+  .wordmark { font-size: 27px; white-space: nowrap; }
+  .tagline { font-size: 12.5px; }
+  .fm-btn { position: absolute; top: 14px; right: 62px; width: 40px; height: 40px; min-height: 0; padding: 0; justify-content: center; margin: 0; }
+  .fm-btn-l { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  nav.rooms { margin-top: 0; }
+  .rooms-row { gap: 2px; }
+  .rooms-row li { flex: 1 1 0; }
+  a.room { flex: 1; flex-direction: column; justify-content: center; gap: 3px; min-height: 54px; padding: 6px 2px 5px; font-size: 11.5px; letter-spacing: 0.01em; }
+  a.room .room-l { display: none; }
+  a.room .room-s { display: block; }
+  a.room .rm-ico { width: 22px; height: 22px; }
+  a.room[aria-current='true']::after { top: 5px; right: 5px; }
+  nav.subtabs { margin-top: -10px; padding: 6px; gap: 8px; }
+  .sub-room { display: none; }
+  nav.subtabs ul { flex: 1; }
+  nav.subtabs a { min-height: 40px; padding: 0 11px; font-size: 13.5px; }
+  .fm-head { padding: 10px 10px 10px 14px; }
+  .fm-head h2 { font-size: 22px; }
+  .fm-head .fm-page { display: none; }
+  .fm-body { padding: 12px 12px 40px; }
 }
 
 main { max-width: 1240px; margin: 0 auto; padding: 18px 20px 60px; }
@@ -498,7 +650,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
 .btn.primary:hover:not(:disabled) { background-color: var(--accent); }
 .btn:active:not(:disabled) { transform: translateY(1px); }
 .btn:focus-visible, .chip:focus-visible, .opt:focus-visible, .seg button:focus-visible, .devtabs button:focus-visible,
-.stub:focus-visible, .wl-btn:focus-visible, .wl-menu:focus-visible, nav.tabs a:focus-visible {
+.stub:focus-visible, .wl-btn:focus-visible, .wl-menu:focus-visible, .fm-btn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   box-shadow: var(--glow-accent);
@@ -557,7 +709,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
 @media (max-width: 600px) {
   .tt-hud { position: absolute; top: 14px; right: 14px; margin: 0; min-height: 0; }
   .tt-onshift { display: none; }
-  .brand { padding-right: 52px; }
+  .brand { padding-right: 104px; }
 }
 
 /* ---------- "live" status lights ----------
@@ -591,7 +743,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
 
 @media (prefers-reduced-motion: reduce) {
   .live-dot, .tt-live { animation: none; }
-  .btn, .chip, .opt, .seg button, .devtabs button, .stub, .card, .tt-theme, nav.tabs a, .mapday { transition: none; }
+  .btn, .chip, .opt, .seg button, .devtabs button, .stub, .card, .tt-theme, a.room, nav.subtabs a, .fm-btn, .mapday { transition: none; }
+  .fm-drawer[open] { animation: none; }
   .btn:active:not(:disabled), .tt-theme:active { transform: none; }
 }
-@media (max-width: 600px) { nav.tabs a { padding: 9px 12px; } }
