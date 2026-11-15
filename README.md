@@ -1,6 +1,6 @@
 # Trouble Ticket
 
-A CCNA troubleshooting game that runs in the browser. You play the night-shift network tech at a fictional Baltimore logistics company, open trouble tickets, and fix broken networks by typing real Cisco IOS commands into a simulated CLI.
+A free CCNA 200-301 study site that runs in the browser. You play the night-shift network tech at a fictional Baltimore logistics company: read the lessons, fix broken networks by typing real Cisco IOS commands into a simulated CLI, build your own labs, drill flashcards, and sit timed mock exams.
 
 **Live site:** [d1p1eji0s2dseq.cloudfront.net](https://d1p1eji0s2dseq.cloudfront.net)
 
@@ -10,12 +10,16 @@ A CCNA troubleshooting game that runs in the browser. You play the night-shift n
 
 | Section | What you do |
 | --- | --- |
-| **Tickets** | 18 scenarios, each with a story, a live topology diagram, objectives that check themselves, three hints, and a debrief with exam tips |
-| **Course map** | All 63 days of Jeremy's IT Lab's CCNA course, each linked to the tickets, field-guide cards and labs that practice it |
-| **Subnet drill** | Random addresses; find the network, broadcast, host range, host count and mask against the clock |
-| **Hardware lab** | Pick the right cable for 10 connections, find ports on clickable switch and router panels, and learn the device families |
-| **Field guide** | 52 protocol cards organized by the six CCNA 200-301 exam domains, plus a port-number table |
-| **Quiz** | 86 multiple-choice questions with explanations; missed questions go into a review pile |
+| **Learn** | 53 lessons, one per objective of the CCNA v1.1 exam blueprint. Each opens with a Harbor Point case file and has diagrams, the senior tech's notes, exam traps, "try it" blocks that run in the simulator, and a 3-question check (159 questions in all) |
+| **Tickets** | 23 troubleshooting scenarios, each with a story, a live topology, self-checking objectives, three hints and a debrief with exam tips |
+| **Lab** | A Packet Tracer-style sandbox: drag routers, switches, Layer 3 switches, PCs and servers onto a canvas, cable ports, watch link lights, configure every device in the CLI, and trace pings. Includes 15 guided projects with automatic checks |
+| **Mock exam** | 433 original practice questions in the style of the best commercial practice exams: exhibits, multi-select, drag-to-order, matching and 25 hands-on CLI simulations. Full 120-minute exams are weighted like the real blueprint, with a score report by domain |
+| **Flashcards** | 1015 cards in 11 decks (ports, acronyms, protocols, defaults, commands, OSI, subnetting, wireless, security, automation, terms) with spaced repetition and a typed-answer mode |
+| **Course map** | All 63 days of Jeremy's IT Lab's free course, and all 53 v1.1 exam objectives, each linked to the lessons, tickets, cards and labs that practice it |
+| **Field guide** | 58 protocol cards with a port table and a 98-question quick quiz |
+| **Subnet drill** | Timed IPv4 subnetting practice plus IPv6 modified EUI-64 practice |
+| **Hardware lab** | Pick the right cable, find ports on clickable switch and router panels, learn the device families, and configure WLANs in a wireless controller GUI (exam topics 2.9 and 5.10) |
+| **Progress** | A study dashboard: what to do next, lessons and tickets done, flashcards due, and exam readiness by domain |
 
 ### The tickets
 
@@ -24,21 +28,26 @@ A CCNA troubleshooting game that runs in the browser. You play the night-shift n
 | TT-1001 | The router nobody turned on | IOS basics |
 | TT-1002 | Fifty scanners, one /24 | Subnetting |
 | TT-1003 | Sales can't print | VLANs |
-| TT-1004 | HR is cut in half | 802.1Q trunking |
+| TT-1004 | HR is cut in half | Trunking |
 | TT-1005 | The branch is an island | Static routing |
 | TT-1006 | The data center went quiet | OSPF |
 | TT-1007 | Two VLANs, one cable | Router-on-a-stick |
 | TT-1008 | The closet switch is in charge | Spanning Tree |
-| TT-1009 | Two cables, half the bandwidth | EtherChannel (LACP) |
+| TT-1009 | Two cables, half the bandwidth | EtherChannel |
 | TT-1010 | Scanners stuck on 169.254 | DHCP relay |
-| TT-1011 | Guests can see payroll | Extended ACLs |
+| TT-1011 | Guests can see payroll | Access control lists |
 | TT-1012 | The warehouse can't reach the internet | NAT and PAT |
-| TT-1013 | IPv6 stops at headquarters | IPv6 static routing |
+| TT-1013 | IPv6 stops at headquarters | IPv6 |
 | TT-1014 | Passwords in clear text | SSH hardening |
 | TT-1015 | The new hire's port is dead | Port security |
 | TT-1016 | One gateway down, whole floor down | HSRP |
 | TT-1017 | The DR site is invisible | EIGRP |
 | TT-1018 | A rogue DHCP server in sales | DHCP snooping and DAI |
+| TT-1019 | The weakest router is in charge | OSPF DR/BDR |
+| TT-1020 | Retire the router-on-a-stick | Layer 3 switching |
+| TT-1021 | The tracking site is unreachable | Static NAT and NAT pools |
+| TT-1022 | A desk switch took over the network | STP protection |
+| TT-1023 | The new branch router ships tomorrow | Device setup checklist |
 
 Each ticket links to the matching lesson in Jeremy's IT Lab's free CCNA course and names the Packet Tracer lab to do next.
 
@@ -48,8 +57,9 @@ The game is plain JavaScript with no framework and no runtime dependencies.
 
 - **`src/engine.js`** models devices, interfaces and links, and decides whether a ping succeeds by actually forwarding the packet: ARP-style Layer 2 reachability per VLAN (access ports, 802.1Q trunks, router subinterfaces), longest-prefix-match routing, static routes, OSPF adjacency rules (area, subnet, passive interfaces) and shortest paths, ACLs on interfaces in and out, and PAT. Spanning Tree root election and port roles, EtherChannel negotiation, DHCP relay, EIGRP neighbors (AS number, passive interfaces), HSRP active election and failover, port security with sticky MACs and err-disable, DHCP snooping and Dynamic ARP Inspection, IPv6 static routing, and SSH/Telnet logins against VTY settings are modeled too.
 - The same file holds the **CLI**: user, privileged, global, interface, VLAN, router and line modes, IOS-style abbreviations (`sh ip int br`), Tab completion, `?` help, `do`, `interface range`, and IOS-style errors with the `^` marker.
-- **`src/scenarios.js`** defines the 18 tickets. Each objective is a function that inspects the live network model, so any correct fix passes, not just one typed answer.
-- **`src/guide.js`** and **`src/hardware.js`** hold the field guide, quiz bank and hardware lab.
+- **`src/scenarios.js`** defines the 23 tickets. Each objective is a function that inspects the live network model, so any correct fix passes, not just one typed answer.
+- **`src/guide.js`**, **`src/hardware.js`** and **`src/wlc.js`** hold the field guide, quick quiz, hardware lab and wireless controller lab.
+- **`src/lessons-*.js`**, **`src/questions-*.js`**, **`src/flashcards.js`** and **`src/projects.js`** are the study content; **`src/lessons-ui.js`**, **`src/exam-ui.js`**, **`src/flash-ui.js`** and **`src/sandbox.js`** are the screens that use it.
 - **`src/app.js`** is the interface. Progress saves to the browser's localStorage.
 - **`build.mjs`** inlines everything into one self-contained `dist/index.html`.
 
@@ -78,12 +88,13 @@ You can also open `dist/index.html` directly in a browser.
 
 ## Tests
 
-`tests/tickets.test.mjs` uses Node's built-in test runner. For every ticket it checks that:
+`npm test` runs 778 tests with Node's built-in test runner. They check that:
 
-1. the ticket starts broken (not every objective passes), and
-2. typing the reference solution into the CLI makes every objective pass.
-
-It also checks realistic wrong fixes fail the way they would on real equipment, for example `switchport trunk allowed vlan 20` without `add`, a static route with no return path, an ACL in the right order but the wrong direction, bouncing an err-disabled port before clearing the old sticky MAC, or tuning HSRP priority while the second router is in the wrong group. A last test checks that all 63 days of the course map point at tickets and cards that exist.
+1. every ticket starts broken and typing its reference solution into the CLI makes every objective pass, and realistic wrong fixes fail the way they would on real equipment (for example `switchport trunk allowed vlan 20` without `add`, bouncing an err-disabled port before clearing the old sticky MAC, or changing OSPF priority without clearing the process);
+2. every lab project fails at the start and passes after its solution;
+3. every exam simulation is solvable, every question's answer is valid, and every lesson's "try it" commands run in the simulator;
+4. the course map, the exam blueprint and every cross-link point at content that exists;
+5. about 50 must-know values on the flashcards (administrative distances, timers, syslog levels, key ports) are correct.
 
 ## Deploy to AWS
 
@@ -127,18 +138,29 @@ Hosting a single static page like this should cost little or nothing at low traf
 ```
 .
 ├── src/
-│   ├── engine.js        network model + simulated IOS CLI
-│   ├── scenarios.js     the 18 tickets
-│   ├── guide.js         field guide cards and quiz bank
-│   ├── course.js        63-day course map
-│   ├── hardware.js      hardware lab
-│   ├── app.js           user interface
-│   ├── styles.css
+│   ├── engine.js         network model + simulated IOS CLI
+│   ├── scenarios.js      the troubleshooting tickets
+│   ├── lessons-1.js      lessons for exam domains 1-2
+│   ├── lessons-2.js      lessons for exam domains 3-6
+│   ├── lessons-ui.js     lesson reader
+│   ├── questions-1.js    mock exam questions, domains 1-2
+│   ├── questions-2.js    mock exam questions, domains 3-6
+│   ├── exam-ui.js        mock exam
+│   ├── flashcards.js     flashcard decks
+│   ├── flash-ui.js       spaced-repetition trainer
+│   ├── sandbox.js        lab builder
+│   ├── projects.js       guided lab projects
+│   ├── guide.js          field guide cards and quick quiz
+│   ├── course.js         63-day course map and v1.1 blueprint
+│   ├── hardware.js       hardware lab
+│   ├── wlc.js            wireless controller GUI lab
+│   ├── app.js            routing, tickets, drill, dashboard
+│   ├── *.css
 │   └── index.html
-├── tests/tickets.test.mjs
-├── infra/template.yaml  S3 + CloudFront + GitHub OIDC deploy role
+├── tests/                one test file per module
+├── infra/template.yaml   S3 + CloudFront + GitHub OIDC deploy role
 ├── .github/workflows/deploy.yml
-└── build.mjs
+└── build.mjs             inlines everything into dist/index.html
 ```
 
 ## Roadmap
@@ -149,6 +171,6 @@ Hosting a single static page like this should cost little or nothing at low traf
 
 ## Credits and disclaimer
 
-Built by Ty Mackall while studying for the CCNA. Lessons are linked from [Jeremy's IT Lab](https://www.youtube.com/@JeremysITLab) free CCNA course; this project is not affiliated with Cisco or Jeremy's IT Lab. CCNA, Catalyst and IOS are trademarks of Cisco Systems. Harbor Point Logistics and every network in the game are fictional.
+Built by Ty Mackall while studying for the CCNA. Lessons are linked from [Jeremy's IT Lab](https://www.youtube.com/@JeremysITLab) free CCNA course; this project is not affiliated with Cisco or Jeremy's IT Lab. CCNA, Catalyst and IOS are trademarks of Cisco Systems. Harbor Point Logistics and every network in the game are fictional. All lessons, questions and flashcards are original; none are copied from any course, book or practice exam. Cisco does not publish an official passing score. All lessons, questions and flashcards are original; none are copied from any course, book or practice exam. Cisco does not publish an official passing score.
 
 Licensed under the MIT License.
