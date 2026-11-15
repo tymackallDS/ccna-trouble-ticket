@@ -9,6 +9,7 @@
  *   trouble-ticket-flash-v1    { cards: { id: { box, due, seen, lapses } } }                        (flash-ui.js)
  *   trouble-ticket-sandbox-v1  { done: { projectId: 'YYYY-MM-DD' }, ... }                           (sandbox.js)
  *   trouble-ticket-wlc-v1      { done: { taskId: true }, ... }                                       (wlc.js)
+ *   trouble-ticket-plan-v1     { shifts: { nightDate: 'YYYY-MM-DD finished' }, ... }                 (plan.js)
  * Owns: trouble-ticket-career-v1 { v, seen, flashBase, flashLast, days: { 'YYYY-MM-DD': { xp, flash } } }
  */
 (function (G) {
@@ -23,13 +24,14 @@
     flash: 'trouble-ticket-flash-v1',
     lab: 'trouble-ticket-sandbox-v1',
     wlc: 'trouble-ticket-wlc-v1',
+    plan: 'trouble-ticket-plan-v1',
   };
 
   /* ================= rules (pure data) ================= */
   const W = {
     lesson: 50, check: 5, ticket: 100, ticketP1: 150, lab: 120, wlc: 40,
     examFull: 30, examFullCap: 20, examPractice: 10, examPracticeCap: 30, examPass: 150, PASS: 825,
-    flashDaily: 60, flashBaseCap: 300, drill: 5, drillCap: 30, quiz: 2,
+    flashDaily: 60, flashBaseCap: 300, drill: 5, drillCap: 30, quiz: 2, shift: 40,
   };
   const SET_IDS = ['A', 'B', 'C', 'D', 'E'];
 
@@ -143,7 +145,14 @@
       wlcDone: obj(obj(raw.wlc).done),
       days: obj(car.days),
       flashBase: num(car.flashBase),
+      shifts: shiftCount(raw.plan),
     };
+  }
+
+  /** Study-plan nights finished on or before their date (plan.js records them in its own store). */
+  function shiftCount(plan) {
+    const sh = obj(obj(plan).shifts);
+    return Object.keys(sh).filter((k) => isDayKey(k) && isDayKey(sh[k]) && sh[k] <= k).length;
   }
 
   function streaks(days, today) {
@@ -209,6 +218,7 @@
       flash: flashXp,
       drill: Math.min(drillBest, W.drillCap) * W.drill,
       quiz: Math.round(quizBest) * W.quiz,
+      shifts: Math.max(0, num(s.shifts)) * W.shift,
     };
     const xp = Object.values(breakdown).reduce((a, b) => a + b, 0);
     const st = streaks(days, s.today);
@@ -217,7 +227,7 @@
       lessons: lDone.length, lessonsTotal: lessons.length, access: access.filter((l) => done[l.id]).length, accessTotal: access.length,
       labs, labsTotal: projects.length, wlc, wlcTotal: wlcTasks.length,
       attempts: attempts.length, passes: passKeys.size, setPasses, bestExam: best,
-      flashSeen: Math.max(0, num(s.flashSeen)), drillBest, quizBest, streak: st.current, longest: st.longest,
+      flashSeen: Math.max(0, num(s.flashSeen)), shifts: Math.max(0, num(s.shifts)), drillBest, quizBest, streak: st.current, longest: st.longest,
     };
 
     let rankIndex = 0;
@@ -272,6 +282,8 @@
       const pass = last && last.mode === 'full' && last.score >= W.PASS;
       out.push({ kind: 'exam', tag: 'EXAM', text: last ? `${last.mode === 'full' ? (last.set ? 'Practice exam ' + last.set : 'Mock exam') : 'Practice set'} scored ${last.score}${pass ? ' · PASS' : ''}` : 'Mock exam logged', xp: examGain });
     }
+    const shiftGain = num(res.breakdown.shifts) - num(prevB.shifts);
+    if (shiftGain > 0) out.push({ kind: 'shift', tag: 'SHIFT', text: shiftGain > W.shift ? `${Math.round(shiftGain / W.shift)} shifts complete` : 'Shift complete: every item on tonight\'s list', xp: shiftGain, kenji: true });
     const minor = [['flash', 'FLASH', 'Flashcard reviews'], ['drill', 'DRILL', 'New subnet drill best'], ['quiz', 'QUIZ', 'New quick quiz best']];
     for (const [k, tag, text] of minor) {
       const g = res.breakdown[k] - num(prevB[k]);
@@ -304,14 +316,26 @@
     return days;
   }
 
-  function nextTask(state, cat, where) {
+  /** tonight: TT.plan.tonight() when a study plan exists; it wins over the default pick. */
+  function nextTask(state, cat, where, tonight) {
     cat = cat || catalog();
+    if (tonight && tonight.item && tonight.href) {
+      const it = tonight.item;
+      const when = tonight.isToday ? 'Tonight\'s shift' : `Next shift ${shortDay(tonight.date)}`;
+      const go = it.kind === 'ticket' ? `Open ${it.tag}` : it.kind === 'lesson' ? `Open ${it.tag.toLowerCase()}` : 'Clock in';
+      return { kind: 'plan', id: it.key || it.id, href: tonight.href, label: it.tag, title: it.title, go, line: `${when}: ${tonight.label}` };
+    }
     const t = cat.tickets.find((x) => !obj(state.solved)[x.id]);
     const l = cat.lessons.find((x) => !obj(state.lessonsDone)[x.id]);
     if (where === 'learn' && l) return { kind: 'lesson', id: l.id, href: '#learn-' + l.id, label: l.obj, title: l.title, line: `Kenji wants ${l.obj} read before the 03:00 walk-through: ${l.title}` };
     if (t) return { kind: 'ticket', id: t.id, href: '#' + t.id, label: t.number, title: t.title, line: PAGER_LINES[t.id] || t.title };
     if (l) return { kind: 'lesson', id: l.id, href: '#learn-' + l.id, label: l.obj, title: l.title, line: `Queue is clear. Read ${l.obj} while it is quiet` };
     return { kind: 'exam', id: 'exam', href: '#exam', label: 'mock exam', title: 'Full mock exam', line: 'Queue is clear and the binder is done. Take a full mock exam' };
+  }
+
+  function shortDay(k) {
+    const [y, m, d] = String(k).split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   }
 
   function pagerTime(id) {
@@ -352,6 +376,7 @@
   }
 
   function tick(opts) {
+    try { if (TT.plan && typeof TT.plan.sync === 'function') TT.plan.sync(); } catch (e) { /* the plan is optional */ }
     const raws = readAll();
     const today = dayKey(new Date());
     const sig = Object.values(raws).concat(today);
@@ -675,7 +700,7 @@
           </div>
           <div class="cr-xp">
             <p class="label">Where the XP came from</p>
-            <ul class="cr-break">${[['Tickets', 'tickets'], ['Lessons', 'lessons'], ['Lab projects', 'labs'], ['Mock exams', 'exams'], ['Flashcards', 'flash'], ['Wireless lab', 'wlc'], ['Subnet drill', 'drill'], ['Quick quiz', 'quiz']].map(([n, k]) => `<li><span>${n}</span><b>${fmt(r.breakdown[k])}</b></li>`).join('')}</ul>
+            <ul class="cr-break">${[['Tickets', 'tickets'], ['Lessons', 'lessons'], ['Lab projects', 'labs'], ['Mock exams', 'exams'], ['Flashcards', 'flash'], ['Wireless lab', 'wlc'], ['Subnet drill', 'drill'], ['Quick quiz', 'quiz'], ['Study plan shifts', 'shifts']].map(([n, k]) => `<li><span>${n}</span><b>${fmt(r.breakdown[k])}</b></li>`).join('')}</ul>
           </div>
         </div>
         <p class="label cr-badge-label">Badges · ${r.badges.length} of ${BADGES.length}</p>
@@ -683,15 +708,16 @@
           ${BADGES.map((b) => { const on = r.badges.includes(b.id); return `<li class="cr-badge${on ? ' on' : ''}"><span class="cr-badge-medal" aria-hidden="true">${glyph(b.icon)}</span><span class="cr-badge-txt"><b>${esc(b.name)}</b><small>${on ? 'Earned' : 'Locked'} · ${esc(b.hint)}</small></span></li>`; }).join('')}
         </ul>
         <details class="cr-how"><summary>How XP works</summary>
-          <p>XP is worked out from your saved progress every time, so reloading never adds any. Lesson passed ${W.lesson} (plus ${W.check} per check question right), ticket resolved ${W.ticket} (P1 ${W.ticketP1}), guided lab project ${W.lab}, wireless controller task ${W.wlc}, full mock exam ${W.examFull} per attempt (first ${W.examFullCap}), domain practice set ${W.examPractice}, and ${W.examPass} for the first 825+ on each practice exam. Flashcards give 1 per review, up to ${W.flashDaily} a day. The subnet drill gives ${W.drill} per answer in your best streak, the quick quiz ${W.quiz} per percent of your best score. The top two ranks also need passing mock exam scores.</p>
+          <p>XP is worked out from your saved progress every time, so reloading never adds any. Lesson passed ${W.lesson} (plus ${W.check} per check question right), ticket resolved ${W.ticket} (P1 ${W.ticketP1}), guided lab project ${W.lab}, wireless controller task ${W.wlc}, full mock exam ${W.examFull} per attempt (first ${W.examFullCap}), domain practice set ${W.examPractice}, and ${W.examPass} for the first 825+ on each practice exam. Flashcards give 1 per review, up to ${W.flashDaily} a day. The subnet drill gives ${W.drill} per answer in your best streak, the quick quiz ${W.quiz} per percent of your best score. Finishing every item of a study-plan night on or before its date adds ${W.shift}. The top two ranks also need passing mock exam scores.</p>
         </details>
       </section>`;
   }
-  const incomingSig = (where) => { const n = nextTask(state, catalog(), where); return n.href + '|' + n.line; };
+  const planTonight = () => { try { return TT.plan && typeof TT.plan.tonight === 'function' ? TT.plan.tonight() : null; } catch (e) { return null; } };
+  const incomingSig = (where) => { const n = nextTask(state, catalog(), where, planTonight()); return n.href + '|' + n.line; };
   function incomingHtml(where) {
-    const n = nextTask(state, catalog(), where);
+    const n = nextTask(state, catalog(), where, planTonight());
     const time = pagerTime(n.id);
-    const label = n.kind === 'ticket' ? `Open ${n.label}` : n.kind === 'lesson' ? `Open lesson ${n.label}` : 'Open the mock exam';
+    const label = n.go ? n.go : n.kind === 'ticket' ? `Open ${n.label}` : n.kind === 'lesson' ? `Open lesson ${n.label}` : 'Open the mock exam';
     return `<a class="cr-incoming" data-sig="${esc(n.href + '|' + n.line)}" href="${esc(n.href)}" aria-label="Incoming page at ${time}: ${esc(n.line)}. ${esc(label)}."><span class="cr-dot" aria-hidden="true"></span><span class="cr-in-tag" aria-hidden="true">PAGE ${time}</span><span class="cr-in-msg" aria-hidden="true">${esc(n.line)}</span><span class="cr-in-go" aria-hidden="true">${esc(label)} <span class="cr-in-arrow">→</span></span></a>`;
   }
 
