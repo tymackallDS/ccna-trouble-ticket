@@ -654,6 +654,7 @@
       const step = sc.steps[i];
       const reduce = reduceMQ();
       animate = animate && !reduce;
+      if (animate && TT.sfx) TT.sfx('scene-step');
       const d = drawStatic(sc, snap, S.ui, { animate });
       L('zones').innerHTML = d.zones;
       L('links').innerHTML = d.links;

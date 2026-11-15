@@ -747,3 +747,13 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
   .fm-drawer[open] { animation: none; }
   .btn:active:not(:disabled), .tt-theme:active { transform: none; }
 }
+
+/* tighter room tabs between phone and desktop widths, so five rooms always fit */
+@media (min-width: 601px) and (max-width: 860px) {
+  a.room { padding: 0 9px 0 8px; gap: 6px; font-size: 13.5px; }
+  .rooms-row { gap: 2px; }
+}
+@media (max-width: 380px) {
+  .brand { min-width: 0; }
+  header.mast .brand a.wordmark { font-size: 23px; }
+}

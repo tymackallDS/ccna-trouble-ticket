@@ -788,6 +788,7 @@
       const ok = trace.ok;
       const word = o.kind === 'traceroute' ? 'Trace' : 'Echo';
       const ending = () => {
+        if (TT.sfx) TT.sfx(ok ? 'ping-ok' : 'ping-fail');
         if (ok) {
           if (trace.local) { const P = pos(src); if (P) caption(go, P.x, (P.top || P.y - 26) - 10, 'Replied to itself', 'good', o.view && o.view()); return; }
           const P = pos(src);
@@ -891,6 +892,7 @@
         if (!prev) continue;
         const was = prev[it.key] === undefined ? 'down' : prev[it.key]; // a brand-new cable counts as coming up
         if (was === st) continue;
+        if (TT.sfx) TT.sfx(st === 'up' ? 'link-up' : 'link-down');
         if (st === 'up') {
           if (!layer) continue;
           const len = Math.hypot(it.x2 - it.x1, it.y2 - it.y1);

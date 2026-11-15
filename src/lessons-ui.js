@@ -136,7 +136,7 @@
         <div class="sheet ls-hero">
           <p class="label">Lessons · the study binder</p>
           <h2 class="ls-h2">Learn it before the pager goes off</h2>
-          <p class="ls-lede">One lesson per CCNA 200-301 v1.1 objective. Each one opens with the Harbor Point situation that makes the topic matter, teaches it properly, lets you try the commands on a lab bench, and ends with a three-question check. Pass the check (2 of 3) and the lesson is marked done.</p>
+          <p class="ls-lede">A primer on the network layers, then one lesson per CCNA 200-301 v1.1 objective. Each one opens with the Harbor Point situation that makes the topic matter, teaches it properly, lets you try the commands on a lab bench, and ends with a three-question check. Pass the check (2 of 3) and the lesson is marked done.</p>
           <div class="ls-hero-row">
             <div class="ls-total"><b>${doneCount}</b><span>of ${all.length} lessons done</span></div>
             <div class="ls-total-bar">${bar(pct, 'All lessons progress')}</div>
@@ -285,7 +285,7 @@
         <header class="ls-case sheet">
           <div id="ls-stamp-slot">${done ? '<div class="ls-stamp" aria-label="Lesson complete">LEARNED</div>' : ''}</div>
           <div class="ls-case-row">
-            <span class="ls-case-num">CASE FILE · OBJ ${esc(l.obj)}</span>
+            <span class="ls-case-num">CASE FILE · ${l.primer ? 'PRIMER' : 'OBJ ' + esc(l.obj)}</span>
             <span class="pill topic">${esc(domainName(l.domain))}</span>
             <span class="pill">${esc(l.minutes)} min read</span>
           </div>
@@ -534,6 +534,7 @@
           const i = Number(b.dataset.q);
           if (picks[i] !== null) return;
           picks[i] = Number(b.dataset.k);
+          if (TT.sfx) TT.sfx(picks[i] === qs[i][2] ? 'correct' : 'wrong');
           paint();
           const nextQ = el.querySelectorAll('.ls-q')[i];
           const first = nextQ && nextQ.querySelector('.ls-why');

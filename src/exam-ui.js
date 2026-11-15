@@ -324,7 +324,7 @@
     on('mark', () => { run.marked[q.id] = !run.marked[q.id]; drawRun(); focusAct('mark'); });
     on('prev', () => go(run.i - 1));
     on('next', () => { if (run.i === n - 1) askEnd(); else go(run.i + 1); });
-    on('check', () => { if (q.type === 'sim') gradeSim(run, q); run.checked[q.id] = true; noteResult(q.id, isCorrect(run, q)); drawRun(); focusAct('next'); });
+    on('check', () => { if (q.type === 'sim') gradeSim(run, q); run.checked[q.id] = true; noteResult(q.id, isCorrect(run, q)); if (TT.sfx) TT.sfx(isCorrect(run, q) ? 'correct' : 'wrong'); drawRun(); focusAct('next'); });
     on('end', askEnd);
     main.querySelector('.ex-grid-wrap').addEventListener('toggle', (e) => { run.gridOpen = e.target.open; });
     main.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => go(Number(b.dataset.go))));

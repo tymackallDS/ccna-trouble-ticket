@@ -693,6 +693,7 @@
       }
       const secs = Math.round((Date.now() - pr.started) / 1000);
       pr.checked = true;
+      if (TT.sfx) TT.sfx(all ? 'correct' : 'wrong');
       clearInterval(drill.timer);
       if (all) {
         drill.streak++;
@@ -741,6 +742,9 @@
       const done = (x.t || []).length && x.t.every((id) => store.solved[id]);
       return `<li class="mapday${done ? ' done' : ''}"><span class="dnum">${obj}</span><span class="dttl">${esc(title)}</span><span class="dlinks">${links.join('')}</span></li>`;
     });
+    // Foundation primers (lessons that aren't official objectives, like 1.0 the layers) go first, labelled as such.
+    const primers = (TT.lessons || []).filter((l) => l.primer);
+    bpRows.unshift(...primers.map((l) => `<li class="mapday"><span class="dnum">${esc(l.obj)}</span><span class="dttl">Primer: ${esc(l.title)} <span style="color:var(--muted);font-size:12px">(foundation, not an official objective)</span></span><span class="dlinks"><a class="pill topic" href="#learn-${l.id}">Lesson</a><a class="pill" href="#flash-osi">OSI cards</a></span></li>`));
     const view = store.mapView || 'days';
     $('#main').innerHTML = `
       <div class="map-head">
@@ -873,6 +877,7 @@
       if (v === x.a) b.classList.add('right');
       else if (v === oi) b.classList.add('wrong');
     });
+    if (TT.sfx) TT.sfx(ok ? 'correct' : 'wrong');
     $('#why').innerHTML = `<b style="color:var(${ok ? '--good' : '--stamp'})">${ok ? 'Correct.' : 'Not quite.'}</b> ${esc(x.why)}
       <div class="tools"><button class="btn primary" type="button" id="nextQ">${quiz.i + 1 < quiz.qs.length ? 'Next question' : 'See results'}</button></div>`;
     $('#nextQ').addEventListener('click', () => { quiz.i++; renderQuiz(); });

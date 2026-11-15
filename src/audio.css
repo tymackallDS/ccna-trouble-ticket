@@ -1,0 +1,81 @@
+/* ---------- sound: the speaker button and its popover (audio.js) ---------- */
+.tt-audio { position: relative; display: inline-flex; align-self: center; }
+.tt-audio-btn {
+  display: inline-grid; place-items: center;
+  width: 40px; height: 40px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--sheet);
+  color: var(--muted);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: border-color 0.18s var(--ease), color 0.18s var(--ease), box-shadow 0.25s var(--ease), transform 0.25s var(--ease);
+}
+.tt-audio-btn svg { width: 20px; height: 20px; display: block; }
+.tt-audio-btn.is-on { color: var(--accent); }
+.tt-audio-btn:hover, .tt-audio-btn[aria-expanded='true'] { border-color: var(--accent); color: var(--accent); box-shadow: var(--glow-accent); }
+.tt-audio-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: var(--glow-accent); }
+.tt-audio-btn:active { transform: scale(0.94); }
+
+.tt-audio-pop {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 60;
+  width: 296px; max-width: calc(100vw - 28px);
+  padding: 14px 14px 12px;
+  background: var(--sheet);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow-hover);
+  text-align: left;
+}
+.tt-audio-pop[hidden] { display: none; }
+.tt-audio.tt-au-left .tt-audio-pop { right: auto; left: 0; }
+.tt-au-h { margin: 0 0 10px; font: 600 12px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); display: flex; justify-content: space-between; align-items: baseline; }
+.tt-au-h span { color: var(--muted); font-weight: 500; letter-spacing: 0.06em; }
+
+/* switches: real buttons with role="switch"; the word On / Off carries the state, not just the colour */
+.tt-au-sw {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  min-height: 40px; padding: 4px 8px; margin: 0;
+  border: 1px solid transparent; border-radius: 8px;
+  background: none; color: var(--ink);
+  font: 500 14px var(--body); text-align: left; cursor: pointer;
+}
+.tt-au-sw:hover:not(:disabled) { background: var(--accent-soft); }
+.tt-au-sw:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.tt-au-sw:disabled { cursor: default; color: var(--muted); }
+.tt-au-l { flex: 1; }
+.tt-au-master { border-color: var(--line); background: var(--sheet-2); font-weight: 600; }
+.tt-au-track { position: relative; width: 34px; height: 20px; border-radius: 10px; background: var(--line); border: 1px solid var(--line-strong); flex: none; transition: background 0.18s var(--ease); }
+.tt-au-track i { position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--muted); transition: transform 0.18s var(--ease), background 0.18s var(--ease); }
+.tt-au-sw[aria-checked='true'] .tt-au-track { background: color-mix(in srgb, var(--accent) 35%, var(--line)); border-color: var(--accent); }
+.tt-au-sw[aria-checked='true'] .tt-au-track i { transform: translateX(14px); background: var(--accent); }
+.tt-au-state { width: 2.4em; font: 500 12.5px var(--body); color: var(--muted); text-align: right; }
+
+.tt-au-body { margin-top: 6px; display: grid; gap: 6px; }
+.tt-au-row { padding: 2px 0 6px; border-top: 1px solid var(--line); padding-top: 6px; }
+.tt-au-vol { display: grid; grid-template-columns: auto 1fr 3.2em; align-items: center; gap: 10px; padding: 0 8px; min-height: 40px; }
+.tt-au-vol label { font-size: 12.5px; color: var(--muted); }
+.tt-au-vol output { font: 500 12px var(--mono); color: var(--muted); text-align: right; }
+.tt-au-vol input[type='range'] { width: 100%; min-width: 0; height: 40px; margin: 0; accent-color: var(--accent); background: transparent; cursor: pointer; }
+.tt-au-vol input[type='range']:disabled { cursor: default; opacity: 0.55; }
+.tt-au-vol input[type='range']:focus-visible { outline: 2px solid var(--accent); outline-offset: -8px; border-radius: 6px; }
+.tt-au-prev { width: calc(100% - 16px); margin: 2px 8px 0; min-height: 40px; font-size: 13px; justify-content: center; }
+.tt-au-body.is-off .tt-au-vol label, .tt-au-body.is-off .tt-au-vol output { opacity: 0.8; }
+.tt-au-note { margin: 10px 2px 0; font-size: 12px; line-height: 1.4; color: var(--muted); }
+
+/* desktop cluster: a little tighter than the cluster's own gap, so the two icons read as a pair */
+.tt-hud > .tt-audio + .tt-theme { margin-left: -4px; }
+
+/* phones: the masthead cluster only has room for two icons, so the speaker joins the rank chip's row */
+@media (max-width: 600px) {
+  .mast.tt-au-narrow > .tt-audio { order: 3; }
+  .mast.tt-au-narrow > .cr-hud { width: calc(100% - 50px); flex: 1 1 0; min-width: 0; }
+  .tt-audio-pop { width: min(296px, calc(100vw - 28px)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tt-audio-btn, .tt-au-track, .tt-au-track i { transition: none; }
+  .tt-audio-btn:active { transform: none; }
+}

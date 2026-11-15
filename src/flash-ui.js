@@ -277,6 +277,7 @@
     const flip = () => {
       if (typed && !s.flipped && s.typedOk === null) return checkTyped();
       s.flipped = !s.flipped;
+      if (TT.sfx) TT.sfx('flip');
       applyFlip();
     };
     cardEl.addEventListener('click', flip);
@@ -298,6 +299,7 @@
       const sug = main.querySelector('.fc-r-' + (s.typedOk ? 'good' : 'again'));
       if (sug) sug.classList.add('fc-suggest');
       s.flipped = true;
+      if (TT.sfx) TT.sfx(s.typedOk ? 'correct' : 'flip');
       applyFlip();
     }
 
