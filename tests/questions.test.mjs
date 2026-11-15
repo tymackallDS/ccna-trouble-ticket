@@ -118,3 +118,22 @@ test('every domain in the bank has questions on several objectives', () => {
   for (const q of Q) (by[q.domain] = by[q.domain] || new Set()).add(q.obj);
   for (const [d, s] of Object.entries(by)) assert.ok(s.size >= Math.min(3, OBJ[d]), `domain ${d} only covers ${[...s]}`);
 });
+
+test('practice exams A-E: fixed, blueprint-weighted, cover the bank', async () => {
+  const { strict: assert } = await import('node:assert');
+  globalThis.localStorage = globalThis.localStorage || { getItem: () => null, setItem() {} };
+  await import('../src/exam-ui.js');
+  const sets = globalThis.TT.examSets();
+  assert.equal(sets.length, 5);
+  const want = { '1.0': 20, '2.0': 20, '3.0': 25, '4.0': 10, '5.0': 15, '6.0': 10 };
+  const all = new Set();
+  for (const s of sets) {
+    assert.equal(s.ids.length, 100);
+    assert.equal(new Set(s.ids).size, 100);
+    const per = {};
+    for (const id of s.ids) { const q = globalThis.TT.questions.find((x) => x.id === id); per[q.domain] = (per[q.domain] || 0) + 1; all.add(id); }
+    assert.deepEqual(per, want);
+  }
+  assert.equal(all.size, globalThis.TT.questions.length);
+  assert.deepEqual(globalThis.TT.examSets().map((s) => s.ids), sets.map((s) => s.ids));
+});

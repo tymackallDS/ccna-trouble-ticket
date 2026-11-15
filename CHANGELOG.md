@@ -2,6 +2,11 @@
 
 All notable changes to Trouble Ticket. Dates are release dates.
 
+## [2.1.0] - 2026-11-15
+
+### Added
+- **Practice exams A to E** - five fixed 100-question, 120-minute exams. Each one matches the blueprint weights and has 5 CLI labs, and together they cover all 433 questions. Each exam's best score and attempt count are saved.
+
 ## [2.0.0] - 2026-11-15
 
 The "one stop shop" release: the site now teaches, drills and tests every CCNA 200-301 v1.1 objective.
