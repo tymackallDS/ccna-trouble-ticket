@@ -168,3 +168,50 @@ test('t18: renewing before snooping still hands out a rogue address', () => {
   new TT.Session(w).run('PCA', 'ipconfig /renew');
   assert.ok(w.devices.PCA.pc.ip.startsWith('192.168.1.'));
 });
+
+test('v1.1 blueprint lists all 53 objectives with valid links', async () => {
+  await import('../src/guide.js');
+  await import('../src/course.js');
+  await import('../src/wlc.js');
+  const { TT } = globalThis;
+  assert.equal(TT.blueprint.length, 53);
+  const ids = new Set(TT.cards.map((c) => c.id));
+  for (const [obj, , x] of TT.blueprint) {
+    for (const c of x.c || []) assert.ok(ids.has(c), `${obj}: card ${c}`);
+    for (const t of x.t || []) assert.ok(TT.tickets.byId[t], `${obj}: ticket ${t}`);
+    assert.ok((x.c || []).length || (x.t || []).length || x.hw, `${obj} has practice`);
+  }
+});
+
+test('WLC tasks fail on a fresh controller', async () => {
+  await import('../src/wlc.js');
+  const fresh = { wlans: [] };
+  for (const t of globalThis.TT.wlcTasks) assert.ok(t.check(fresh).length > 0, t.id);
+});
+
+test('t21 half-fix: correcting static NAT but not adding overload still strands a PC', () => {
+  const t = TT.tickets.byId.t21;
+  const w = TT.net.makeWorld(t.world);
+  const s = new TT.Session(w);
+  for (const c of ['en', 'conf t', 'no ip nat inside source static 203.0.113.5 192.168.50.10', 'ip nat inside source static 192.168.50.10 203.0.113.5', 'end']) s.run('R1', c);
+  assert.ok(t.objectives[1].check(w));
+  assert.ok(!t.objectives[2].check(w));
+});
+
+test('t19 half-fix: priorities alone do not move the DR until the process is cleared', () => {
+  const t = TT.tickets.byId.t19;
+  const w = TT.net.makeWorld(t.world);
+  const s = new TT.Session(w);
+  for (const c of ['en', 'conf t', 'int g0/0', 'ip ospf priority 255', 'end']) s.run('R1', c);
+  for (const c of ['en', 'conf t', 'int g0/0', 'ip ospf priority 200', 'end']) s.run('R2', c);
+  assert.ok(!t.objectives[0].check(w));
+});
+
+test('t22: root guard alone leaves the BPDU-filter loop', () => {
+  const t = TT.tickets.byId.t22;
+  const w = TT.net.makeWorld(t.world);
+  const s = new TT.Session(w);
+  for (const c of ['en', 'conf t', 'int fa0/10', 'spanning-tree guard root', 'end']) s.run('A1', c);
+  assert.ok(t.objectives[0].check(w));
+  assert.ok(!t.objectives[2].check(w));
+});
