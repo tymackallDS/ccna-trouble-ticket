@@ -1411,14 +1411,427 @@
         exam: 'Trust only the ports toward your real DHCP server or relay. Snooping inserts option 82 by default, which can make a Cisco relay or server drop requests; no ip dhcp snooping information option is the usual fix in labs. DAI needs snooping (or ARP ACLs for static hosts), and uplinks to routers and other switches are trusted. Both features have per-port rate limits that err-disable a flooding port.',
       },
     },
+
+    /* ------------------------------------------------------------ */
+    {
+      id: 't19',
+      number: 'TT-1019',
+      title: 'The weakest router is in charge',
+      topic: 'OSPF DR/BDR',
+      priority: 'P2',
+      jitl: { label: 'Days 26 to 28: OSPF', url: yt('Day 27 OSPF Part 2') },
+      ptLab: 'Day 27 and 28 labs: OSPF DR/BDR election and network types.',
+      story: [
+        'Four routers share the core LAN, and OSPF elected a designated router for it. It picked HPL-EDGE, a small branch-grade box that already runs out of CPU on busy nights. Policy: HPL-CORE is the DR, HPL-DIST is the backup, and HPL-EDGE must never be DR or BDR.',
+        'Separately, the data center router HPL-DC is cabled straight to HPL-CORE, and its server LAN has vanished from the routing tables since someone "tidied up" the configs.',
+      ],
+      topology: {
+        nodes: [
+          { id: 'R3', x: 80, y: 40, type: 'router' },
+          { id: 'PC', x: 80, y: 155, type: 'pc' },
+          { id: 'SW', x: 250, y: 95, type: 'switch' },
+          { id: 'R2', x: 250, y: 190, type: 'router' },
+          { id: 'R1', x: 430, y: 95, type: 'router' },
+          { id: 'R4', x: 560, y: 40, type: 'router' },
+          { id: 'SRV', x: 560, y: 155, type: 'pc' },
+        ],
+      },
+      world: {
+        devices: {
+          R1: {
+            kind: 'router', hostname: 'HPL-CORE',
+            interfaces: {
+              'GigabitEthernet0/0': { ip: '10.0.0.1', mask: '255.255.255.0', shutdown: false },
+              'GigabitEthernet0/1': { ip: '10.0.14.1', mask: '255.255.255.252', shutdown: false },
+            },
+            ospf: { pid: 1, routerId: '1.1.1.1', passive: [], networks: [{ net: '10.0.0.0', wild: '0.0.0.255', area: 0 }, { net: '10.0.14.0', wild: '0.0.0.3', area: 0 }] },
+          },
+          R2: {
+            kind: 'router', hostname: 'HPL-DIST',
+            interfaces: { 'GigabitEthernet0/0': { ip: '10.0.0.2', mask: '255.255.255.0', shutdown: false } },
+            ospf: { pid: 1, routerId: '2.2.2.2', passive: [], networks: [{ net: '10.0.0.0', wild: '0.0.0.255', area: 0 }] },
+          },
+          R3: {
+            kind: 'router', hostname: 'HPL-EDGE',
+            interfaces: {
+              'GigabitEthernet0/0': { ip: '10.0.0.3', mask: '255.255.255.0', shutdown: false },
+              'GigabitEthernet0/1': { ip: '10.30.0.1', mask: '255.255.255.0', shutdown: false },
+            },
+            ospf: { pid: 1, routerId: '3.3.3.3', passive: ['GigabitEthernet0/1'], networks: [{ net: '10.0.0.0', wild: '0.0.0.255', area: 0 }, { net: '10.30.0.0', wild: '0.0.0.255', area: 0 }] },
+          },
+          R4: {
+            kind: 'router', hostname: 'HPL-DC',
+            interfaces: {
+              'GigabitEthernet0/1': { ip: '10.0.14.2', mask: '255.255.255.252', shutdown: false, ospfNet: 'p2p' },
+              'GigabitEthernet0/2': { ip: '10.40.0.1', mask: '255.255.255.0', shutdown: false },
+            },
+            ospf: { pid: 1, routerId: '4.4.4.4', passive: ['GigabitEthernet0/2'], networks: [{ net: '10.0.14.0', wild: '0.0.0.3', area: 0 }, { net: '10.40.0.0', wild: '0.0.0.255', area: 0 }] },
+          },
+          SW: sw('HPL-CORE-LAN', 4),
+          PC: pc('PC-EDGE', '10.30.0.10', '255.255.255.0', '10.30.0.1'),
+          SRV: pc('DC-SRV', '10.40.0.10', '255.255.255.0', '10.40.0.1'),
+        },
+        links: [
+          ['R1', 'GigabitEthernet0/0', 'SW', 'GigabitEthernet0/1'],
+          ['R2', 'GigabitEthernet0/0', 'SW', 'FastEthernet0/1'],
+          ['R3', 'GigabitEthernet0/0', 'SW', 'GigabitEthernet0/2'],
+          ['R1', 'GigabitEthernet0/1', 'R4', 'GigabitEthernet0/1'],
+          ['PC', 'NIC', 'R3', 'GigabitEthernet0/1'],
+          ['SRV', 'NIC', 'R4', 'GigabitEthernet0/2'],
+        ],
+        ospfDr: { '10.0.0.0/24': { dr: 'R3', bdr: 'R2' } },
+      },
+      start: 'R1',
+      objectives: [
+        { text: 'HPL-CORE is the DR on the core LAN (10.0.0.0/24)', check: (w) => { TT.net.computeOspf(w); return (w.ospfDr['10.0.0.0/24'] || {}).dr === 'R1'; } },
+        { text: 'HPL-DIST is the BDR', check: (w) => { TT.net.computeOspf(w); return (w.ospfDr['10.0.0.0/24'] || {}).bdr === 'R2'; } },
+        { text: 'HPL-EDGE can never become DR or BDR (priority 0)', check: (w) => iface(w, 'R3', 'GigabitEthernet0/0').ospfPrio === 0 },
+        { text: 'The CORE to DC link runs as OSPF point-to-point on both ends', check: (w) => iface(w, 'R1', 'GigabitEthernet0/1').ospfNet === 'p2p' && iface(w, 'R4', 'GigabitEthernet0/1').ospfNet === 'p2p' },
+        { text: 'PC-EDGE can reach DC-SRV at 10.40.0.10', check: (w) => can(w, 'PC', '10.40.0.10') },
+      ],
+      hints: [
+        'show ip ospf interface g0/0 on any core router shows who is DR and BDR, and each router\'s priority. On HPL-CORE, compare show ip ospf interface g0/1 with the same command on HPL-DC.',
+        'Raise priority with ip ospf priority on the core LAN interface: 255 on HPL-CORE, something lower but above 1 on HPL-DIST, and 0 on HPL-EDGE. On HPL-CORE g0/1 add ip ospf network point-to-point to match HPL-DC.',
+        'DR elections are not preemptive. After setting priorities, run clear ip ospf process on HPL-CORE (answer yes) so the segment holds a fresh election.',
+      ],
+      solution: {
+        R3: ['en', 'conf t', 'int g0/0', 'ip ospf priority 0', 'end'],
+        R2: ['en', 'conf t', 'int g0/0', 'ip ospf priority 200', 'end'],
+        R1: ['en', 'conf t', 'int g0/0', 'ip ospf priority 255', 'int g0/1', 'ip ospf network point-to-point', 'end', 'clear ip ospf process'],
+      },
+      debrief: {
+        what: 'On a broadcast segment, OSPF elects a DR and BDR so routers do not each form a full adjacency with every other router. The highest priority wins, then the highest router ID; priority 0 means "never". Because the election is not preemptive, a new higher priority does nothing until the DR leaves or the process is cleared. The DC link failed for a different reason: one end was point-to-point and the other broadcast, so the neighbors came up but the routes never made it into the table.',
+        exam: 'Default priority is 1 (range 0-255). DROTHERs stay in 2-WAY with each other and go FULL only with the DR and BDR. Point-to-point links elect no DR. Router ID order: router-id command, highest loopback IP, highest active interface IP. Hello/dead are 10/40 seconds on broadcast and point-to-point networks.',
+      },
+    },
+
+    /* ------------------------------------------------------------ */
+    {
+      id: 't20',
+      number: 'TT-1020',
+      title: 'Retire the router-on-a-stick',
+      topic: 'Layer 3 switching',
+      priority: 'P2',
+      jitl: { label: 'Day 18: VLANs Part 3 (SVIs) and Day 23: EtherChannel', url: yt('Day 18 VLANs Part 3') },
+      ptLab: 'Day 18 lab: inter-VLAN routing with SVIs. Day 23 lab: Layer 3 EtherChannel.',
+      story: [
+        'Floor 6 is moving off its old router-on-a-stick onto the new Layer 3 core switch, HPL-CORE1. Sales (VLAN 10) and Engineering (VLAN 20) PCs already sit on the access switch, trunked up to the core. A contractor started the job and went home.',
+        'The core also needs to reach the server farm behind HPL-CORE2 over a two-cable Layer 3 EtherChannel. HPL-CORE2 is finished and correct. Finish HPL-CORE1.',
+      ],
+      topology: {
+        nodes: [
+          { id: 'P10', x: 60, y: 40, type: 'pc' },
+          { id: 'P20', x: 60, y: 160, type: 'pc' },
+          { id: 'ACC', x: 200, y: 100, type: 'switch' },
+          { id: 'C1', x: 360, y: 100, type: 'switch' },
+          { id: 'C2', x: 520, y: 100, type: 'switch' },
+          { id: 'SRV', x: 640, y: 100, type: 'pc' },
+        ],
+      },
+      world: {
+        devices: {
+          C1: {
+            kind: 'switch', hostname: 'HPL-CORE1', multilayer: true, mac: '0c11.0000.0001',
+            vlans: { 1: 'default', 10: 'SALES', 20: 'ENG' },
+            interfaces: {
+              'GigabitEthernet1/0/1': { mode: 'trunk' },
+              'GigabitEthernet1/0/23': { channel: { group: 1, mode: 'active' } },
+              'GigabitEthernet1/0/24': { channel: { group: 1, mode: 'active' } },
+              'Port-channel1': {},
+              'Vlan10': { ip: '10.10.0.1', mask: '255.255.255.0', shutdown: true },
+            },
+          },
+          C2: {
+            kind: 'switch', hostname: 'HPL-CORE2', multilayer: true, ipRouting: true, mac: '0c22.0000.0001',
+            vlans: { 1: 'default', 99: 'SERVERS' },
+            interfaces: {
+              'GigabitEthernet1/0/5': { accessVlan: 99, modeSet: true },
+              'GigabitEthernet1/0/23': { routed: true, channel: { group: 1, mode: 'active' } },
+              'GigabitEthernet1/0/24': { routed: true, channel: { group: 1, mode: 'active' } },
+              'Port-channel1': { routed: true, ip: '10.255.0.2', mask: '255.255.255.252' },
+              'Vlan99': { ip: '10.99.0.1', mask: '255.255.255.0', shutdown: false },
+            },
+            routes: [{ net: '10.10.0.0', mask: '255.255.255.0', nh: '10.255.0.1' }, { net: '10.20.0.0', mask: '255.255.255.0', nh: '10.255.0.1' }],
+          },
+          ACC: sw('HPL-ACC6', 4, {
+            'FastEthernet0/1': { accessVlan: 10, modeSet: true },
+            'FastEthernet0/2': { accessVlan: 20, modeSet: true },
+            'GigabitEthernet0/1': { mode: 'trunk' },
+          }, { 1: 'default', 10: 'SALES', 20: 'ENG' }),
+          P10: pc('PC-SALES', '10.10.0.10', '255.255.255.0', '10.10.0.1'),
+          P20: pc('PC-ENG', '10.20.0.10', '255.255.255.0', '10.20.0.1'),
+          SRV: pc('FILE-SRV', '10.99.0.50', '255.255.255.0', '10.99.0.1'),
+        },
+        links: [
+          ['P10', 'NIC', 'ACC', 'FastEthernet0/1'],
+          ['P20', 'NIC', 'ACC', 'FastEthernet0/2'],
+          ['ACC', 'GigabitEthernet0/1', 'C1', 'GigabitEthernet1/0/1'],
+          ['C1', 'GigabitEthernet1/0/23', 'C2', 'GigabitEthernet1/0/23'],
+          ['C1', 'GigabitEthernet1/0/24', 'C2', 'GigabitEthernet1/0/24'],
+          ['SRV', 'NIC', 'C2', 'GigabitEthernet1/0/5'],
+        ],
+      },
+      start: 'C1',
+      objectives: [
+        { text: 'HPL-CORE1 routes between its interfaces (ip routing)', check: (w) => !!w.devices.C1.ipRouting },
+        { text: 'SVIs for VLAN 10 (10.10.0.1/24) and VLAN 20 (10.20.0.1/24) are up', check: (w) => iface(w, 'C1', 'Vlan10').ip === '10.10.0.1' && iface(w, 'C1', 'Vlan20').ip === '10.20.0.1' && TT.net.linkUp(w, 'C1', 'Vlan10') && TT.net.linkUp(w, 'C1', 'Vlan20') },
+        { text: 'PC-SALES can ping PC-ENG (inter-VLAN routing)', check: (w) => can(w, 'P10', '10.20.0.10') },
+        {
+          text: 'Port-channel 1 is a Layer 3 EtherChannel (10.255.0.1/30) with both links bundled',
+          check: (w) => { const g = TT.net.computeEc(w, 'C1')[1]; return !!g && iface(w, 'C1', 'Port-channel1').routed && iface(w, 'C1', 'Port-channel1').ip === '10.255.0.1' && Object.values(g.members).every((f) => f === 'P'); },
+        },
+        { text: 'PC-SALES can reach FILE-SRV at 10.99.0.50', check: (w) => can(w, 'P10', '10.99.0.50') },
+      ],
+      hints: [
+        'show ip interface brief on HPL-CORE1: Vlan10 is down, Vlan20 does not exist, and there is no routing yet. show etherchannel summary shows the members suspended (s): one side is Layer 2, the other Layer 3.',
+        'ip routing, then interface vlan 10 / no shutdown, then interface vlan 20 / ip address 10.20.0.1 255.255.255.0 / no shutdown.',
+        'interface range g1/0/23 - 24 / no switchport, then interface port-channel 1 / no switchport / ip address 10.255.0.1 255.255.255.252. Finally ip route 10.99.0.0 255.255.255.0 10.255.0.2.',
+      ],
+      solution: {
+        C1: ['en', 'conf t', 'ip routing', 'int vlan 10', 'no shutdown', 'int vlan 20', 'ip address 10.20.0.1 255.255.255.0', 'no shutdown', 'interface range g1/0/23 - 24', 'no switchport', 'int po1', 'no switchport', 'ip address 10.255.0.1 255.255.255.252', 'exit', 'ip route 10.99.0.0 255.255.255.0 10.255.0.2', 'end'],
+      },
+      debrief: {
+        what: 'A Layer 3 switch routes between VLANs in hardware using SVIs (interface vlan N), one per VLAN, each acting as that VLAN\'s default gateway. It only routes after ip routing. An SVI comes up when its VLAN exists and at least one port in that VLAN (access or trunk) is up. Between core switches, a routed EtherChannel bundles links into one Layer 3 interface, and both ends must agree: Layer 2 on one side and Layer 3 on the other leaves the members suspended.',
+        exam: 'no switchport turns a switch port into a routed port that takes an IP address. Compare the three inter-VLAN options: separate router interfaces, router-on-a-stick (subinterfaces with encapsulation dot1Q), and SVIs on a multilayer switch. show etherchannel summary flags: R = Layer 3, S = Layer 2, U = in use, P = bundled, s = suspended.',
+      },
+    },
+
+    /* ------------------------------------------------------------ */
+    {
+      id: 't21',
+      number: 'TT-1021',
+      title: 'The tracking site is unreachable',
+      topic: 'Static NAT and NAT pools',
+      priority: 'P1',
+      jitl: { label: 'Days 44 and 45: NAT', url: yt('Day 44 NAT Part 1') },
+      ptLab: 'Day 44 lab: static NAT. Day 45 lab: dynamic NAT with pools and PAT.',
+      story: [
+        'Customers check shipments on the warehouse web server, WEB-TRACK, at the public address 203.0.113.5. Since this afternoon nobody outside can reach it. The ISP gave Harbor Point the block 203.0.113.0/29.',
+        'Also, three warehouse PCs share a pool of two public addresses, and every day one of them "randomly" loses the internet. Fix both without changing the ISP side.',
+      ],
+      topology: {
+        nodes: [
+          { id: 'P1', x: 60, y: 30, type: 'pc' },
+          { id: 'P2', x: 60, y: 100, type: 'pc' },
+          { id: 'P3', x: 60, y: 170, type: 'pc' },
+          { id: 'WEB', x: 190, y: 190, type: 'pc' },
+          { id: 'SW', x: 200, y: 90, type: 'switch' },
+          { id: 'R1', x: 350, y: 90, type: 'router' },
+          { id: 'ISP', x: 500, y: 90, type: 'router' },
+          { id: 'NET', x: 630, y: 90, type: 'pc' },
+        ],
+      },
+      world: {
+        devices: {
+          R1: {
+            kind: 'router', hostname: 'HPL-WH2',
+            interfaces: {
+              'GigabitEthernet0/0': { ip: '192.168.50.1', mask: '255.255.255.0', shutdown: false, nat: 'inside' },
+              'GigabitEthernet0/1': { ip: '203.0.113.2', mask: '255.255.255.248', shutdown: false, nat: 'outside' },
+            },
+            routes: [{ net: '0.0.0.0', mask: '0.0.0.0', nh: '203.0.113.1' }],
+            aclText: { 1: ['permit 192.168.50.0 0.0.0.255'] },
+            natPools: { STAFF: { start: '203.0.113.3', end: '203.0.113.4', mask: '255.255.255.248' } },
+            nat: { list: 1, pool: 'STAFF', overload: false },
+            natStatic: [{ local: '203.0.113.5', global: '192.168.50.10' }],
+          },
+          ISP: {
+            kind: 'router', hostname: 'ISP-EDGE', locked: true,
+            interfaces: {
+              'GigabitEthernet0/0': { ip: '203.0.113.1', mask: '255.255.255.248', shutdown: false },
+              'GigabitEthernet0/1': { ip: '198.51.100.1', mask: '255.255.255.0', shutdown: false },
+            },
+          },
+          SW: sw('HPL-WH2-SW', 8),
+          P1: pc('WH-PC1', '192.168.50.21', '255.255.255.0', '192.168.50.1'),
+          P2: pc('WH-PC2', '192.168.50.22', '255.255.255.0', '192.168.50.1'),
+          P3: pc('WH-PC3', '192.168.50.23', '255.255.255.0', '192.168.50.1'),
+          WEB: pc('WEB-TRACK', '192.168.50.10', '255.255.255.0', '192.168.50.1'),
+          NET: pc('CUSTOMER', '198.51.100.10', '255.255.255.0', '198.51.100.1'),
+        },
+        links: [
+          ['P1', 'NIC', 'SW', 'FastEthernet0/1'],
+          ['P2', 'NIC', 'SW', 'FastEthernet0/2'],
+          ['P3', 'NIC', 'SW', 'FastEthernet0/3'],
+          ['WEB', 'NIC', 'SW', 'FastEthernet0/4'],
+          ['R1', 'GigabitEthernet0/0', 'SW', 'GigabitEthernet0/1'],
+          ['R1', 'GigabitEthernet0/1', 'ISP', 'GigabitEthernet0/0'],
+          ['NET', 'NIC', 'ISP', 'GigabitEthernet0/1'],
+        ],
+      },
+      start: 'R1',
+      objectives: [
+        { text: 'Static NAT maps WEB-TRACK (192.168.50.10) to 203.0.113.5', check: (w) => (w.devices.R1.natStatic || []).some((m) => m.local === '192.168.50.10' && m.global === '203.0.113.5') },
+        { text: 'A customer can reach WEB-TRACK at 203.0.113.5', check: (w) => { const r = TT.net.ping(w, 'NET', '203.0.113.5'); return r.ok && r.there.dstDev === 'WEB'; } },
+        { text: 'All three warehouse PCs reach the internet host 198.51.100.10 at the same time', check: (w) => ['P1', 'P2', 'P3'].every((p) => can(w, p, '198.51.100.10')) },
+        { text: 'The STAFF pool is shared with PAT (overload)', check: (w) => !!(w.devices.R1.nat && w.devices.R1.nat.pool === 'STAFF' && w.devices.R1.nat.overload) },
+      ],
+      hints: [
+        'show running-config | the NAT lines, and show ip nat translations. Read the static NAT line slowly: inside local first, inside global second.',
+        'The static rule is backwards. no ip nat inside source static 203.0.113.5 192.168.50.10, then ip nat inside source static 192.168.50.10 203.0.113.5.',
+        'Two pool addresses for three PCs: without overload, the third PC to talk gets nothing. ip nat inside source list 1 pool STAFF overload.',
+      ],
+      solution: {
+        R1: ['en', 'conf t', 'no ip nat inside source static 203.0.113.5 192.168.50.10', 'ip nat inside source static 192.168.50.10 203.0.113.5', 'ip nat inside source list 1 pool STAFF overload', 'end'],
+      },
+      debrief: {
+        what: 'Static NAT is a permanent one-to-one mapping, so outside hosts can start connections to an inside server. The syntax always reads inside local, then inside global. Dynamic NAT hands out pool addresses one-to-one until the pool runs dry; the next host waits until a translation times out. Adding overload turns the pool into PAT, so many hosts share addresses using different port numbers.',
+        exam: 'Inside local = the private address on the inside. Inside global = how that host appears outside. Outside local/global = the remote host as seen from inside/outside (the same unless you also translate the destination). Commands: ip nat inside / ip nat outside on interfaces, ip nat pool NAME start end netmask M, ip nat inside source list ACL pool NAME [overload], ip nat inside source static LOCAL GLOBAL. Verify with show ip nat translations and show ip nat statistics; clear with clear ip nat translation *.',
+      },
+    },
+
+    /* ------------------------------------------------------------ */
+    {
+      id: 't22',
+      number: 'TT-1022',
+      title: 'A desk switch took over the network',
+      topic: 'STP protection',
+      priority: 'P1',
+      jitl: { label: 'Days 20 to 22: Spanning Tree', url: yt('Day 21 Spanning Tree Protocol Part 2') },
+      ptLab: 'Day 21 and 22 labs: STP optional features (PortFast, BPDU guard, root guard, loop guard).',
+      story: [
+        'Someone in the conference room plugged a cheap managed switch into wall port Fa0/10 on HPL-ACC7 to get more ports. Its bridge priority is 0, so it is now the root bridge for the whole floor and traffic is taking a scenic route through a desk.',
+        'While investigating you notice the uplink between the two access switches has BPDU filter turned on, so spanning tree cannot see that link at all. Fix the root, fix the loop risk, and harden the backup uplink.',
+      ],
+      topology: {
+        nodes: [
+          { id: 'DIST', x: 330, y: 35, type: 'switch' },
+          { id: 'A1', x: 180, y: 150, type: 'switch' },
+          { id: 'A2', x: 480, y: 150, type: 'switch' },
+          { id: 'ROGUE', x: 60, y: 60, type: 'switch' },
+          { id: 'PC', x: 600, y: 60, type: 'pc' },
+        ],
+      },
+      world: {
+        devices: {
+          DIST: Object.assign(sw('HPL-DIST1', 2), { mac: '0011.1111.1111', stp: { prio: { 1: 4096 } } }),
+          A1: Object.assign(sw('HPL-ACC7', 10), { mac: '0022.2222.2222' }),
+          A2: Object.assign(sw('HPL-ACC8', 4, { 'GigabitEthernet0/2': { bpdufilter: true } }), { mac: '0033.3333.3333' }),
+          ROGUE: Object.assign(sw('CONF-RM-SW', 2), { mac: '00aa.0000.0001', stp: { prio: { 1: 0 } }, locked: true }),
+          PC: pc('PC-ACC8', '10.1.1.40', '255.255.255.0', '10.1.1.1'),
+        },
+        links: [
+          ['DIST', 'GigabitEthernet0/1', 'A1', 'GigabitEthernet0/1'],
+          ['DIST', 'GigabitEthernet0/2', 'A2', 'GigabitEthernet0/1'],
+          ['A1', 'GigabitEthernet0/2', 'A2', 'GigabitEthernet0/2'],
+          ['A1', 'FastEthernet0/10', 'ROGUE', 'GigabitEthernet0/1'],
+          ['PC', 'NIC', 'A2', 'FastEthernet0/1'],
+        ],
+      },
+      start: 'A1',
+      objectives: [
+        { text: 'HPL-DIST1 is the root bridge for VLAN 1 again', check: (w) => { const st = TT.net.computeStp(w, 1); return st.rootOf.DIST.dev === 'DIST' && st.rootOf.A1.dev === 'DIST' && st.rootOf.A2.dev === 'DIST'; } },
+        { text: 'Root guard protects wall port Fa0/10 on HPL-ACC7', check: (w) => !!iface(w, 'A1', 'FastEthernet0/10').rootGuard },
+        { text: 'No Layer 2 loop: BPDU filter is off the uplink and one port blocks', check: (w) => !iface(w, 'A2', 'GigabitEthernet0/2').bpdufilter && !iface(w, 'A1', 'GigabitEthernet0/2').bpdufilter && !TT.net.computeStp(w, 1).loop },
+        {
+          text: 'Loop guard runs on the blocking end of the ACC7 to ACC8 link',
+          check: (w) => { const st = TT.net.computeStp(w, 1); const blk = [['A1', 'GigabitEthernet0/2'], ['A2', 'GigabitEthernet0/2']].find(([d, n]) => (st.ports[d][n] || {}).role === 'Altn'); return !!blk && !!iface(w, blk[0], blk[1]).loopGuard; },
+        },
+      ],
+      hints: [
+        'show spanning-tree on HPL-ACC7: the root ID is not HPL-DIST1, and the root port is Fa0/10. On HPL-ACC8, show spanning-tree flags Gi0/2 with BPDU filter.',
+        'On HPL-ACC7: interface fa0/10, spanning-tree guard root. The port goes root-inconsistent (BKN*) and HPL-DIST1 wins again.',
+        'On HPL-ACC8: interface g0/2, no spanning-tree bpdufilter. Now HPL-ACC8 Gi0/2 blocks (HPL-ACC7 has the lower MAC). Add spanning-tree guard loop there.',
+      ],
+      solution: {
+        A1: ['en', 'conf t', 'int fa0/10', 'spanning-tree guard root', 'end'],
+        A2: ['en', 'conf t', 'int g0/2', 'no spanning-tree bpdufilter', 'spanning-tree guard loop', 'end'],
+      },
+      debrief: {
+        what: 'Root guard stops a port from ever becoming a root port: if it hears a superior BPDU it goes root-inconsistent and blocks until those BPDUs stop, so a rogue switch cannot steal the root role. BPDU filter on an interface stops sending and receiving BPDUs entirely, which is how you accidentally build a loop between switches. Loop guard protects blocking ports: if BPDUs stop arriving (say a one-way fiber fault), the port goes loop-inconsistent instead of moving to forwarding.',
+        exam: 'Where each goes: PortFast and BPDU guard on access ports to end hosts; root guard on ports facing switches that must never be root (distribution downlinks); loop guard on root and alternate ports between switches. BPDU guard err-disables; root guard and loop guard block but recover automatically. spanning-tree vlan N root primary/secondary sets priority 24576/28672 (or lower if needed).',
+      },
+    },
+
+    /* ------------------------------------------------------------ */
+    {
+      id: 't23',
+      number: 'TT-1023',
+      title: 'The new branch router ships tomorrow',
+      topic: 'Device setup checklist',
+      priority: 'P3',
+      jitl: { label: 'Days 36, 37, 39 and 4: CDP/LLDP, NTP, DHCP, device security', url: yt('Day 37 NTP') },
+      ptLab: 'Day 36 lab: CDP and LLDP. Day 37 lab: NTP. Day 39 lab: DHCP client.',
+      story: [
+        'HPL-BR2 is racked at the new Glen Burnie branch. Before the movers leave, finish the go-live checklist: the ISP hands out its WAN address by DHCP, the clock must sync to the public time server at 192.0.2.123, and the console must not be wide open.',
+        'The branch LAN switch is a third-party model that does not speak CDP. Find out what it is and which of its ports the router plugs into, and label the router interface. And stop advertising CDP toward the ISP.',
+      ],
+      topology: {
+        nodes: [
+          { id: 'PC', x: 50, y: 95, type: 'pc' },
+          { id: 'LAN', x: 170, y: 95, type: 'switch' },
+          { id: 'BR', x: 310, y: 95, type: 'router' },
+          { id: 'ISW', x: 440, y: 95, type: 'switch' },
+          { id: 'DH', x: 440, y: 195, type: 'pc' },
+          { id: 'ISP', x: 560, y: 95, type: 'router' },
+          { id: 'NTP', x: 660, y: 95, type: 'pc' },
+        ],
+      },
+      world: {
+        devices: {
+          BR: {
+            kind: 'router', hostname: 'HPL-BR2',
+            interfaces: {
+              'GigabitEthernet0/0': { ip: '10.20.0.1', mask: '255.255.255.0', shutdown: false },
+              'GigabitEthernet0/1': { shutdown: false },
+            },
+          },
+          LAN: { kind: 'switch', hostname: 'BR2-EDGE-SW', vendor: 'other', locked: true, interfaces: { 'GigabitEthernet1/0/1': {}, 'GigabitEthernet1/0/48': {} }, vlans: { 1: 'default' } },
+          ISW: Object.assign(sw('ISP-HANDOFF', 4), { locked: true, cdp: false }),
+          ISP: {
+            kind: 'router', hostname: 'ISP-EDGE', locked: true,
+            interfaces: {
+              'GigabitEthernet0/0': { ip: '100.64.20.1', mask: '255.255.255.0', shutdown: false },
+              'GigabitEthernet0/1': { ip: '192.0.2.1', mask: '255.255.255.0', shutdown: false },
+            },
+          },
+          DH: { kind: 'pc', hostname: 'ISP-DHCP', locked: true, pc: { ip: '100.64.20.2', mask: '255.255.255.0', gw: '100.64.20.1', server: true, pools: [{ name: 'CUST', network: '100.64.20.0', mask: '255.255.255.0', gw: '100.64.20.1', start: '100.64.20.100', end: '100.64.20.150' }] } },
+          NTP: { kind: 'pc', hostname: 'NTP-1', locked: true, pc: { ip: '192.0.2.123', mask: '255.255.255.0', gw: '192.0.2.1', ntp: true, stratum: 1 } },
+          PC: pc('PC-BR2', '10.20.0.10', '255.255.255.0', '10.20.0.1'),
+        },
+        links: [
+          ['PC', 'NIC', 'LAN', 'GigabitEthernet1/0/1'],
+          ['LAN', 'GigabitEthernet1/0/48', 'BR', 'GigabitEthernet0/0'],
+          ['BR', 'GigabitEthernet0/1', 'ISW', 'FastEthernet0/1'],
+          ['ISP', 'GigabitEthernet0/0', 'ISW', 'FastEthernet0/2'],
+          ['DH', 'NIC', 'ISW', 'FastEthernet0/3'],
+          ['NTP', 'NIC', 'ISP', 'GigabitEthernet0/1'],
+        ],
+      },
+      start: 'BR',
+      objectives: [
+        {
+          text: 'Gi0/1 gets its address from the ISP by DHCP, with a default route',
+          check: (w) => { const i = iface(w, 'BR', 'GigabitEthernet0/1'); return !!i.dhcp && (i.ip || '').startsWith('100.64.20.') && TT.net.routingTable(w, 'BR').some((r) => r.net === 0 && r.p === 0); },
+        },
+        { text: 'The clock is synchronized to 192.0.2.123 by NTP', check: (w) => { const s = TT.net.ntpStatus(w, 'BR'); return s.synced && s.ref === '192.0.2.123'; } },
+        {
+          text: 'Console needs a password, logs out after at most 10 idle minutes, enable secret is set, passwords are encrypted',
+          check: (w) => { const d = w.devices.BR; const c = d.con || {}; const t = c.timeout; return !!c.password && (c.login === 'password' || c.login === 'local') && !!t && (t[0] > 0 || t[1] > 0) && t[0] * 60 + t[1] <= 600 && !!d.enableSecret && !!d.pwEnc; },
+        },
+        { text: 'LLDP is on, and Gi0/0\'s description names the LAN switch found by LLDP', check: (w) => !!w.devices.BR.lldp && /br2-edge-sw/i.test(iface(w, 'BR', 'GigabitEthernet0/0').desc || '') },
+        { text: 'CDP is not sent toward the ISP on Gi0/1', check: (w) => !!iface(w, 'BR', 'GigabitEthernet0/1').cdpOff },
+      ],
+      hints: [
+        'show cdp neighbors shows nothing on Gi0/0: the switch is not Cisco. LLDP is off by default on Cisco IOS. show ip interface brief shows Gi0/1 with no address.',
+        'interface g0/1, ip address dhcp, no cdp enable. Then ntp server 192.0.2.123 in global config, and check show ntp status. line console 0, password ..., login, exec-timeout 5 0. enable secret ... and service password-encryption.',
+        'lldp run, wait for show lldp neighbors to list the switch, then interface g0/0, description To BR2-EDGE-SW port 1/0/48 (any wording that names the switch).',
+      ],
+      solution: {
+        BR: ['en', 'conf t', 'int g0/1', 'ip address dhcp', 'no cdp enable', 'exit', 'ntp server 192.0.2.123', 'line console 0', 'password Harb0r!con', 'login', 'exec-timeout 5 0', 'exit', 'enable secret Harb0r!en', 'service password-encryption', 'lldp run', 'int g0/0', 'description To BR2-EDGE-SW port 1/0/48', 'end', 'show lldp neighbors'],
+      },
+      debrief: {
+        what: 'A router can be a DHCP client on its WAN port (ip address dhcp) and installs the default route the server hands out, with administrative distance 254. NTP clients sync to a server with ntp server; a router with ntp master becomes a time source for others. CDP is Cisco-only and on by default; LLDP (802.1AB) is the open standard and off by default on IOS, so a third-party neighbor only shows up after lldp run. Turning CDP off toward untrusted networks stops leaking your model and IOS version.',
+        exam: 'show ntp status / show ntp associations; an unsynchronized clock shows a * in show clock. CDP timers 60 s / holdtime 180 s; LLDP timers 30 s / holdtime 120 s. service password-encryption only applies weak type 7 to plain passwords; enable secret is hashed. exec-timeout 0 0 means never time out.',
+      },
+    },
   ];
 
   tickets.byId = Object.fromEntries(tickets.map((t) => [t.id, t]));
   TT.tickets = tickets;
 
   TT.roadmap = [
-    { topic: 'OSPFv3 and IPv6 EIGRP', note: 'Dynamic routing for the IPv6 pilot' },
-    { topic: 'Layer 3 switch SVIs', note: 'Inter-VLAN routing without a router' },
-    { topic: 'Wireless LAN controller', note: 'Create a WPA2 WLAN on a WLC' },
+    { topic: 'OSPFv3 for IPv6', note: 'Dynamic routing for the IPv6 pilot' },
+    { topic: 'VRRP, storm control and RA guard', note: 'New on the v2.0 exam from February 2027' },
   ];
 })(typeof globalThis !== 'undefined' ? globalThis : window);

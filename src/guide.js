@@ -248,6 +248,8 @@
         'Default route: ip route 0.0.0.0 0.0.0.0 NEXT-HOP, shown as S* and "Gateway of last resort"',
         'The route installs only if the next hop is reachable through a connected network',
         'Every path needs a return route',
+        'Floating static: give a backup route a higher AD (ip route ... 10.0.0.2 200) so it installs only when the primary disappears',
+        'Host route: a /32 (mask 255.255.255.255) to a single address',
       ],
       trap: 'A static route with an unreachable next hop silently stays out of the routing table.',
       q: [
@@ -295,6 +297,7 @@
         'DORA: Discover, Offer, Request, Acknowledge',
         'Discover is a broadcast, so a router needs ip helper-address to relay it to a server on another subnet',
         'ip dhcp excluded-address keeps static addresses out of the pool',
+        'A router can be a client too: ip address dhcp on the interface; it installs the offered default route with AD 254',
       ],
       trap: 'ip helper-address goes on the interface facing the CLIENTS, not the server.',
       q: [
@@ -323,6 +326,9 @@
         'Static NAT: one-to-one, permanent. Dynamic NAT: from a pool. PAT: many-to-one with ports',
         'ip nat inside / ip nat outside on the interfaces',
         'ip nat inside source list 1 interface g0/1 overload',
+        'Static: ip nat inside source static LOCAL GLOBAL (inside local first!)',
+        'Pool: ip nat pool NAME START END netmask M, then ip nat inside source list 1 pool NAME [overload]',
+        'Without overload, a pool runs out after one host per address; extra hosts get no translation',
       ],
       trap: 'Inside global is the public address that represents an inside host.',
       q: [
@@ -337,6 +343,7 @@
         'Stratum = distance from a reference clock; stratum 1 is attached to one',
         'ntp server ADDRESS on a client; ntp master makes the router a server',
         'show ntp associations, show ntp status',
+        'An unsynchronized clock shows * at the start of show clock',
       ],
       trap: 'A lower stratum number is more accurate.',
       q: [['Which port does NTP use?', ['TCP 123', 'UDP 123', 'UDP 161', 'UDP 514'], 1, 'NTP uses UDP 123.']],
@@ -358,7 +365,7 @@
       summary: 'Sends log messages to the console, a buffer or a remote server, each tagged with a severity level from 0 to 7.',
       facts: [
         '0 Emergency, 1 Alert, 2 Critical, 3 Error, 4 Warning, 5 Notification, 6 Informational, 7 Debugging',
-        'Memory aid: Every Awesome Cisco Engineer Will Need Ice cream Daily',
+        'Memory aid: Even After Coffee, Everyone Wants Naps In December',
         'logging trap 4 sends levels 0 through 4',
         'logging synchronous stops messages from breaking up your typing',
       ],
@@ -758,19 +765,112 @@
         ["What does HTTP status 404 mean?", ["Unauthorized", "Not Found", "Server error", "Created"], 1, "The requested resource does not exist."],
       ],
     },
-    {
-      id: "cfgmgmt", domain: "auto", name: "Ansible, Puppet and Chef", layer: "Mgmt", ports: "SSH 22, Puppet 8140, Chef 10002",
-      summary: "Configuration management tools keep many devices matched to a defined state, and fix drift when a device wanders off it.",
+{
+      id: "cfgmgmt", domain: "auto", name: "Ansible and Terraform", layer: "Mgmt", ports: "SSH 22, HTTPS 443",
+      summary: "Configuration management and infrastructure-as-code tools keep many devices in a defined state, so changes are repeatable and drift gets corrected.",
       facts: [
-        "Ansible: agentless, push model, SSH (port 22), playbooks written in YAML, written in Python",
-        "Puppet: agent-based (or a proxy for network gear), pull model, TCP 8140, manifests in a Ruby-based language",
-        "Chef: agent-based, pull model, TCP 10002, recipes grouped into cookbooks, run-list says what to apply, Ruby",
-        "Configuration drift: when a device's running config wanders from the standard",
+        "Ansible: agentless, push model. Connects over SSH (or device APIs), runs playbooks written in YAML against an inventory of hosts; modules are idempotent, so running twice changes nothing new",
+        "Terraform (HashiCorp): infrastructure as code. Declarative: you describe the desired end state in HCL files, terraform plan previews the changes, terraform apply makes them. Keeps a state file; providers talk to cloud and network APIs; agentless",
+        "Puppet and Chef are older agent-based, pull-model tools (Puppet manifests on TCP 8140, Chef recipes in cookbooks). They were on CCNA v1.0; v1.1 names Ansible and Terraform",
+        "Configuration drift: a device's running config wanders away from the standard. These tools detect and fix it",
       ],
-      trap: "Ansible is the only one of the three that is agentless and push-based.",
+      trap: "Ansible = YAML playbooks, push, agentless. Terraform = declarative HCL plus a state file, plan then apply.",
       q: [
-        ["Which tool is agentless and pushes changes over SSH?", ["Puppet", "Chef", "Ansible", "Terraform agent"], 2, "Ansible needs no agent on the device."],
-        ["What does Puppet call its configuration files?", ["Playbooks", "Recipes", "Manifests", "Cookbooks"], 2, "Puppet uses manifests; Chef uses recipes in cookbooks; Ansible uses playbooks."],
+        ["Which tool uses declarative HCL files and a state file to manage infrastructure?", ["Ansible", "Terraform", "Puppet", "Python Netmiko"], 1, "Terraform is declarative, written in HCL, and tracks what it built in a state file."],
+        ["Which tool is agentless and pushes changes over SSH using YAML playbooks?", ["Ansible", "Chef", "Puppet", "Terraform Cloud agent"], 0, "Ansible needs no agent on managed devices and runs YAML playbooks over SSH."],
+      ],
+    },
+    {
+      id: "aiml", domain: "auto", name: "AI and machine learning in network operations", layer: "Mgmt", ports: "",
+      summary: "Machine learning finds patterns in network data that no human would spot at 3 a.m. Predictive AI forecasts and flags problems; generative AI writes new content, like a config draft or a plain-English summary of an outage.",
+      facts: [
+        "Machine learning (ML): algorithms learn from data instead of following hand-written rules. Supervised learning uses labeled examples; unsupervised learning finds clusters and anomalies on its own; reinforcement learning improves through rewards",
+        "Predictive AI: baselines what \"normal\" looks like, then detects anomalies, forecasts capacity or failures, and suggests likely root causes (Cisco Catalyst Center uses this in its assurance features)",
+        "Generative AI: large language models create new text, code or configurations from a prompt, for example a chat assistant that explains an outage or drafts a CLI change",
+        "Risks: hallucination (confident but wrong answers), leaking sensitive data in prompts, and bias in training data. A human reviews AI-generated changes before they touch production",
+      ],
+      trap: "Predictive AI analyzes existing data to forecast or classify. Generative AI produces brand-new content. Exam questions hinge on that difference.",
+      q: [
+        ["A system learns normal traffic levels for each site and alerts when a link behaves unusually. Which type of AI is this?", ["Generative AI", "Predictive AI", "Rule-based scripting", "Reinforcement routing"], 1, "Learning a baseline and flagging anomalies is predictive (analytical) AI. Generative AI creates new content."],
+        ["What is a key risk of using generative AI to produce device configurations?", ["It cannot read JSON", "It may produce confident but incorrect output", "It only works with SNMPv1", "It requires a dedicated controller"], 1, "Generative models can hallucinate, so a human must review generated configs before deployment."],
+      ],
+    },
+    {
+      id: "osverify", domain: "fund", name: "Checking IP settings on Windows, macOS and Linux", layer: "L3", ports: "",
+      summary: "When a user says \"the internet is down,\" first check what their computer actually has: an IP address, mask, default gateway and DNS servers. Every OS shows this a little differently.",
+      facts: [
+        "Windows: ipconfig (IP, mask, gateway), ipconfig /all (adds MAC, DHCP server, DNS servers, lease times), ipconfig /release and /renew, route print for the routing table, nslookup for DNS",
+        "macOS: ifconfig (or ipconfig getifaddr en0) for the address, netstat -rn for the default gateway, networksetup -getinfo \"Wi-Fi\" for a summary, scutil --dns for DNS servers",
+        "Linux: ip address (ip addr) for addresses, ip route for the default gateway (\"default via ...\"), ifconfig on older systems, resolvectl status or /etc/resolv.conf for DNS",
+        "A 169.254.x.x address means the client gave up on DHCP and self-assigned (APIPA)",
+      ],
+      trap: "Linux and macOS show the default gateway in the routing table (ip route / netstat -rn), not in the interface output.",
+      q: [
+        ["Which Windows command shows the MAC address and DNS servers of each adapter?", ["ipconfig", "ipconfig /all", "netstat -an", "arp -a"], 1, "ipconfig alone shows IP, mask and gateway; /all adds MAC, DHCP and DNS details."],
+        ["On a Linux host, which command shows the default gateway?", ["ip route", "ip address", "hostname -I", "ifconfig -a"], 0, "ip route prints the routing table, including the \"default via\" line."],
+      ],
+    },
+    {
+      id: "pwpolicy", domain: "sec", name: "Password policy and alternatives", layer: "All", ports: "",
+      summary: "Passwords are the weakest lock on the door, so policy makes them harder to guess and adds other proof of identity on top.",
+      facts: [
+        "Complexity and length: long passphrases beat short \"complex\" ones; current NIST guidance favors length, checking against known-breached passwords, and not forcing changes without a reason",
+        "Management: no reuse, account lockout after failed attempts, change default credentials, store secrets in a password manager",
+        "Alternatives: multifactor authentication (two different factor types: something you know, have or are), digital certificates (issued by a certificate authority), biometrics (fingerprint, face)",
+        "On IOS: security passwords min-length 10, login block-for 120 attempts 3 within 60, and enable secret (hashed) instead of enable password",
+      ],
+      trap: "Two things you know (password plus PIN) is still single-factor. MFA needs different factor types.",
+      q: [
+        ["Which combination is true multifactor authentication?", ["Password and security question", "Password and a code from a phone authenticator app", "Two different passwords", "Username and password"], 1, "Something you know (password) plus something you have (the phone) is two factors."],
+        ["Which IOS command enforces a minimum password length?", ["service password-encryption", "security passwords min-length 10", "enable secret 10", "login block-for 10"], 1, "security passwords min-length sets the minimum length for new passwords."],
+      ],
+    },
+    {
+      id: "ipsec", domain: "sec", name: "IPsec VPNs", layer: "L3", ports: "ESP IP 50, AH IP 51, IKE UDP 500/4500",
+      summary: "A VPN builds a private tunnel across a public network. Site-to-site VPNs join whole offices; remote-access VPNs connect one user's laptop.",
+      facts: [
+        "IPsec protects IP packets with confidentiality (encryption such as AES), integrity (hashing such as SHA), authentication (pre-shared keys or certificates) and anti-replay",
+        "ESP (IP protocol 50) encrypts and authenticates; AH (IP protocol 51) authenticates only and never encrypts. IKE negotiates keys on UDP 500, or UDP 4500 with NAT traversal",
+        "Site-to-site: a permanent tunnel between two gateways (routers or firewalls); hosts behind them do not need VPN software. GRE over IPsec carries routing protocols and multicast; DMVPN builds hub-and-spoke tunnels with dynamic spoke-to-spoke paths",
+        "Remote access: client software on the user's device (for example Cisco Secure Client) connects on demand to a VPN headend, usually over TLS, sometimes IPsec",
+      ],
+      trap: "AH provides no encryption. If the question needs confidentiality, the answer is ESP.",
+      q: [
+        ["Which IPsec protocol provides encryption?", ["AH", "ESP", "IKE", "GRE"], 1, "ESP encrypts; AH only authenticates. GRE does not encrypt at all."],
+        ["Which VPN type requires software on each user's device?", ["Site-to-site VPN", "Remote-access VPN", "GRE tunnel", "DMVPN"], 1, "Remote-access VPNs run a client on the endpoint; site-to-site VPNs are handled by the gateways."],
+      ],
+    },
+    {
+      id: "ipv6types", domain: "fund", name: "IPv6 address types and EUI-64", layer: "L3", ports: "",
+      summary: "IPv6 has no broadcast. Instead it has unicast types for different scopes, multicast groups, and anycast. Hosts can even build their own interface ID from their MAC address.",
+      facts: [
+        "Global unicast 2000::/3 (routable on the internet). Unique local FC00::/7, with FD00::/8 used in practice (private). Link-local FE80::/10: every IPv6 interface has one, never routed, used by NDP and as routing next hops",
+        "Multicast FF00::/8: FF02::1 all nodes, FF02::2 all routers, FF02::5 and FF02::6 OSPFv3, FF02::A EIGRP. Anycast: the same unicast address on several devices; the nearest one answers",
+        ":: is unspecified, ::1 is loopback. IPv6 has no broadcast at all",
+        "Modified EUI-64: split the 48-bit MAC in half, insert FFFE in the middle, then flip the 7th bit of the first byte. MAC 0050.7966.6801 becomes interface ID 0250:79FF:FE66:6801",
+        "IOS: ipv6 address 2001:db8:1::/64 eui-64, ipv6 address autoconfig (SLAAC), ipv6 enable (link-local only)",
+      ],
+      trap: "Flipping the 7th bit turns 00 into 02 and 02 into 00. Forgetting the flip is the classic wrong answer.",
+      q: [
+        ["What is the modified EUI-64 interface ID for MAC address 0011.2233.4455?", ["0011:22FF:FE33:4455", "0211:22FF:FE33:4455", "0211:2233:FFFE:4455", "FE80::0011:2233:4455"], 1, "Insert FFFE in the middle (0011:22FF:FE33:4455) and flip the 7th bit of the first byte (00 to 02)."],
+        ["Which prefix identifies IPv6 link-local addresses?", ["FC00::/7", "FF00::/8", "FE80::/10", "2000::/3"], 2, "FE80::/10 is link-local. FC00::/7 is unique local and FF00::/8 is multicast."],
+      ],
+    },
+    {
+      id: "stpguard", domain: "access", name: "STP protection: PortFast, BPDU guard, root guard, loop guard, BPDU filter", layer: "L2", ports: "",
+      summary: "Spanning tree trusts every BPDU it hears. These features decide which ports are allowed to speak and what happens when the wrong device starts talking.",
+      facts: [
+        "PortFast: an access port to an end host skips listening/learning and forwards immediately",
+        "BPDU guard: err-disables a port the moment a BPDU arrives (spanning-tree bpduguard enable, or globally for all PortFast ports with spanning-tree portfast bpduguard default)",
+        "Root guard: the port can never become a root port. A superior BPDU puts it in root-inconsistent (blocking) until those BPDUs stop; then it recovers on its own",
+        "Loop guard: on root and alternate ports between switches. If BPDUs stop arriving (a one-way link), the port goes loop-inconsistent instead of forwarding",
+        "BPDU filter: on an interface it stops sending and receiving BPDUs, effectively turning STP off there (dangerous between switches). Globally (spanning-tree portfast bpdufilter default) PortFast ports stop sending BPDUs but fall back to normal STP if one arrives",
+        "Rapid PVST+ roles: root, designated, alternate, backup. States: discarding, learning, forwarding",
+      ],
+      trap: "BPDU guard err-disables the port; root guard and loop guard only block it and recover automatically.",
+      q: [
+        ["A port connected to a switch that must never become root should use which feature?", ["PortFast", "Root guard", "BPDU filter", "Loop guard"], 1, "Root guard blocks the port (root-inconsistent) if superior BPDUs arrive."],
+        ["Which feature err-disables an access port when it receives any BPDU?", ["Root guard", "Loop guard", "BPDU guard", "UplinkFast"], 2, "BPDU guard shuts the port down (err-disabled) on any BPDU."],
       ],
     },
   ];
