@@ -2,7 +2,7 @@
 
 A CCNA troubleshooting game that runs in the browser. You play the night-shift network tech at a fictional Baltimore logistics company, open trouble tickets, and fix broken networks by typing real Cisco IOS commands into a simulated CLI.
 
-**Live site:** `https://YOUR-CLOUDFRONT-DOMAIN` (see [Deploy](#deploy-to-aws))
+**Live site:** [d1p1eji0s2dseq.cloudfront.net](https://d1p1eji0s2dseq.cloudfront.net)
 
 ![Trouble Ticket screenshot](docs/screenshot.png)
 
