@@ -303,8 +303,11 @@
   /**
    * Starting at an L3 endpoint (router interface or PC NIC), return every L3 endpoint
    * reachable at layer 2 (same VLAN / broadcast domain), including the start.
+   * Optional via (read-only tracing, used by tracePath): via.skip(dev, port, vlan) can hold a port
+   * out of the walk, and via.hits['dev|endpoint'] receives the walk entry that reached each endpoint;
+   * every entry links to the entry it came from at index 4, so the cable path can be rebuilt.
    */
-  function l2Domain(w, id, ifn) {
+  function l2Domain(w, id, ifn, via) {
     const out = [[id, ifn]];
     if (!linkUp(w, id, ifn)) return out;
     const seen = new Set();
@@ -321,23 +324,27 @@
 
     if (w.devices[id].kind === 'pc' && !psAllows(w, firstHop[0], firstHop[1], id)) return out;
     const stack = [[firstHop[0], firstHop[1], startTag, isSvi ? Number(ifn.slice(4)) : undefined]]; // [device, port, tagVlan|null, insideVlan]
-    const addOut = (dev, ep) => { if (!out.some(([a, b]) => a === dev && b === ep)) out.push([dev, ep]); };
+    const addOut = (dev, ep, it) => {
+      if (via && via.hits && !via.hits[dev + '|' + ep]) via.hits[dev + '|' + ep] = it;
+      if (!out.some(([a, b]) => a === dev && b === ep)) out.push([dev, ep]);
+    };
     while (stack.length) {
-      const [dev, port, tag, inside] = stack.pop();
+      const item = stack.pop();
+      const [dev, port, tag, inside] = item;
       const d = w.devices[dev];
       if (!d) continue;
       if (d.kind !== 'switch') {
         const ep = endpointFor(d, port, tag);
-        if (ep && adminUp(w, dev, ep)) addOut(dev, ep);
+        if (ep && adminUp(w, dev, ep)) addOut(dev, ep, item);
         continue;
       }
       const p = inside === undefined ? d.interfaces[port] : { mode: 'access', accessVlan: inside };
       if (!p || p.shutdown) continue;
       // a routed port (or a member of a routed port-channel) is a Layer 3 endpoint, like a router interface
-      if (inside === undefined && p.routed) { if (tag === null && (/^Port-channel/.test(port) ? linkUp(w, dev, port) : adminUp(w, dev, port))) addOut(dev, port); continue; }
+      if (inside === undefined && p.routed) { if (tag === null && (/^Port-channel/.test(port) ? linkUp(w, dev, port) : adminUp(w, dev, port))) addOut(dev, port, item); continue; }
       if (inside === undefined && p.channel && (d.interfaces['Port-channel' + p.channel.group] || {}).routed) {
         const po = 'Port-channel' + p.channel.group;
-        if (tag === null && linkUp(w, dev, po)) addOut(dev, po);
+        if (tag === null && linkUp(w, dev, po)) addOut(dev, po, item);
         continue;
       }
       let vlan;
@@ -353,7 +360,7 @@
       const key = dev + '|' + vlan;
       if (seen.has(key)) continue;
       seen.add(key);
-      if (d.interfaces['Vlan' + vlan] && linkUp(w, dev, 'Vlan' + vlan)) addOut(dev, 'Vlan' + vlan);
+      if (d.interfaces['Vlan' + vlan] && linkUp(w, dev, 'Vlan' + vlan)) addOut(dev, 'Vlan' + vlan, item);
       for (const [pn, pp] of Object.entries(d.interfaces)) {
         if (pp.shutdown || pp.routed || /^Vlan\d+$/.test(pn)) continue;
         let egressTag;
@@ -367,7 +374,8 @@
         const peer = linkPeer(w, dev, pn);
         if (!peer || !adminUp(w, peer[0], peer[1])) continue;
         if (w.devices[peer[0]].kind === 'pc' && !psAllows(w, dev, pn, peer[0])) continue;
-        stack.push([peer[0], peer[1], egressTag]);
+        if (via && via.skip && via.skip(dev, pn, vlan)) continue;
+        stack.push([peer[0], peer[1], egressTag, undefined, item]);
       }
     }
     return out;
@@ -668,8 +676,14 @@
     return ipOf(w, d.id, n.outIf || egress);
   }
 
-  /** Forward a packet hop by hop, applying ACLs and NAT. Returns {ok, dstDev, srcIp, pktSrc, nat, reason, hops}. */
+  /**
+   * Forward a packet hop by hop, applying ACLs and NAT. Returns {ok, dstDev, srcIp, pktSrc, nat, reason, hops}.
+   * When opts.legs is an array, each hop is also recorded there as {from, out, to, in}, and a drop as
+   * {from, out?, to?, in?, fail: reason} (read-only, for tracePath).
+   */
   function forward(w, startId, dst, ospfCache, opts) {
+    const legs = opts && Array.isArray(opts.legs) ? opts.legs : null;
+    const leg = (o) => { if (legs) legs.push(o); };
     let dnat = null;
     let cur = startId;
     let srcIp = null; // source address as first sent
@@ -690,15 +704,15 @@
       let egress;
       let nextIp;
       if (d.kind === 'pc') {
-        if (!d.pc.ip) return { ok: false, reason: 'no-ip', hops };
+        if (!d.pc.ip) { leg({ from: cur, fail: 'no-ip' }); return { ok: false, reason: 'no-ip', hops }; }
         const p = maskToPrefix(d.pc.mask);
         egress = 'NIC';
         if (netOf(dst, p) === netOf(ipToInt(d.pc.ip), p)) nextIp = dst;
         else if (d.pc.gw) nextIp = ipToInt(d.pc.gw);
-        else return { ok: false, reason: 'no-gateway', hops };
+        else { leg({ from: cur, fail: 'no-gateway' }); return { ok: false, reason: 'no-gateway', hops }; }
       } else if (routes(d)) {
         const r = lookup(routingTable(w, cur, ospfCache), dst);
-        if (!r) return { ok: false, reason: 'no-route', at: cur, hops };
+        if (!r) { leg({ from: cur, fail: 'no-route' }); return { ok: false, reason: 'no-route', at: cur, hops }; }
         egress = r.if;
         nextIp = r.type === 'C' || r.exitIf ? dst : ipToInt(r.nh);
       } else {
@@ -709,9 +723,9 @@
         else if (d.defaultGw) {
           const g = ipToInt(d.defaultGw);
           const via = svis.find((n) => netOf(g, prefixOf(w, cur, n)) === netOf(ipOf(w, cur, n), prefixOf(w, cur, n)));
-          if (!via) return { ok: false, reason: 'no-gateway', hops };
+          if (!via) { leg({ from: cur, fail: 'no-gateway' }); return { ok: false, reason: 'no-gateway', hops }; }
           egress = via; nextIp = g;
-        } else return { ok: false, reason: 'no-gateway', hops };
+        } else { leg({ from: cur, fail: 'no-gateway' }); return { ok: false, reason: 'no-gateway', hops }; }
       }
       if (srcIp === null) { srcIp = ipOf(w, cur, egress); pktSrc = srcIp; }
       if (d.kind === 'router') {
@@ -719,7 +733,7 @@
         const ii = (inIf && d.interfaces[inIf]) || {};
         // NAT: inside -> outside (static mappings first, then the ACL-matched dynamic rule)
         const translated = ii.nat === 'inside' && ei.nat === 'outside' ? natOut(w, d, egress, pktSrc, dst) : null;
-        if (translated === 'full') return { ok: false, reason: 'nat-pool-exhausted', at: cur, hops };
+        if (translated === 'full') { leg({ from: cur, out: egress, fail: 'nat-pool-exhausted' }); return { ok: false, reason: 'nat-pool-exhausted', at: cur, hops }; }
         if (translated !== null) {
           const global = translated;
           if (global !== null) {
@@ -732,42 +746,45 @@
             pktSrc = global;
           }
         }
-        if (ei.aclOut !== undefined && !aclPermits(d, ei.aclOut, pktSrc, dst)) return { ok: false, reason: 'acl', at: cur, hops };
+        if (ei.aclOut !== undefined && !aclPermits(d, ei.aclOut, pktSrc, dst)) { leg({ from: cur, out: egress, fail: 'acl', dir: 'out' }); return { ok: false, reason: 'acl', at: cur, hops }; }
       }
       const dom = l2Domain(w, cur, egress);
       const hit = dom.find(([oid, oif]) => oid !== cur && l3Up(w, oid, oif) && answersFor(w, oid, oif).includes(nextIp));
-      if (!hit) return { ok: false, reason: nextIp === dst ? 'host-unreachable' : 'next-hop-unreachable', at: cur, hops };
-      if (!arpOk(w, cur, egress) || !arpOk(w, hit[0], hit[1])) return { ok: false, reason: 'dai', at: cur, hops };
+      if (!hit) { leg({ from: cur, out: egress, fail: nextIp === dst ? 'host-unreachable' : 'next-hop-unreachable', nextIp }); return { ok: false, reason: nextIp === dst ? 'host-unreachable' : 'next-hop-unreachable', at: cur, hops }; }
+      if (!arpOk(w, cur, egress) || !arpOk(w, hit[0], hit[1])) { leg({ from: cur, out: egress, to: hit[0], in: hit[1], fail: 'dai', side: arpOk(w, cur, egress) ? 'to' : 'from' }); return { ok: false, reason: 'dai', at: cur, hops }; }
       const nd = w.devices[hit[0]];
       if (nd.kind === 'router') {
         const ni = nd.interfaces[hit[1]] || {};
-        if (ni.aclIn !== undefined && !aclPermits(nd, ni.aclIn, pktSrc, dst)) return { ok: false, reason: 'acl', at: hit[0], hops };
+        if (ni.aclIn !== undefined && !aclPermits(nd, ni.aclIn, pktSrc, dst)) { leg({ from: cur, out: egress, to: hit[0], in: hit[1], fail: 'acl', dir: 'in' }); return { ok: false, reason: 'acl', at: hit[0], hops }; }
         // un-NAT on the way back in
         if (nd.nat && nd.natTable && ni.nat === 'outside' && ownsIp(w, hit[0], dst)) {
           /* handled by ping(): delivery to the router's outside address */
         }
       }
+      leg({ from: cur, out: egress, to: hit[0], in: hit[1] });
       inIf = hit[1];
       cur = hit[0];
       hops.push(cur);
     }
+    leg({ from: cur, fail: 'ttl' });
     return { ok: false, reason: 'ttl', hops };
   }
 
-  /** Full ping: there and back, following NAT translations. */
+  /** Full ping: there and back, following NAT translations. opts.trace = {there: [], back: []} collects hop legs. */
   function ping(w, srcId, dstIpStr, opts) {
     const dst = ipToInt(dstIpStr);
     if (dst === null) return { ok: false, reason: 'bad-ip' };
     const cache = computeOspf(w);
-    const there = forward(w, srcId, dst, cache, opts);
+    const tr = opts && opts.trace;
+    const there = forward(w, srcId, dst, cache, tr ? Object.assign({}, opts, { legs: tr.there }) : opts);
     if (!there.ok) return there;
     if (there.srcIp === null) return { ok: true, local: true }; // pinged own address
-    const back = forward(w, there.dstDev, there.pktSrc, cache);
+    const back = forward(w, there.dstDev, there.pktSrc, cache, tr ? { legs: tr.back } : undefined);
     if (!back.ok) return { ok: false, reason: 'no-return-path', at: back.at, there, back };
     if (there.nat) {
       // the reply reached the NAT router's outside address; translate and continue inside
       if (back.dstDev !== there.nat.router) return { ok: false, reason: 'no-return-path', there, back };
-      const inside = forward(w, there.nat.router, there.nat.inside, cache);
+      const inside = forward(w, there.nat.router, there.nat.inside, cache, tr ? { legs: tr.back } : undefined);
       if (!inside.ok || inside.dstDev !== srcId) return { ok: false, reason: 'no-return-path', there, back: inside };
       return { ok: true, there, back: { hops: back.hops.concat(inside.hops.slice(1)) } };
     }
@@ -1012,47 +1029,51 @@
     }
     return rt;
   }
-  function forward6(w, startId, dst) {
+  function forward6(w, startId, dst, legs) {
+    const leg = (o) => { if (legs) legs.push(o); };
     let cur = startId;
     let src = null;
     for (let n = 0; n < 16; n++) {
       const d = w.devices[cur];
       const mine = d.kind === 'pc' ? v6addrs(w, cur, 'NIC') : Object.keys(d.interfaces).filter((k) => linkUp(w, cur, k)).flatMap((k) => v6addrs(w, cur, k));
       if (mine.some((x) => x.a === dst)) return { ok: true, dstDev: cur, src };
-      if (n > 0 && d.kind === 'router' && !d.v6routing) return { ok: false, reason: 'v6-routing-off', at: cur };
+      if (n > 0 && d.kind === 'router' && !d.v6routing) { leg({ from: cur, fail: 'v6-routing-off' }); return { ok: false, reason: 'v6-routing-off', at: cur }; }
       let egress;
       let next;
       if (d.kind === 'pc') {
         const me = v6addrs(w, cur, 'NIC')[0];
-        if (!me) return { ok: false, reason: 'no-ip' };
+        if (!me) { leg({ from: cur, fail: 'no-ip' }); return { ok: false, reason: 'no-ip' }; }
         egress = 'NIC';
         if (v6net(dst, me.p) === v6net(me.a, me.p)) next = dst;
         else if (d.pc.gw6) next = v6parse(d.pc.gw6);
-        else return { ok: false, reason: 'no-gateway' };
+        else { leg({ from: cur, fail: 'no-gateway' }); return { ok: false, reason: 'no-gateway' }; }
       } else if (d.kind === 'router') {
         let best = null;
         for (const r of routingTable6(w, cur)) if (r.type !== 'L' && v6net(dst, r.p) === r.net && (!best || r.p > best.p)) best = r;
-        if (!best) return { ok: false, reason: 'no-route', at: cur };
+        if (!best) { leg({ from: cur, fail: 'no-route' }); return { ok: false, reason: 'no-route', at: cur }; }
         egress = best.if;
         next = best.type === 'C' ? dst : v6parse(best.nh);
-      } else return { ok: false, reason: 'switch' };
+      } else { leg({ from: cur, fail: 'switch' }); return { ok: false, reason: 'switch' }; }
       if (src === null) {
         const a = v6addrs(w, cur, egress)[0];
         src = a ? a.a : null;
       }
       const hit = l2Domain(w, cur, egress).find(([oid, oif]) => oid !== cur && v6addrs(w, oid, oif).some((x) => x.a === next) && linkUp(w, oid, oif));
-      if (!hit) return { ok: false, reason: next === dst ? 'host-unreachable' : 'next-hop-unreachable', at: cur };
+      if (!hit) { leg({ from: cur, out: egress, fail: next === dst ? 'host-unreachable' : 'next-hop-unreachable' }); return { ok: false, reason: next === dst ? 'host-unreachable' : 'next-hop-unreachable', at: cur }; }
+      leg({ from: cur, out: egress, to: hit[0], in: hit[1] });
       cur = hit[0];
     }
+    leg({ from: cur, fail: 'ttl' });
     return { ok: false, reason: 'ttl' };
   }
-  function ping6(w, srcId, dstStr) {
+  function ping6(w, srcId, dstStr, opts) {
     const dst = v6parse(dstStr);
     if (dst === null) return { ok: false, reason: 'bad-ip' };
-    const there = forward6(w, srcId, dst);
+    const tr = opts && opts.trace;
+    const there = forward6(w, srcId, dst, tr && tr.there);
     if (!there.ok) return there;
     if (there.src === null) return { ok: true, local: true };
-    const back = forward6(w, there.dstDev, there.src);
+    const back = forward6(w, there.dstDev, there.src, tr && tr.back);
     if (!back.ok || back.dstDev !== srcId) return { ok: false, reason: 'no-return-path', there, back };
     return { ok: true, there, back };
   }
@@ -1463,7 +1484,126 @@
     return out.sort((a, b) => a.vlan - b.vlan || a.mac.localeCompare(b.mac));
   }
 
-  TT.net = { isTrunk, linkParams, macTable, routerPools, routerDhcp, ntpStatus, discNeighbors, natGlobals, sviUp, poPeer, computeStp, computeEc, dhcpRenew, aclPermits, computeEigrp, vipsOf, ping6, routingTable6, psTick, pcMac, remoteLogin, arpOk, l2Path, makeWorld, linkPeer, linkUp, adminUp, l2Domain, computeOspf, routingTable, routerId, ping, ipOf, prefixOf, l3Up, clone };
+  /* ---- Read-only tracing for the diagrams (labfx) ------------------------------------------ */
+  /** Is this switch port held out of forwarding by STP in this VLAN? A bundled EtherChannel member forwards with its bundle. */
+  function stpBlocked(w, dev, ifn, vlan, cache) {
+    const d = w.devices[dev];
+    if (!d || d.kind !== 'switch') return false;
+    cache = cache || {};
+    const k = 'v' + vlan;
+    if (!(k in cache)) { try { cache[k] = computeStp(w, vlan); } catch (e) { cache[k] = null; } }
+    const st = cache[k];
+    const p = st && st.ports[dev] && st.ports[dev][ifn];
+    if (!p || !(p.role === 'Altn' || p.sts === 'BLK' || p.sts === 'BKN*')) return false;
+    const i = d.interfaces[ifn];
+    if (i && i.channel) {
+      const g = computeEc(w, dev)[i.channel.group];
+      if (g && g.members[ifn] === 'P') return false;
+    }
+    return true;
+  }
+  /** VLANs in which STP blocks this switch port (empty when it forwards everywhere, or is not a switch port). */
+  function stpBlockedVlans(w, dev, ifn, cache) {
+    const d = w.devices[dev];
+    if (!d || d.kind !== 'switch' || !d.interfaces[ifn]) return [];
+    cache = cache || {};
+    return Object.keys(d.vlans || {}).map(Number).filter((v) => carries(w, d, ifn, v) && stpBlocked(w, dev, ifn, v, cache));
+  }
+  /** The cables one hop crosses, in travel order: [{a, ai, b, bi}], from the same Layer 2 walk forward() uses. */
+  function legCables(w, L, stpCache) {
+    const walk = (skip) => { const via = { hits: {}, skip }; l2Domain(w, L.from, L.out, via); return via.hits[L.to + '|' + L.in]; };
+    // prefer the path Spanning Tree leaves forwarding; fall back to any Layer 2 path the simulator accepted
+    const held = (dev, port, vlan) => {
+      if (stpBlocked(w, dev, port, vlan, stpCache)) return true;
+      const p = linkPeer(w, dev, port);
+      return !!p && stpBlocked(w, p[0], p[1], vlan, stpCache);
+    };
+    const it = walk(held) || walk(null);
+    const chain = [];
+    for (let x = it; x; x = x[4]) chain.unshift(x);
+    const out = [];
+    for (const [dev, port] of chain) {
+      if (!port) continue; // an SVI starts inside its own switch: no cable yet
+      let p = linkPeer(w, dev, port);
+      let here = port;
+      if (!p && /^Port-channel/.test(port)) {
+        // a routed port-channel: draw it on its first working member cable
+        const g = Number(port.replace('Port-channel', ''));
+        for (const [n, i] of Object.entries(w.devices[dev].interfaces).sort((a, b) => ifSort(a[0], b[0]))) {
+          if (i.channel && i.channel.group === g && linkUp(w, dev, n) && linkPeer(w, dev, n)) { p = linkPeer(w, dev, n); here = n; break; }
+        }
+      }
+      if (p) out.push({ a: p[0], ai: p[1], b: dev, bi: parentIf(here) });
+    }
+    if (!out.length && L.to !== L.from) {
+      const p = linkPeer(w, L.from, L.out);
+      if (p && p[0] === L.to) out.push({ a: L.from, ai: parentIf(L.out), b: p[0], bi: p[1] });
+    }
+    return out;
+  }
+  /**
+   * Where a ping really goes: tracePath(w, srcId, dst) runs the simulator's own ping (on a copy, so NAT
+   * state in w is untouched) and returns the cable-by-cable path for the echo and the reply.
+   * { ok, local, reason, v6,
+   *   there: { cables: [{a, ai, b, bi}], devs: [ids], l3: [{dev, in, ip}] },
+   *   back:  same shape or null,
+   *   fail:  { at: deviceId, leg: 'there'|'back', reason } or null }
+   */
+  function tracePath(w, srcId, dstStr) {
+    const c = clone(w);
+    const v6 = ipToInt(String(dstStr)) === null && v6parse(String(dstStr)) !== null;
+    const tr = { there: [], back: [] };
+    let r;
+    try { r = v6 ? ping6(c, srcId, dstStr, { trace: tr }) : ping(c, srcId, dstStr, { trace: tr }); } catch (e) { r = { ok: false, reason: 'error' }; }
+    const stpCache = {};
+    const leg = (legs, name) => {
+      const cables = [];
+      const l3 = [];
+      let fail = null;
+      for (const L of legs) {
+        if (L.fail) {
+          let at = L.from;
+          if (L.to !== undefined && L.in !== undefined) {
+            let cs = legCables(c, L, stpCache);
+            if (L.fail === 'dai') {
+              // the ARP is dropped by the access switch in front of whichever end failed inspection
+              if (L.side === 'from') cs = cs.slice(0, 1);
+              else if (cs.length > 1) cs = cs.slice(0, -1);
+              at = cs.length ? cs[cs.length - 1].b : L.from;
+            } else at = L.to;
+            cables.push(...cs);
+          }
+          fail = { at, leg: name, reason: L.fail };
+          if (L.fail === 'acl') fail.dir = L.dir;
+          if (L.fail === 'acl' && L.dir === 'in' && !v6 && ipOf(c, L.to, L.in) !== null) fail.ip = intToIp(ipOf(c, L.to, L.in));
+          break;
+        }
+        cables.push(...legCables(c, L, stpCache));
+        l3.push({ dev: L.to, in: L.in, ip: v6 ? null : ipOf(c, L.to, L.in) === null ? null : intToIp(ipOf(c, L.to, L.in)) });
+      }
+      const devs = [legs.length ? legs[0].from : srcId];
+      for (const k of cables) if (devs[devs.length - 1] !== k.b) devs.push(k.b);
+      return { cables, devs, l3, fail };
+    };
+    const there = leg(tr.there, 'there');
+    const back = tr.back.length ? leg(tr.back, 'back') : null;
+    let fail = null;
+    if (!r.ok) {
+      fail = there.fail || (back && back.fail) || null;
+      if (!fail) {
+        // the reply was delivered, just not to the sender (asymmetric routing, NAT mismatch)
+        const lastBack = back && back.devs[back.devs.length - 1];
+        fail = { at: lastBack || (there.devs[there.devs.length - 1]) || srcId, leg: back ? 'back' : 'there', reason: r.reason || 'no-return-path' };
+      }
+    }
+    const strip = (x) => (x ? { cables: x.cables, devs: x.devs, l3: x.l3 } : null);
+    // the source address the echo left with (for traceroute replies); null when it never left
+    const first = tr.there[0];
+    const sIp = !v6 && first && first.out ? ipOf(c, first.from, first.out) : null;
+    return { ok: !!r.ok, local: !!r.local, reason: r.ok ? null : r.reason, v6, srcIp: sIp === null ? null : intToIp(sIp), there: strip(there), back: strip(back), fail };
+  }
+
+  TT.net = { tracePath, stpBlocked, stpBlockedVlans, isTrunk, linkParams, macTable, routerPools, routerDhcp, ntpStatus, discNeighbors, natGlobals, sviUp, poPeer, computeStp, computeEc, dhcpRenew, aclPermits, computeEigrp, vipsOf, ping6, routingTable6, psTick, pcMac, remoteLogin, arpOk, l2Path, makeWorld, linkPeer, linkUp, adminUp, l2Domain, computeOspf, routingTable, routerId, ping, ipOf, prefixOf, l3Up, clone };
 
   /* ------------------------------------------------------------------ *
    * CLI command trees

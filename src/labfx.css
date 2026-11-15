@@ -1,0 +1,79 @@
+/* Trouble Ticket — living network diagrams (labfx in sandbox.js, used by the ticket topology and the lab canvas).
+ * Every class starts with lfx-, plus a few rules that pin the diagram fonts the layout measures with. */
+
+/* fonts the label layout measures (keep in step with F_* in app.js and LF_* in sandbox.js) */
+.topo .host { font: 600 12px var(--body); }
+.topo .addr, .topo .ifl { font: 10.5px var(--mono); }
+.sb-host { font: 600 12.5px var(--body); }
+.sb-sub { font: 10.5px var(--mono); }
+.sb-port { font: 10px var(--mono); stroke: none; }
+
+/* halos: a small plate of canvas colour behind every label, so a cable never runs through text */
+.lfx-halo { fill: var(--paper); opacity: 0.9; pointer-events: none; }
+.lfx-halo.name { opacity: 0.82; }
+.topo .ifl-g { pointer-events: none; }
+
+/* hover or focus on a device: its cables light up a little */
+.topo .link { transition: stroke 0.15s, stroke-width 0.15s; }
+.topo .link.lfx-hl { stroke: var(--accent); }
+.topo .link.down.lfx-hl { stroke: var(--stamp); stroke-width: 2.4; }
+.sb-link.lfx-hl .sb-wire { stroke: var(--accent); }
+
+/* lab: a cable with a dead end is drawn dashed, like the ticket diagrams */
+.sb-link.is-down .sb-wire { stroke: var(--stamp); stroke-dasharray: 5 5; opacity: 0.85; }
+.sb-link.is-down.lfx-hl .sb-wire, .sb-link.is-down:hover .sb-wire { opacity: 1; }
+
+/* idle traffic: a very faint shimmer along working cables */
+.lfx-shimmer { stroke: var(--accent); stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 1.5 26; opacity: 0.32; pointer-events: none; animation: lfx-flow 4s linear infinite; }
+@keyframes lfx-flow { to { stroke-dashoffset: -55; } }
+
+/* Spanning Tree blocking: a steady amber "paused" marker with a slow blink */
+.lfx-stp rect { fill: var(--warn); stroke: var(--sheet); stroke-width: 1.5; }
+.lfx-stp path { stroke: var(--paper); stroke-width: 1.8; stroke-linecap: round; }
+.lfx-stp, .sb-led-g.block { animation: lfx-blink 2.6s ease-in-out infinite; }
+.sb-led-bars { stroke: var(--paper); stroke-width: 1.5; stroke-linecap: round; pointer-events: none; }
+@keyframes lfx-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+.lfx-k-stp b { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; background: linear-gradient(90deg, var(--warn) 0 30%, var(--paper) 30% 42%, var(--warn) 42% 58%, var(--paper) 58% 70%, var(--warn) 70%); }
+
+/* a cable coming up: a green pulse travels along it */
+.lfx-pulse { stroke: var(--good); stroke-width: 5; stroke-linecap: round; fill: none; pointer-events: none; stroke-dasharray: 40px calc(var(--len) * 1px + 40px); stroke-dashoffset: 40px; animation: lfx-travel 1.5s ease-in-out forwards; filter: drop-shadow(0 0 4px color-mix(in srgb, var(--good) 60%, transparent)); }
+@keyframes lfx-travel { 0% { stroke-dashoffset: 40px; opacity: 1; } 85% { opacity: 1; } 100% { stroke-dashoffset: calc(var(--len) * -1px); opacity: 0; } }
+.lfx-pulse.still { stroke-dasharray: none; stroke-dashoffset: 0; opacity: 0.6; animation: lfx-fadeout 1.5s ease-out forwards; }
+@keyframes lfx-fadeout { to { opacity: 0; } }
+
+/* a cable going down: a short red flash, then it settles as a dashed line */
+.lfx-downflash { animation: lfx-flash 0.9s ease-out; }
+@keyframes lfx-flash {
+  0%, 40%, 80% { stroke: var(--stamp); stroke-width: 4; stroke-dasharray: none; opacity: 1; }
+  20%, 60% { stroke: var(--stamp); stroke-width: 4; stroke-dasharray: none; opacity: 0.3; }
+}
+
+/* packets */
+.lfx-under, .lfx-over, .sb-fxu { pointer-events: none; }
+.lfx-trail { fill: none; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; opacity: 0.4; }
+.lfx-trail.ok { stroke: var(--good); }
+.lfx-trail.bad { stroke: var(--accent); }
+.lfx-trail.back { stroke-width: 3; stroke-dasharray: 1 8; opacity: 0.9; }
+.lfx-trail.static { opacity: 0.55; }
+.lfx-trail.back.static { opacity: 1; }
+.lfx-dot { stroke: var(--sheet); stroke-width: 2; }
+.lfx-dot.ok { fill: var(--good); }
+.lfx-dot.try { fill: var(--accent); }
+.lfx-dot.back { stroke: var(--good); stroke-width: 2.5; }
+.lfx-x circle { fill: color-mix(in srgb, var(--stamp) 16%, var(--sheet)); stroke: var(--stamp); stroke-width: 2.5; }
+.lfx-x path { stroke: var(--stamp); stroke-width: 3; stroke-linecap: round; }
+.lfx-x { animation: lfx-pop 0.35s var(--ease, ease-out); transform-box: fill-box; }
+@keyframes lfx-pop { from { opacity: 0; } to { opacity: 1; } }
+.lfx-cap rect { fill: var(--sheet); stroke: var(--line-strong, var(--line)); stroke-width: 1; }
+.lfx-cap.good rect { stroke: var(--good); }
+.lfx-cap.bad rect { stroke: var(--stamp); }
+.lfx-cap text { font: 600 11px var(--body); fill: var(--ink); }
+.lfx-cap { animation: lfx-pop 0.3s ease-out; }
+.lfx-fade { opacity: 0; transition: opacity 0.8s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lfx-shimmer { display: none; }
+  .lfx-stp, .sb-led-g.block, .lfx-downflash, .lfx-x, .lfx-cap { animation: none; }
+  .lfx-fade { transition: none; }
+  .topo .link { transition: none; }
+}

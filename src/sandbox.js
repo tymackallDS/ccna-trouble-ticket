@@ -303,6 +303,8 @@
     const d = w.devices[id];
     if (!d) return ['% No such device.'];
     const t = String(line).trim();
+    const traceTo = t && !/\?$/.test(t) && TT.labfx ? TT.labfx.traceTarget(d, t) : null;
+    if (traceTo) return TT.labfx.traceroute(w, id, traceTo);
     if (d.kind === 'pc' && t && !/\?$/.test(t)) {
       let m;
       if ((m = /^ipconfig\s+(\d[\d.]*)\s+(\S+)(?:\s+(\S+))?$/i.exec(t))) {
@@ -428,6 +430,504 @@
   TT.sandbox = { TYPES, TYPE_ORDER, makeDevice, materialize, physPorts, canonPort, portLink, freePorts, linkError, worldFromSpec, rebuildWorld, nextId, addDevice, removeDevice, addLink, removeLink, applyBuild, describeBuild, solutionSteps, poolError, hostError, parseMask, run, portState, linkStates, snapshot, validateState, loadState, STORE_KEY };
 
   /* ====================================================================== *
+   * labfx: clean diagram layout and "living" network effects, shared by the
+   * ticket topology (app.js) and this lab canvas. Geometry and traceroute are
+   * pure (Node tests use them); the effects need a DOM and are skipped in Node.
+   * ====================================================================== */
+  const FX = (function () {
+    const box = (x0, y0, x1, y1) => ({ x0, y0, x1, y1 });
+    const grow = (b, m) => box(b.x0 - m, b.y0 - m, b.x1 + m, b.y1 + m);
+    const overlap = (a, b) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+    /** Does the segment (x1,y1)-(x2,y2) pass through box b? (Liang-Barsky clip) */
+    function segHits(x1, y1, x2, y2, b) {
+      let t0 = 0;
+      let t1 = 1;
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const edges = [[-dx, x1 - b.x0], [dx, b.x1 - x1], [-dy, y1 - b.y0], [dy, b.y1 - y1]];
+      for (const [p, q] of edges) {
+        if (p === 0) { if (q < 0) return false; continue; }
+        const r = q / p;
+        if (p < 0) { if (r > t1) return false; if (r > t0) t0 = r; } else { if (r < t0) return false; if (r < t1) t1 = r; }
+      }
+      return t0 < t1;
+    }
+    /** Distance from a glyph's centre to its outline along the unit vector (ux, uy). */
+    function exitDist(sh, ux, uy) {
+      if (sh.circle) return sh.r;
+      const hx = ux >= 0 ? sh.r : -sh.l;
+      const hy = uy >= 0 ? sh.b : -sh.t;
+      const tx = Math.abs(ux) < 1e-6 ? Infinity : hx / Math.abs(ux);
+      const ty = Math.abs(uy) < 1e-6 ? Infinity : hy / Math.abs(uy);
+      return Math.min(tx, ty);
+    }
+    const glyphBox = (n) => box(n.x + n.shape.l, n.y + n.shape.t, n.x + n.shape.r, n.y + n.shape.b);
+
+    /**
+     * Lay out a diagram so text never sits on a cable or a device.
+     * nodes: [{ id, x, y, shape: {l, r, t, b, circle?}, lines: [{text, w, h}] }]   (name and address lines)
+     * links: [{ a, b, la: {text, w, h} | null, lb }]                             (port labels at each end)
+     * opts:  { led: px out from the edge for a status light (lab), pad }
+     * Returns { nodes: {id: {glyph, label, side, lines: [{x, y}]}}, links: [{x1, y1, x2, y2, ux, uy, len, ea, eb, leda, ledb, pa, pb}], bounds }
+     */
+    function layout(nodes, links, opts) {
+      opts = opts || {};
+      links = links.slice();
+      const byId = {};
+      for (const n of nodes) byId[n.id] = n;
+      // parallel cables between the same two devices are drawn side by side, 7px apart
+      const pairs = {};
+      links.forEach((k, i) => { const key = [k.a, k.b].sort().join('\u0000'); (pairs[key] = pairs[key] || []).push(i); });
+      const shift = {};
+      const bundle = {}; // first cable of a parallel group -> { members, half }
+      for (const [key, idx] of Object.entries(pairs)) {
+        if (idx.length < 2) continue;
+        const [p, q] = key.split('\u0000');
+        const P = byId[p];
+        const Q = byId[q];
+        if (!P || !Q) continue;
+        const L = Math.hypot(Q.x - P.x, Q.y - P.y) || 1;
+        const nx = -(Q.y - P.y) / L;
+        const ny = (Q.x - P.x) / L;
+        idx.forEach((i, j) => { const o = (j - (idx.length - 1) / 2) * 7; shift[i] = { x: nx * o, y: ny * o }; });
+        // one label per end for the bundle ("Gi1/0/23-24"), on the first cable of the group
+        if (opts.font) {
+          const merge = (labs) => {
+            const t = labs.filter(Boolean).map((l) => l.text);
+            if (t.length < 2) return labs[0] || null;
+            const m = t.map((x) => /^(.*?)(\d+)$/.exec(x));
+            let text;
+            if (m.every((x) => x && x[1] === m[0][1])) {
+              const nums = m.map((x) => Number(x[2])).sort((a, b) => a - b);
+              const run = nums.every((v, j) => j === 0 || v === nums[j - 1] + 1);
+              text = m[0][1] + (run ? nums[0] + '-' + nums[nums.length - 1] : nums.join(','));
+            } else text = t.join(', ');
+            return { text, w: measure(text, opts.font), h: labs.find(Boolean).h };
+          };
+          const first = links[idx[0]];
+          const ends = (id) => idx.map((i) => (links[i].a === id ? links[i].la : links[i].lb));
+          const la = merge(ends(first.a));
+          const lb = merge(ends(first.b));
+          idx.forEach((i) => { links[i] = Object.assign({}, links[i], { la: null, lb: null }); });
+          links[idx[0]] = Object.assign({}, links[idx[0]], { la, lb });
+          bundle[idx[0]] = { members: idx, half: ((idx.length - 1) / 2) * 7 };
+        }
+      }
+      const segs = [];
+      links.forEach((k, i) => {
+        const A = byId[k.a];
+        const B = byId[k.b];
+        const sh = shift[i] || { x: 0, y: 0 };
+        if (A && B) segs.push({ i, a: k.a, b: k.b, x1: A.x + sh.x, y1: A.y + sh.y, x2: B.x + sh.x, y2: B.y + sh.y });
+      });
+      const glyphs = nodes.map((n) => ({ id: n.id, b: grow(glyphBox(n), 2) }));
+      const placed = [];
+      const outNodes = {};
+      const GAP = 5;
+      // 1. device names: below when that is clear, otherwise the clearest side
+      for (const n of nodes) {
+        const g = glyphBox(n);
+        const lw = Math.max(1, ...n.lines.map((l) => l.w)) + 6;
+        const lh = n.lines.reduce((s, l) => s + l.h, 0) + 2;
+        // a ring of spots hugging the icon, below first; then the same ring a little further out
+        const cands = [];
+        const SPOTS = [[90, 0, 'below'], [0, 1.2, 'right'], [180, 1.4, 'left'], [270, 1.6, 'above'], [55, 1.0, 'below-right'], [125, 1.1, 'below-left'], [325, 1.8, 'above-right'], [215, 1.9, 'above-left'], [25, 1.5, 'right-low'], [155, 1.7, 'left-low']];
+        for (const extra of [0, 12]) {
+          for (const [deg, pref, side] of SPOTS) {
+            const cx0 = Math.cos((deg * Math.PI) / 180);
+            const cy0 = Math.sin((deg * Math.PI) / 180);
+            // smallest step along the direction that clears the icon, plus the gap
+            const hx = (cx0 >= 0 ? g.x1 - n.x : n.x - g.x0) + lw / 2 + GAP + extra;
+            const hy = (cy0 >= 0 ? g.y1 - n.y : n.y - g.y0) + lh / 2 + GAP + extra;
+            const tt = Math.min(Math.abs(cx0) < 1e-6 ? Infinity : hx / Math.abs(cx0), Math.abs(cy0) < 1e-6 ? Infinity : hy / Math.abs(cy0));
+            const cx = n.x + cx0 * tt;
+            const cy = n.y + cy0 * tt;
+            cands.push([side, box(cx - lw / 2, cy - lh / 2, cx + lw / 2, cy + lh / 2), pref + (extra ? 1 : 0)]);
+          }
+        }
+        let best = null;
+        for (const [side, b, pref] of cands) {
+          let sc = pref;
+          for (const s of segs) if (segHits(s.x1, s.y1, s.x2, s.y2, grow(b, 1))) sc += 10;
+          for (const o of glyphs) if (o.id !== n.id && overlap(b, o.b)) sc += 30;
+          for (const o of placed) if (overlap(b, o)) sc += 30;
+          if (opts.bounds && (b.x0 < opts.bounds.x0 || b.x1 > opts.bounds.x1 || b.y0 < opts.bounds.y0)) sc += 1; // the view grows to fit, so only a nudge
+          if (!best || sc < best.sc) best = { side, b, sc };
+        }
+        placed.push(best.b);
+        let y = best.b.y0 + 1;
+        const cx = (best.b.x0 + best.b.x1) / 2;
+        const lines = n.lines.map((l) => { const at = { x: cx, y: y + l.h * 0.78, w: l.w, h: l.h }; y += l.h; return at; });
+        outNodes[n.id] = { glyph: glyphBox(n), label: best.b, side: best.side, lines };
+      }
+      // 2. cable ends: edge points, status lights, then port labels along the cable
+      const outLinks = links.map((k, li) => {
+        const A0 = byId[k.a];
+        const B0 = byId[k.b];
+        if (!A0 || !B0) return null;
+        const sh = shift[li] || { x: 0, y: 0 };
+        const A = { x: A0.x + sh.x, y: A0.y + sh.y, shape: A0.shape };
+        const B = { x: B0.x + sh.x, y: B0.y + sh.y, shape: B0.shape };
+        const dx = B.x - A.x;
+        const dy = B.y - A.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const ux = dx / len;
+        const uy = dy / len;
+        const da = exitDist(A.shape, ux, uy);
+        const db = exitDist(B.shape, -ux, -uy);
+        const o = { x1: A.x, y1: A.y, x2: B.x, y2: B.y, ux, uy, len, da, db, ea: { x: A.x + ux * da, y: A.y + uy * da }, eb: { x: B.x - ux * db, y: B.y - uy * db } };
+        if (opts.led) {
+          const la = Math.min(da + opts.led, len / 2 - 2);
+          const lb = Math.min(db + opts.led, len / 2 - 2);
+          o.leda = { x: A.x + ux * la, y: A.y + uy * la };
+          o.ledb = { x: B.x - ux * lb, y: B.y - uy * lb };
+        }
+        return o;
+      });
+      const lights = [];
+      for (const o of outLinks) if (o && o.leda) lights.push(box(o.leda.x - 6, o.leda.y - 6, o.leda.x + 6, o.leda.y + 6), box(o.ledb.x - 6, o.ledb.y - 6, o.ledb.x + 6, o.ledb.y + 6));
+      const nameBoxes = nodes.map((n) => grow(outNodes[n.id].label, 1));
+      const portBoxes = [];
+      links.forEach((k, i) => {
+        const o = outLinks[i];
+        if (!o) return;
+        for (const end of ['a', 'b']) {
+          const lab = end === 'a' ? k.la : k.lb;
+          if (!lab) continue;
+          const bu = bundle[i];
+          // a bundle's labels sit outside the whole group, measured from its centre line
+          const N = bu ? { x: end === 'a' ? byId[k.a].x : byId[k.b].x, y: end === 'a' ? byId[k.a].y : byId[k.b].y } : end === 'a' ? { x: o.x1, y: o.y1 } : { x: o.x2, y: o.y2 };
+          const ux = end === 'a' ? o.ux : -o.ux;
+          const uy = end === 'a' ? o.uy : -o.uy;
+          const edge = end === 'a' ? o.da : o.db;
+          const otherEdge = end === 'a' ? o.db : o.da;
+          // the normal that points up (or right, for a vertical cable) is tried first
+          let nx = -uy;
+          let ny = ux;
+          if (ny > 0.25 || (Math.abs(ny) <= 0.25 && nx < 0)) { nx = -nx; ny = -ny; }
+          const w = lab.w + 6;
+          const h = lab.h + 2;
+          const along = Math.abs(ux) * w / 2 + Math.abs(uy) * h / 2;
+          const perp = Math.abs(nx) * w / 2 + Math.abs(ny) * h / 2 + 3 + (bu ? bu.half : 0);
+          const start = edge + 4;
+          const stop = Math.max(start, o.len - otherEdge - 6 - 2 * along);
+          let best = null;
+          for (let d = start; d <= stop + 0.1 || !best; d += 4) {
+            for (const side of [1, -1]) {
+              const cx = N.x + ux * (d + along) + nx * side * perp;
+              const cy = N.y + uy * (d + along) + ny * side * perp;
+              const b = box(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2);
+              let sc = (d - start) * 0.04 + (side === 1 ? 0 : 0.6);
+              for (const gb of glyphs) if (overlap(b, gb.b)) sc += 100;
+              for (const nb of nameBoxes) if (overlap(b, nb)) sc += 100;
+              for (const pb of portBoxes) if (overlap(b, pb)) sc += 60;
+              for (const lb of lights) if (overlap(b, lb)) sc += 20;
+              for (const s of segs) if (s.i !== i && !(bu && bu.members.includes(s.i)) && segHits(s.x1, s.y1, s.x2, s.y2, b)) sc += 12;
+              if (bu) for (const s of segs) if (bu.members.includes(s.i) && segHits(s.x1, s.y1, s.x2, s.y2, b)) sc += 40;
+              if (!best || sc < best.sc) best = { sc, cx, cy, b };
+            }
+            if (d > stop + 0.1) break;
+          }
+          portBoxes.push(best.b);
+          o[end === 'a' ? 'pa' : 'pb'] = { x: best.cx, y: best.cy + lab.h * 0.36, box: best.b, text: lab.text, w: lab.w, h: lab.h };
+        }
+      });
+      // 3. everything drawn, for the view box
+      let x0 = Infinity;
+      let y0 = Infinity;
+      let x1 = -Infinity;
+      let y1 = -Infinity;
+      const take = (b) => { x0 = Math.min(x0, b.x0); y0 = Math.min(y0, b.y0); x1 = Math.max(x1, b.x1); y1 = Math.max(y1, b.y1); };
+      for (const n of nodes) { take(outNodes[n.id].glyph); take(outNodes[n.id].label); }
+      for (const pb of portBoxes) take(pb);
+      const bounds = nodes.length ? box(x0, y0, x1, y1) : box(0, 0, 0, 0);
+      return { nodes: outNodes, links: outLinks, bounds };
+    }
+
+    /* ---- text measuring (canvas when there is a DOM, a fixed estimate in Node) ---- */
+    let ctx = null;
+    const cache = {};
+    function fam(v, fb) {
+      try {
+        const s = G.getComputedStyle && G.document ? G.getComputedStyle(G.document.documentElement).getPropertyValue(v).trim() : '';
+        return s || fb;
+      } catch (e) { return fb; }
+    }
+    /** Width in px of text set in font {size, weight, mono}. */
+    function measure(text, f) {
+      const key = (f.mono ? 'm' : 'b') + f.size + (f.weight || 400) + '|' + text;
+      if (cache[key] !== undefined) return cache[key];
+      let w = null;
+      try {
+        if (!ctx && G.document) ctx = G.document.createElement('canvas').getContext('2d');
+        if (ctx) {
+          ctx.font = `${f.weight || 400} ${f.size}px ${f.mono ? fam('--mono', 'monospace') : fam('--body', 'sans-serif')}`;
+          w = ctx.measureText(text).width;
+        }
+      } catch (e) { w = null; }
+      if (w === null || !isFinite(w)) w = text.length * f.size * (f.mono ? 0.6 : 0.62);
+      cache[key] = w;
+      return w;
+    }
+
+    /* ---- what a failure means, in a few words (the caption carries it, not the colour) ---- */
+    const WHY = {
+      'no-route': 'no route', acl: 'ACL deny', 'host-unreachable': 'no ARP reply', 'next-hop-unreachable': 'next hop silent',
+      'no-gateway': 'no gateway', 'no-ip': 'no IP address', dai: 'DAI drop', 'nat-pool-exhausted': 'NAT pool full', ttl: 'TTL expired (loop)',
+      'no-return-path': 'reply lost', 'v6-routing-off': 'IPv6 routing off', switch: 'cannot route', error: 'error', 'bad-ip': 'bad address',
+    };
+
+    /* ---- traceroute (IOS) / tracert (PC), from the simulator's own path ---- */
+    const TRACE_IOS = /^\s*(?:do\s+)?trac(?:e|er|ero|erou|erout|eroute)\s+(\S+)\s*$/i;
+    const TRACE_PC = /^\s*(?:tracert|traceroute)\s+(\S+)\s*$/i;
+    /** The target when this line is a traceroute this device can run now, else null. */
+    function traceTarget(d, line) {
+      if (!d || d.locked) return null;
+      if (d.kind === 'pc') { const m = TRACE_PC.exec(line); return m ? m[1] : null; }
+      const m = TRACE_IOS.exec(line);
+      if (!m) return null;
+      const doForm = /^\s*do\s/i.test(line);
+      if (doForm) return d.mode !== 'user' && d.mode !== 'priv' ? m[1] : null;
+      return d.mode === 'user' || d.mode === 'priv' ? m[1] : null;
+    }
+    function traceroute(w, srcId, target) {
+      const d = w.devices[srcId];
+      const pc = d.kind === 'pc';
+      const ip = TT.ip.ipToInt(target);
+      if (ip === null) return pc ? [`Unable to resolve target system name ${target}.`] : ['% Unrecognized host or address, or protocol not running.'];
+      const tr = TT.net.tracePath(w, srcId, target);
+      w.events.push({ type: 'traceroute', from: srcId, to: target, ok: tr.ok });
+      const L = pc ? ['', `Tracing route to ${target} over a maximum of 30 hops:`, ''] : ['Type escape sequence to abort.', `Tracing the route to ${target}`, 'VRF info: (vrf in name/id, vrf out name/id)'];
+      const n = (k) => String(k).padStart(3);
+      const ok = (k, a) => (pc ? `${n(k)}    <1 ms    <1 ms    <1 ms  ${a}` : `${n(k)} ${a} 1 msec 0 msec 1 msec`);
+      const quiet = (k) => (pc ? `${n(k)}     *        *        *     Request timed out.` : `${n(k)}  *  *  *`);
+      const unreach = (k, a, code) => (pc ? `${n(k)}  ${a}  reports: ${code === 'A' ? 'Communication administratively prohibited' : code === 'N' ? 'Destination net unreachable' : 'Destination host unreachable'}.` : `${n(k)} ${a} !${code}  !${code}  !${code}`);
+      if (tr.local) { L.push(ok(1, target)); if (pc) L.push('', 'Trace complete.'); return L; }
+      // each router answers from the address the probe arrived on, if its answer can get home
+      const home = tr.srcIp;
+      const answers = (dev) => !!home && (dev === srcId || TT.net.tracePath(w, dev, home).ok);
+      let k = 0;
+      for (const h of tr.there.l3) {
+        k++;
+        if (tr.ok && h === tr.there.l3[tr.there.l3.length - 1]) { L.push(ok(k, target)); continue; }
+        L.push(answers(h.dev) && h.ip ? ok(k, h.ip) : quiet(k));
+      }
+      if (!tr.ok) {
+        const f = tr.fail || {};
+        const at = f.at;
+        const last = tr.there.l3[tr.there.l3.length - 1];
+        // an inbound ACL drops the probe before its TTL is looked at; otherwise the router first answers
+        // "time exceeded" (the line above) and then "unreachable" for the next probe
+        const atIp = f.ip || (at === srcId ? (pc && d.pc.ip) || null : last && last.dev === at ? last.ip : null);
+        const arp = f.reason === 'host-unreachable' || f.reason === 'next-hop-unreachable';
+        const code = f.reason === 'acl' ? 'A' : f.reason === 'no-route' ? 'N' : arp && (at !== srcId || pc) ? 'H' : null;
+        if (f.leg === 'there' && code && atIp && (at === srcId || answers(at))) L.push(unreach(k + 1, atIp, code));
+        else {
+          for (let j = 1; j <= 3; j++) L.push(quiet(k + j));
+          L.push(pc ? '(Stopped after 3 silent hops. A real tracert keeps going to 30.)' : '(Stopped after 3 silent hops. Press Ctrl+Shift+6 to abort a real one.)');
+        }
+      }
+      if (pc) L.push('', 'Trace complete.');
+      return L;
+    }
+
+    /* ====================== effects (browser only) ====================== */
+    const SVGNS = 'http://www.w3.org/2000/svg';
+    const reducedMotion = () => !!(G.matchMedia && G.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    function el(parent, tag, attrs, text) {
+      const e = G.document.createElementNS(SVGNS, tag);
+      for (const [k, v] of Object.entries(attrs || {})) e.setAttribute(k, v);
+      if (text !== undefined) e.textContent = text;
+      if (parent) parent.appendChild(e);
+      return e;
+    }
+    /** Caption with a halo: the words are the signal, colour only backs them up. */
+    function caption(layer, x, y, text, cls, view) {
+      const g = el(layer, 'g', { class: 'lfx-cap ' + (cls || '') });
+      const w = measure(text, { size: 11, weight: 600 }) + 10;
+      // keep the whole caption on screen
+      if (view) { x = Math.max(view.x0 + w / 2 + 4, Math.min(view.x1 - w / 2 - 4, x)); y = Math.max(view.y0 + 13, y); }
+      el(g, 'rect', { x: (x - w / 2).toFixed(1), y: (y - 9).toFixed(1), width: w.toFixed(1), height: 17, rx: 4 });
+      el(g, 'text', { x: x.toFixed(1), y: (y + 3.5).toFixed(1), 'text-anchor': 'middle' }, text);
+      return g;
+    }
+    function failMark(layer, P, title) {
+      const g = el(layer, 'g', { class: 'lfx-x', transform: `translate(${P.x.toFixed(1)} ${P.y.toFixed(1)})` });
+      el(g, 'title', {}, title);
+      el(g, 'circle', { r: 15 });
+      el(g, 'path', { d: 'M-6 -6L6 6M6 -6L-6 6' });
+      return g;
+    }
+    const pts = (leg, pos) => {
+      if (!leg) return [];
+      const ids = leg.devs;
+      return ids.map((id) => pos(id)).filter(Boolean);
+    };
+    const polyLen = (p) => { let s = 0; for (let i = 1; i < p.length; i++) s += Math.hypot(p[i].x - p[i - 1].x, p[i].y - p[i - 1].y); return s; };
+    const ptsAttr = (p) => p.map((q) => q.x.toFixed(1) + ',' + q.y.toFixed(1)).join(' ');
+
+    /**
+     * Play (or, with reduced motion, show) a traced ping on a diagram.
+     * o: { under: <g> under the devices, over: <g> above them, pos: (id) => {x, y, top},
+     *      trace: TT.net.tracePath result, name: (id) => hostname, target: 'a.b.c.d', kind: 'ping'|'traceroute',
+     *      view: () => {x0, y0, x1, y1} visible area, so captions stay on screen }
+     * Returns { cancel() }.
+     */
+    function play(o) {
+      const { under, over, pos, trace } = o;
+      if (!under || !over || !trace) return { cancel() {} };
+      under.querySelectorAll('.lfx-run').forEach((x) => x.remove());
+      over.querySelectorAll('.lfx-run').forEach((x) => x.remove());
+      const gu = el(under, 'g', { class: 'lfx-run' });
+      const go = el(over, 'g', { class: 'lfx-run', 'aria-hidden': 'true' });
+      const reduce = reducedMotion();
+      const fail = trace.ok ? null : trace.fail;
+      const src = trace.there.devs[0];
+      const there = pts(trace.there, pos);
+      const back = trace.back && (trace.ok || (fail && fail.leg === 'back')) ? pts(trace.back, pos) : [];
+      const ok = trace.ok;
+      const word = o.kind === 'traceroute' ? 'Trace' : 'Echo';
+      const ending = () => {
+        if (ok) {
+          if (trace.local) { const P = pos(src); if (P) caption(go, P.x, (P.top || P.y - 26) - 10, 'Replied to itself', 'good', o.view && o.view()); return; }
+          const P = pos(src);
+          if (P) caption(go, P.x, (P.top || P.y - 26) - 10, `Reply from ${o.target}`, 'good', o.view && o.view());
+        } else {
+          const at = fail && fail.at ? fail.at : src;
+          const P = pos(at);
+          if (!P) return;
+          const why = WHY[fail && fail.reason] || (fail && fail.reason) || 'dropped';
+          failMark(go, P, `${fail && fail.leg === 'back' ? 'Reply' : word} dropped at ${o.name ? o.name(at) : at}: ${why}`);
+          caption(go, P.x, (P.top || P.y - 26) - 10, `${fail && fail.leg === 'back' ? 'Reply' : word} dropped: ${why}`, 'bad', o.view && o.view());
+        }
+      };
+      const trailCls = (leg) => 'lfx-trail ' + leg + (ok ? ' ok' : ' bad');
+      if (reduce) {
+        // no travel: the whole result path, drawn at once, stays until the diagram redraws
+        if (there.length > 1) el(gu, 'polyline', { class: trailCls('there') + ' static', points: ptsAttr(there) });
+        if (back.length > 1) el(gu, 'polyline', { class: trailCls('back') + ' static', points: ptsAttr(back) });
+        ending();
+        return { cancel() { gu.remove(); go.remove(); } };
+      }
+      const legs = [];
+      if (there.length) legs.push({ p: there, leg: 'there' });
+      if (back.length) legs.push({ p: back, leg: 'back' });
+      const SPEED = 0.42; // px per ms
+      const PAUSE = 80; // ms at each device
+      let li = 0;
+      let seg = 0;
+      let t0 = 0;
+      let raf = 0;
+      let dead = false;
+      let trail = null;
+      const dot = el(gu, "circle", { class: "lfx-dot " + (ok ? "ok" : "try"), r: 6 });
+      const segDur = (a, b) => Math.max(160, Math.hypot(b.x - a.x, b.y - a.y) / SPEED);
+      const startLeg = () => {
+        const L = legs[li];
+        trail = el(gu, 'polyline', { class: trailCls(L.leg), points: ptsAttr([L.p[0]]) });
+        dot.setAttribute('class', 'lfx-dot ' + (ok ? 'ok' : 'try') + (L.leg === 'back' ? ' back' : ''));
+        seg = 0;
+        t0 = 0;
+      };
+      const finish = () => {
+        dot.remove();
+        ending();
+        // leave the trail a moment, then fade it
+        G.setTimeout(() => { if (gu.isConnected) gu.classList.add('lfx-fade'); if (go.isConnected) go.classList.add('lfx-fade'); }, 2600);
+        G.setTimeout(() => { gu.remove(); go.remove(); }, 3400);
+      };
+      const step = (now) => {
+        if (dead || !gu.isConnected) return;
+        if (!legs.length) { finish(); return; }
+        const L = legs[li];
+        if (!trail) startLeg();
+        if (!t0) t0 = now;
+        // positions are read every frame, so a device dragged mid-flight takes its cable with it
+        const pathPts = (L.leg === 'there' ? trace.there : trace.back).devs.map((id) => pos(id)).filter(Boolean);
+        if (pathPts.length < 2) {
+          dot.setAttribute('cx', pathPts[0].x); dot.setAttribute('cy', pathPts[0].y);
+          li++; trail = null;
+          if (li >= legs.length) { finish(); return; }
+          raf = G.requestAnimationFrame(step);
+          return;
+        }
+        const a = pathPts[seg];
+        const b = pathPts[seg + 1];
+        const dur = segDur(a, b);
+        const el2 = now - t0;
+        const f = Math.min(1, el2 / dur);
+        const e = f < 0.5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2;
+        const x = a.x + (b.x - a.x) * e;
+        const y = a.y + (b.y - a.y) * e;
+        dot.setAttribute('cx', x.toFixed(1));
+        dot.setAttribute('cy', y.toFixed(1));
+        trail.setAttribute('points', ptsAttr(pathPts.slice(0, seg + 1).concat([{ x, y }])));
+        if (el2 >= dur + PAUSE) {
+          seg++;
+          t0 = now;
+          if (seg >= pathPts.length - 1) {
+            li++;
+            trail = null;
+            if (li >= legs.length) { finish(); return; }
+          }
+        }
+        raf = G.requestAnimationFrame(step);
+      };
+      raf = G.requestAnimationFrame(step);
+      return { cancel() { dead = true; G.cancelAnimationFrame(raf); gu.remove(); go.remove(); } };
+    }
+
+    /**
+     * Link state changes: a cable that came up gets a green pulse along it, one that went down flashes red.
+     * prev: {key: 'up'|'down'} from the last draw (or null on first draw); items: [{key, up, x1, y1, x2, y2, line}]
+     * Returns the new state map.
+     */
+    function linkChanges(prev, items, layer) {
+      const next = {};
+      const reduce = reducedMotion();
+      for (const it of items) {
+        const st = it.up ? 'up' : 'down';
+        next[it.key] = st;
+        if (!prev) continue;
+        const was = prev[it.key] === undefined ? 'down' : prev[it.key]; // a brand-new cable counts as coming up
+        if (was === st) continue;
+        if (st === 'up') {
+          if (!layer) continue;
+          const len = Math.hypot(it.x2 - it.x1, it.y2 - it.y1);
+          const p = el(layer, 'line', { class: 'lfx-pulse' + (reduce ? ' still' : ''), x1: it.x1, y1: it.y1, x2: it.x2, y2: it.y2, style: `--len:${len.toFixed(0)}` });
+          G.setTimeout(() => p.remove(), 1700);
+        } else if (it.line) {
+          it.line.classList.add('lfx-downflash');
+        }
+      }
+      return next;
+    }
+
+    /** Hovering or focusing a device lightly highlights its cables. */
+    function hoverLinks(svg, nodeSel, linkSel) {
+      const set = (id, on) => {
+        svg.querySelectorAll(linkSel).forEach((l) => { if (l.getAttribute('data-a') === id || l.getAttribute('data-b') === id) l.classList.toggle('lfx-hl', on); });
+      };
+      svg.querySelectorAll(nodeSel).forEach((n) => {
+        const id = n.getAttribute('data-dev');
+        n.addEventListener('pointerenter', () => set(id, true));
+        n.addEventListener('pointerleave', () => set(id, false));
+        n.addEventListener('focus', () => set(id, true));
+        n.addEventListener('blur', () => set(id, false));
+      });
+    }
+
+    /** New ping/traceroute events since index i0: [{from, to, kind}] (IPv4 and IPv6). */
+    function newProbes(w, i0) {
+      return (w.events || []).slice(i0).filter((e) => (e.type === 'ping' || e.type === 'ping6' || e.type === 'traceroute' || e.type === 'pingtest') && e.from && e.to)
+        .map((e) => ({ from: e.from, to: e.to, kind: e.type === 'traceroute' ? 'traceroute' : 'ping' }));
+    }
+
+    return { layout, overlap, segHits, exitDist, measure, traceroute, traceTarget, play, linkChanges, hoverLinks, newProbes, caption, WHY, reducedMotion };
+  })();
+  TT.labfx = FX;
+
+  /* ====================================================================== *
    * UI
    * ====================================================================== */
   const doc = G.document;
@@ -487,7 +987,7 @@
   /* ---- render entry point ---- */
   TT.renderSandbox = function (main, opts) {
     opts = opts || {};
-    if (S && S.anim) cancelAnimationFrame(S.anim.raf);
+    if (S && S.fxRun) S.fxRun.cancel();
     const pid = typeof opts.project === 'string' ? opts.project : opts.project && opts.project.id ? opts.project.id : null;
     const projects = TT.labProjects || [];
     const project = pid ? projects.find((p) => p.id === pid) || null : null;
@@ -566,7 +1066,7 @@
                 </defs>
                 <g class="sb-view">
                   <rect class="sb-bg" x="-6000" y="-6000" width="12000" height="12000" fill="url(#sb-grid-l)"/>
-                  <g class="sb-links"></g><g class="sb-nodes"></g><g class="sb-anim"></g>
+                  <g class="sb-links"></g><g class="sb-fxu"></g><g class="sb-nodes"></g><g class="sb-anim"></g>
                 </g>
               </svg>
               <div class="sb-pop" hidden></div>
@@ -634,6 +1134,34 @@
     return d.id;
   }
 
+  /* Icon extents (centre-relative), so cables, lights, port labels and names are placed around them. */
+  const LAB_SHAPES = {
+    router: { l: -22, r: 22, t: -22, b: 22, circle: true },
+    switch: { l: -30, r: 30, t: -15, b: 15 },
+    mls: { l: -30, r: 30, t: -17, b: 17 },
+    laptop: { l: -25, r: 25, t: -17, b: 15 },
+    server: { l: -15, r: 15, t: -22, b: 22 },
+    pc: { l: -20, r: 20, t: -18, b: 18 },
+  };
+  const LF_HOST = { size: 12.5, weight: 600 };
+  const LF_SUB = { size: 10.5, mono: true };
+  const LF_PORT = { size: 10, mono: true };
+  function computeLayout() {
+    const w = S.w;
+    const P = S.positions;
+    const nodes = Object.keys(w.devices).filter((id) => P[id]).map((id) => {
+      const d = w.devices[id];
+      const type = d.type || inferType(d);
+      const sub = subLabel(d);
+      return { id, x: P[id].x, y: P[id].y, type, shape: LAB_SHAPES[type] || LAB_SHAPES.pc, lines: [{ text: d.hostname, w: FX.measure(d.hostname, LF_HOST), h: 15, cls: 'sb-host' }, { text: sub, w: FX.measure(sub, LF_SUB), h: 13, cls: 'sb-sub' }] };
+    });
+    const lab = (n) => (n === 'NIC' ? null : { text: short(n), w: FX.measure(short(n), LF_PORT), h: 12 });
+    const links = w.links.map(([a, ai, b, bi]) => ({ a, b, la: lab(ai), lb: lab(bi) }));
+    S.lay = FX.layout(nodes, links, { led: 7, font: LF_PORT });
+    S.layNodes = nodes;
+    return S.lay;
+  }
+
   function drawCanvas(reuseLights) {
     if (!S) return;
     ensurePositions();
@@ -641,50 +1169,62 @@
     const focused = doc.activeElement;
     const fDev = focused && focused.getAttribute && focused.getAttribute('data-dev');
     const fLink = focused && focused.getAttribute && focused.getAttribute('data-link');
-    if (!reuseLights || !S.lights || S.lights.length !== w.links.length) S.lights = linkStates(w);
-    const P = S.positions;
+    const fresh = !reuseLights || !S.lights || S.lights.length !== w.links.length;
+    if (fresh) S.lights = linkStates(w);
+    const lay = computeLayout();
     let links = '';
+    const changes = [];
     w.links.forEach(([a, ai, b, bi], k) => {
-      const A = P[a];
-      const B = P[b];
-      if (!A || !B) return;
-      const dx = B.x - A.x;
-      const dy = B.y - A.y;
-      const len = Math.hypot(dx, dy) || 1;
-      const ux = dx / len;
-      const uy = dy / len;
-      const off = Math.min(31, len * 0.3);
-      const lab = Math.min(54, len * 0.36);
+      const o = lay.links[k];
+      if (!o) return;
       const st = S.lights[k] || ['down', 'down'];
       const ia = w.devices[a].interfaces[ai] || {};
       const ib = w.devices[b].interfaces[bi] || {};
       const trunk = ia.mode === 'trunk' || ib.mode === 'trunk';
       const sel = S.sel && S.sel.link === k;
-      const words = { up: 'up', block: 'blocking', down: 'down' };
+      const down = st[0] === 'down' || st[1] === 'down';
+      const words = { up: 'up', block: 'blocking (Spanning Tree)', down: 'down' };
       const nm = (id, p) => `${w.devices[id].hostname} ${short(p)}`;
-      const port = (X, Y, sign, name) => (name === 'NIC' ? '' : `<text class="sb-port" x="${(X + ux * lab * sign - uy * 10).toFixed(1)}" y="${(Y + uy * lab * sign + ux * 10 + 3).toFixed(1)}" text-anchor="middle">${esc(short(name))}</text>`);
-      links += `<g class="sb-link${trunk ? ' trunk' : ''}${sel ? ' sel' : ''}" data-link="${k}" tabindex="0" role="button" aria-label="Cable ${esc(nm(a, ai))} (${words[st[0]]}) to ${esc(nm(b, bi))} (${words[st[1]]})${trunk ? ', trunk' : ''}">
-        <line class="sb-wire-hit" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"/>
-        <line class="sb-wire" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"/>
-        <circle class="sb-led ${st[0]}" cx="${(A.x + ux * off).toFixed(1)}" cy="${(A.y + uy * off).toFixed(1)}" r="5"/>
-        <circle class="sb-led ${st[1]}" cx="${(B.x - ux * off).toFixed(1)}" cy="${(B.y - uy * off).toFixed(1)}" r="5"/>
-        ${port(A.x, A.y, 1, ai)}${port(B.x, B.y, -1, bi)}
+      const port = (P) => (P ? `<rect class="lfx-halo" x="${P.box.x0.toFixed(1)}" y="${P.box.y0.toFixed(1)}" width="${(P.box.x1 - P.box.x0).toFixed(1)}" height="${(P.box.y1 - P.box.y0).toFixed(1)}" rx="3"/><text class="sb-port" x="${P.x.toFixed(1)}" y="${P.y.toFixed(1)}" text-anchor="middle">${esc(P.text)}</text>` : '');
+      const led = (L, s) => (s === 'block'
+        ? `<g class="sb-led-g block" transform="translate(${L.x.toFixed(1)} ${L.y.toFixed(1)})"><circle class="sb-led block" r="6"/><path class="sb-led-bars" d="M-1.9 -3v6M1.9 -3v6"/></g>`
+        : `<circle class="sb-led ${s}" cx="${L.x.toFixed(1)}" cy="${L.y.toFixed(1)}" r="5"/>`);
+      links += `<g class="sb-link${trunk ? ' trunk' : ''}${sel ? ' sel' : ''}${down ? ' is-down' : ''}" data-link="${k}" data-a="${esc(a)}" data-b="${esc(b)}" tabindex="0" role="button" aria-label="Cable ${esc(nm(a, ai))} (${words[st[0]]}) to ${esc(nm(b, bi))} (${words[st[1]]})${trunk ? ', trunk' : ''}">
+        <line class="sb-wire-hit" x1="${o.x1}" y1="${o.y1}" x2="${o.x2}" y2="${o.y2}"/>
+        <line class="sb-wire" x1="${o.x1}" y1="${o.y1}" x2="${o.x2}" y2="${o.y2}"/>
+        ${down ? '' : `<line class="lfx-shimmer" x1="${o.x1}" y1="${o.y1}" x2="${o.x2}" y2="${o.y2}" style="animation-delay:-${((k * 1.37) % 4).toFixed(2)}s"/>`}
+        ${led(o.leda, st[0])}${led(o.ledb, st[1])}
+        ${port(o.pa)}${port(o.pb)}
       </g>`;
+      changes.push({ key: `${a}|${ai}|${b}|${bi}`, up: !down, x1: o.x1, y1: o.y1, x2: o.x2, y2: o.y2, k });
     });
     let nodes = '';
-    for (const [id, d] of Object.entries(w.devices)) {
-      const p = P[id];
-      const type = d.type || inferType(d);
+    for (const n of S.layNodes) {
+      const id = n.id;
+      const d = w.devices[id];
+      const type = n.type;
+      const N = lay.nodes[id];
+      const lb = N.label;
+      const hx0 = Math.min(N.glyph.x0, lb.x0) - n.x - 4;
+      const hy0 = Math.min(N.glyph.y0, lb.y0) - n.y - 4;
+      const hx1 = Math.max(N.glyph.x1, lb.x1) - n.x + 4;
+      const hy1 = Math.max(N.glyph.y1, lb.y1) - n.y + 4;
       const cls = ['sb-node', S.sel && S.sel.dev === id ? 'sel' : '', S.cable && S.cable.a === id ? 'src' : '', S.panel && S.panel.id === id ? 'open' : ''].join(' ');
-      nodes += `<g class="${cls}" data-dev="${esc(id)}" transform="translate(${p.x} ${p.y})" tabindex="0" role="button" aria-label="${esc(d.hostname)}, ${esc(TYPES[type].label)}${d.kind === 'pc' ? ', ' + esc(subLabel(d)) : ''}">
-        <rect class="sb-hit" x="-36" y="-30" width="72" height="88"/>
+      nodes += `<g class="${cls}" data-dev="${esc(id)}" transform="translate(${n.x} ${n.y})" tabindex="0" role="button" aria-label="${esc(d.hostname)}, ${esc(TYPES[type].label)}${d.kind === 'pc' ? ', ' + esc(subLabel(d)) : ''}">
+        <rect class="sb-hit" x="${hx0.toFixed(1)}" y="${hy0.toFixed(1)}" width="${(hx1 - hx0).toFixed(1)}" height="${(hy1 - hy0).toFixed(1)}"/>
         ${icon(type)}
-        <text class="sb-host" y="40" text-anchor="middle">${esc(d.hostname)}</text>
-        <text class="sb-sub" y="53" text-anchor="middle">${esc(subLabel(d))}</text>
+        <rect class="lfx-halo name" x="${(lb.x0 - n.x).toFixed(1)}" y="${(lb.y0 - n.y).toFixed(1)}" width="${(lb.x1 - lb.x0).toFixed(1)}" height="${(lb.y1 - lb.y0).toFixed(1)}" rx="4"/>
+        ${n.lines.map((l, j) => `<text class="${l.cls}" x="${(N.lines[j].x - n.x).toFixed(1)}" y="${(N.lines[j].y - n.y).toFixed(1)}" text-anchor="middle">${esc(l.text)}</text>`).join('')}
       </g>`;
     }
     $('.sb-links', S.main).innerHTML = links;
     $('.sb-nodes', S.main).innerHTML = nodes;
+    if (fresh) {
+      const wires = {};
+      $$('.sb-link', S.main).forEach((g) => { wires[g.dataset.link] = $('.sb-wire', g); });
+      S.fxLinks = FX.linkChanges(S.fxLinks || null, changes.map((c) => Object.assign(c, { line: wires[c.k] })), $('.sb-fxu', S.main));
+    }
+    FX.hoverLinks($('.sb-svg', S.main), '.sb-node', '.sb-link');
     applyView();
     $('.sb-empty', S.main).hidden = Object.keys(w.devices).length > 0;
     if (fDev) { const el = $(`.sb-node[data-dev="${CSS.escape(fDev)}"]`, S.main); if (el) el.focus({ preventScroll: true }); }
@@ -698,10 +1238,12 @@
     const pts = Object.values(S.positions);
     const { w, h } = canvasSize();
     if (!pts.length) { S.view = { z: 1, x: w / 2 - 360, y: 40 }; return; }
-    const minX = Math.min(...pts.map((p) => p.x)) - 60;
-    const maxX = Math.max(...pts.map((p) => p.x)) + 60;
-    const minY = Math.min(...pts.map((p) => p.y)) - 50;
-    const maxY = Math.max(...pts.map((p) => p.y)) + 75;
+    // fit what is drawn, names and port labels included, with room above for ping captions
+    const B = computeLayout().bounds;
+    const minX = Math.min(B.x0, ...pts.map((p) => p.x - 40)) - 20;
+    const maxX = Math.max(B.x1, ...pts.map((p) => p.x + 40)) + 20;
+    const minY = Math.min(B.y0, ...pts.map((p) => p.y - 30)) - 34;
+    const maxY = Math.max(B.y1, ...pts.map((p) => p.y + 40)) + 16;
     const z = Math.max(0.35, Math.min(1.25, w / (maxX - minX), h / (maxY - minY)));
     S.view = { z, x: (w - (maxX - minX) * z) / 2 - minX * z, y: (h - (maxY - minY) * z) / 2 - minY * z };
   }
@@ -1146,12 +1688,15 @@
     const log = logFor(id);
     log.push(['cmd', S.sess.prompt(id) + '\u0000' + line + (help ? '?' : '')]);
     let out;
+    const ev0 = S.w.events.length;
     try { out = help ? run(S.sess, id, line + '?') : run(S.sess, id, line); } catch (e) { out = ['% ' + e.message]; }
     for (const l of out) log.push([classify(l), l]);
     if (log.length > 500) log.splice(0, log.length - 500);
     drawTerm();
     afterChange(null, { keepPanel: true });
     refreshPanelHead();
+    const probes = FX.newProbes(S.w, ev0);
+    if (probes.length) playProbe(probes[probes.length - 1]);
   }
   function onTermKey(e, id) {
     const input = e.target;
@@ -1332,77 +1877,38 @@
     if (!src || !S.w.devices[src]) { res.innerHTML = '<span class="bad">Pick a source device.</span>'; return; }
     if (TT.ip.ipToInt(dst) === null) { res.innerHTML = '<span class="bad">Enter a destination IPv4 address.</span>'; return; }
     let r;
-    try { r = TT.net.ping(S.w, src, dst); } catch (e) { r = { ok: false, reason: 'ttl' }; }
+    try { r = TT.net.tracePath(S.w, src, dst); } catch (e) { r = { ok: false, reason: 'ttl', there: { devs: [src], cables: [], l3: [] }, back: null, fail: { at: src, leg: 'there', reason: 'ttl' } }; }
     const name = (id) => (S.w.devices[id] ? S.w.devices[id].hostname : id);
-    const path = (hops) => (hops || []).map(name).map(esc).join(' → ');
-    if (r.ok && r.local) { res.innerHTML = '<span class="good">Reply from itself.</span> That is the source\'s own address.'; return; }
-    const there = r.there ? r.there.hops : r.hops;
-    const back = r.back ? r.back.hops : null;
-    if (r.ok) res.innerHTML = `<span class="good">Success.</span> Echo: ${path(there)}. Reply: ${path(back)}.`;
-    else res.innerHTML = `<span class="bad">Failed:</span> ${esc(REASONS[r.reason] || r.reason)}${r.at ? ` (at ${esc(name(r.at))})` : ''}.${there && there.length > 1 ? ` Got as far as ${path(there)}.` : ''}${back && back.length > 1 ? ` Reply got as far as ${path(back)}.` : ''}`;
+    const path = (devs) => (devs || []).map(name).map(esc).join(' → ');
     S.w.events.push({ type: 'pingtest', from: src, to: dst, ok: r.ok });
-    animatePing(there || [src], r.ok ? back : back && back.length > 1 ? back : null, r.ok, r.at);
+    playProbe({ from: src, to: dst, kind: 'ping' }, r);
+    if (r.ok && r.local) { res.innerHTML = '<span class="good">Reply from itself.</span> That is the source\'s own address.'; return; }
+    const there = r.there ? r.there.devs : [src];
+    const back = r.back ? r.back.devs : null;
+    const fl = r.fail || {};
+    if (r.ok) res.innerHTML = `<span class="good">Success.</span> Echo: ${path(there)}. Reply: ${path(back)}.`;
+    else res.innerHTML = `<span class="bad">Failed:</span> ${esc(REASONS[fl.leg === 'back' ? 'no-return-path' : r.reason] || r.reason)}${fl.leg === 'back' && fl.reason && fl.reason !== 'no-return-path' ? ` (${esc(REASONS[fl.reason] || fl.reason)})` : ''}${fl.at ? ` at ${esc(name(fl.at))}` : ''}.${there.length > 1 ? ` Got as far as ${path(there)}.` : ''}${back && back.length > 1 ? ` Reply got as far as ${path(back)}.` : ''}`;
   }
-  /** Device-level path between two L3 hops, walking cables through switches. */
-  function wirePath(a, b) {
-    if (a === b) return [a];
-    const w = S.w;
-    const prev = { [a]: null };
-    const q = [a];
-    while (q.length) {
-      const cur = q.shift();
-      for (const [x, , y] of w.links) {
-        for (const [from, to] of [[x, y], [y, x]]) {
-          if (from !== cur || prev[to] !== undefined) continue;
-          prev[to] = cur;
-          if (to === b) { const p = [b]; let c = cur; while (c !== null) { p.unshift(c); c = prev[c]; } return p; }
-          if (w.devices[to].kind === 'switch') q.push(to);
-        }
-      }
-    }
-    return [a, b];
-  }
-  function expand(hops) {
-    const out = [];
-    for (let i = 0; i < hops.length - 1; i++) {
-      const seg = wirePath(hops[i], hops[i + 1]);
-      out.push(...(out.length ? seg.slice(1) : seg));
-    }
-    return out.length ? out : hops.slice(0, 1);
-  }
-  function animatePing(there, back, ok, at) {
-    if (S.anim) cancelAnimationFrame(S.anim.raf);
-    const g = $('.sb-anim', S.main);
-    const legs = [{ pts: expand(there), cls: 'go' }];
-    if (back && back.length) legs.push({ pts: expand(back), cls: 'back' });
-    const failAt = !ok ? (at && S.positions[at] ? at : (back && back.length ? back[back.length - 1] : there[there.length - 1])) : null;
-    const trail = (pts, cls) => pts.slice(1).map((id, i) => { const A = S.positions[pts[i]]; const B = S.positions[id]; return A && B ? `<line class="sb-trail ${cls}" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"/>` : ''; }).join('');
-    const finish = () => {
-      const F = failAt && S.positions[failAt];
-      g.innerHTML = legs.map((l) => trail(l.pts, l.cls)).join('') + (F ? `<g class="sb-fail" transform="translate(${F.x} ${F.y})"><circle r="30"/><path d="M-8 -8L8 8M8 -8L-8 8"/></g>` : '');
-      S.anim = { raf: 0 };
-      setTimeout(() => { if (g.isConnected) g.innerHTML = ''; }, 2600);
-    };
-    if (reduced()) { finish(); return; }
-    const seq = [];
-    for (const l of legs) for (let i = 0; i < l.pts.length - 1; i++) seq.push({ a: l.pts[i], b: l.pts[i + 1], cls: l.cls });
-    if (!seq.length) { finish(); return; }
-    const per = 300;
-    const t0 = performance.now();
-    const step = (t) => {
-      if (!g.isConnected) return;
-      const k = (t - t0) / per;
-      const i = Math.floor(k);
-      if (i >= seq.length) { finish(); return; }
-      const s = seq[i];
-      const A = S.positions[s.a];
-      const B = S.positions[s.b];
-      const f = k - i;
-      const done = seq.slice(0, i).map((x) => { const P = S.positions[x.a]; const Q = S.positions[x.b]; return P && Q ? `<line class="sb-trail ${x.cls}" x1="${P.x}" y1="${P.y}" x2="${Q.x}" y2="${Q.y}"/>` : ''; }).join('');
-      g.innerHTML = done + (A && B ? `<rect class="sb-packet ${s.cls}" x="${(A.x + (B.x - A.x) * f - 9).toFixed(1)}" y="${(A.y + (B.y - A.y) * f - 6).toFixed(1)}" width="18" height="12" rx="2"/>` : '');
-      S.anim = { raf: requestAnimationFrame(step) };
-    };
-    S.anim = { raf: requestAnimationFrame(step) };
+  /** Animate a ping or traceroute along the path the simulator really used (trace may be passed in). */
+  function playProbe(p, trace) {
+    if (!S || !S.w.devices[p.from]) return;
+    try { trace = trace || TT.net.tracePath(S.w, p.from, p.to); } catch (e) { return; }
+    if (S.fxRun) S.fxRun.cancel();
+    S.fxRun = FX.play({
+      under: $('.sb-fxu', S.main),
+      over: $('.sb-anim', S.main),
+      trace,
+      target: p.to,
+      kind: p.kind,
+      name: (id) => (S.w.devices[id] ? S.w.devices[id].hostname : id),
+      view: () => { const c = canvasSize(); const z = S.view.z; return { x0: -S.view.x / z, y0: -S.view.y / z, x1: (c.w - S.view.x) / z, y1: (c.h - S.view.y) / z }; },
+      pos: (id) => {
+        const P = S.positions[id];
+        const N = S.lay && S.lay.nodes[id];
+        const n = S.layNodes && S.layNodes.find((x) => x.id === id);
+        return P ? { x: P.x, y: P.y, top: N && n ? Math.min(N.glyph.y0, N.label.y0) - n.y + P.y : P.y - 30 } : null;
+      },
+    });
   }
 
   /* ---- project panel ---- */

@@ -75,6 +75,7 @@
     if (TT.tickets.byId[h]) { ticketId = h; h = 'tickets'; }
     else if (h.startsWith('card-')) { guideState = { domain: 'all', q: '', only: h.slice(5) }; h = 'guide'; }
     else if (h.startsWith('hw-')) { ticketId = h.slice(3); h = 'hardware'; }
+    else if (h.startsWith('scene-')) { ticketId = { scene: h.slice(6) }; h = 'learn'; }
     else if (h.startsWith('learn-')) { ticketId = { id: h.slice(6) }; h = 'learn'; }
     else if (h.startsWith('lab-')) { ticketId = { project: h.slice(4) }; h = 'lab'; }
     else if (h.startsWith('flash-')) { ticketId = { deck: h.slice(6) }; h = 'flash'; }
@@ -240,8 +241,12 @@
   function exec(t, r, line, opts) {
     const log = logFor(r, r.dev);
     log.push(['cmd', r.s.prompt(r.dev) + '\u0000' + line + (opts && opts.help ? '?' : '')]);
-    const outLines = opts && opts.help ? r.s.run(r.dev, line + '?') : r.s.run(r.dev, line);
+    const ev0 = r.w.events.length;
+    const traceTo = opts && opts.help ? null : TT.labfx.traceTarget(r.w.devices[r.dev], line);
+    const outLines = opts && opts.help ? r.s.run(r.dev, line + '?') : traceTo ? TT.labfx.traceroute(r.w, r.dev, traceTo) : r.s.run(r.dev, line);
     for (const l of outLines) log.push([classify(l), l]);
+    const probes = TT.labfx.newProbes(r.w, ev0);
+    if (probes.length) r.fxPending = probes[probes.length - 1];
     drawConsole(t, r);
     drawTopo(t, r);
     drawDevTabs(t, r);
@@ -339,45 +344,123 @@
           <path d="M-7 15h14M0 9v6" stroke="var(--ink)" stroke-width="1.6"/>`;
     }
   }
+  /* Glyph extents (centre-relative) so cables, port labels and names can be placed around them. */
+  const TOPO_SHAPES = {
+    router: { l: -21, r: 21, t: -21, b: 21, circle: true },
+    switch: { l: -28, r: 28, t: -15, b: 15 },
+    printer: { l: -20, r: 20, t: -19, b: 17 },
+    pc: { l: -19, r: 19, t: -16, b: 15 },
+  };
+  const F_HOST = { size: 12, weight: 600 };
+  const F_ADDR = { size: 10.5, mono: true };
+  const F_PORT = { size: 10.5, mono: true };
   function drawTopo(t, r) {
-    const nodes = t.topology.nodes;
-    const pos = Object.fromEntries(nodes.map((n) => [n.id, n]));
-    const H = Math.max(...nodes.map((n) => n.y)) + 74;
+    const FX = TT.labfx;
     const w = r.w;
-    let links = '';
-    let labels = '';
-    for (const [a, ai, b, bi] of w.links) {
-      const A = pos[a];
-      const B = pos[b];
-      if (!A || !B) continue;
-      const devA = w.devices[a];
-      const up = devA.kind === 'pc' ? TT.net.linkUp(w, b, bi) : TT.net.linkUp(w, a, ai);
-      const trunk = (devA.interfaces[ai] || {}).mode === 'trunk' || (w.devices[b].interfaces[bi] || {}).mode === 'trunk';
-      links += `<line class="link ${up ? '' : 'down'} ${trunk ? 'trunk' : ''}" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"/>`;
-      const lab = (P, Q, name) => {
-        if (name === 'NIC') return '';
-        const x = P.x + (Q.x - P.x) * 0.3;
-        const y = P.y + (Q.y - P.y) * 0.3 - 8;
-        return `<text class="ifl" x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle">${esc(TT.ifname.shortIf(name))}</text>`;
-      };
-      labels += lab(A, B, ai) + lab(B, A, bi);
-    }
-    let g = '';
-    for (const n of nodes) {
+    const nodes = t.topology.nodes.filter((n) => w.devices[n.id]);
+    const pos = Object.fromEntries(nodes.map((n) => [n.id, n]));
+    const lnodes = nodes.map((n) => {
       const d = w.devices[n.id];
-      if (!d) continue;
       const addr = d.kind === 'pc' && d.pc.ip ? `${d.pc.ip}/${TT.ip.maskToPrefix(d.pc.mask)}` : '';
-      g += `<g class="node ${n.id === r.dev ? 'sel' : ''}" data-dev="${n.id}" transform="translate(${n.x} ${n.y})" tabindex="0" role="button" aria-label="Open console on ${esc(d.hostname)}">
-        <rect x="-40" y="-28" width="80" height="${addr ? 88 : 74}" fill="transparent"/>
+      const lines = [{ text: d.hostname, w: FX.measure(d.hostname, F_HOST), h: 15, cls: 'host' }];
+      if (addr) lines.push({ text: addr, w: FX.measure(addr, F_ADDR), h: 13, cls: 'addr' });
+      return { id: n.id, x: n.x, y: n.y, type: n.type, shape: TOPO_SHAPES[n.type] || TOPO_SHAPES.pc, lines };
+    });
+    const portLab = (name) => (name === 'NIC' ? null : { text: TT.ifname.shortIf(name), w: FX.measure(TT.ifname.shortIf(name), F_PORT), h: 12 });
+    const llinks = [];
+    w.links.forEach(([a, ai, b, bi], k) => { if (pos[a] && pos[b]) llinks.push({ k, a, ai, b, bi, la: portLab(ai), lb: portLab(bi) }); });
+    const lay = FX.layout(lnodes, llinks, { led: 9, font: F_PORT, bounds: { x0: 0, x1: 680, y0: 0 } });
+    r.fxLay = { nodes: lay.nodes, pos };
+
+    const stpCache = {};
+    let links = '';
+    let shimmer = '';
+    let labels = '';
+    let marks = '';
+    const changes = [];
+    llinks.forEach((L, i) => {
+      const o = lay.links[i];
+      const devA = w.devices[L.a];
+      const up = devA.kind === 'pc' ? TT.net.linkUp(w, L.b, L.bi) : TT.net.linkUp(w, L.a, L.ai);
+      const trunk = (devA.interfaces[L.ai] || {}).mode === 'trunk' || (w.devices[L.b].interfaces[L.bi] || {}).mode === 'trunk';
+      const xy = `x1="${o.x1}" y1="${o.y1}" x2="${o.x2}" y2="${o.y2}"`;
+      links += `<line class="link ${up ? '' : 'down'} ${trunk ? 'trunk' : ''}" data-k="${L.k}" data-a="${esc(L.a)}" data-b="${esc(L.b)}" ${xy}/>`;
+      if (up) shimmer += `<line class="lfx-shimmer" ${xy} style="animation-delay:-${((i * 1.37) % 4).toFixed(2)}s"/>`;
+      for (const P of [o.pa, o.pb]) {
+        if (!P) continue;
+        const b = P.box;
+        labels += `<g class="ifl-g"><rect class="lfx-halo" x="${b.x0.toFixed(1)}" y="${b.y0.toFixed(1)}" width="${(b.x1 - b.x0).toFixed(1)}" height="${(b.y1 - b.y0).toFixed(1)}" rx="3"/><text class="ifl" x="${P.x.toFixed(1)}" y="${P.y.toFixed(1)}" text-anchor="middle">${esc(P.text)}</text></g>`;
+      }
+      // Spanning Tree: a steady amber "paused" marker on each blocked port
+      for (const [dev, port, at] of [[L.a, L.ai, o.leda], [L.b, L.bi, o.ledb]]) {
+        const vl = TT.net.stpBlockedVlans(w, dev, port, stpCache);
+        if (!vl.length || !at) continue;
+        marks += `<g class="lfx-stp" transform="translate(${at.x.toFixed(1)} ${at.y.toFixed(1)})"><title>${esc(w.devices[dev].hostname)} ${esc(TT.ifname.shortIf(port))}: blocking (STP, VLAN ${vl.join(', ')})</title><rect x="-6.5" y="-6.5" width="13" height="13" rx="3"/><path d="M-2.2 -3.6v7.2M2.2 -3.6v7.2"/></g>`;
+      }
+      changes.push({ key: `${L.a}|${L.ai}|${L.b}|${L.bi}`, up, x1: o.x1, y1: o.y1, x2: o.x2, y2: o.y2, k: L.k });
+    });
+    let g = '';
+    for (const n of lnodes) {
+      const d = w.devices[n.id];
+      const N = lay.nodes[n.id];
+      const lb = N.label;
+      const hx0 = Math.min(N.glyph.x0, lb.x0) - n.x - 3;
+      const hy0 = Math.min(N.glyph.y0, lb.y0) - n.y - 3;
+      const hx1 = Math.max(N.glyph.x1, lb.x1) - n.x + 3;
+      const hy1 = Math.max(N.glyph.y1, lb.y1) - n.y + 3;
+      g += `<g class="node ${n.id === r.dev ? 'sel' : ''}" data-dev="${esc(n.id)}" transform="translate(${n.x} ${n.y})" tabindex="0" role="button" aria-label="Open console on ${esc(d.hostname)}">
+        <rect x="${hx0.toFixed(1)}" y="${hy0.toFixed(1)}" width="${(hx1 - hx0).toFixed(1)}" height="${(hy1 - hy0).toFixed(1)}" fill="transparent"/>
         ${glyph(n.type)}
-        <text class="host" y="38" text-anchor="middle">${esc(d.hostname)}</text>
-        ${addr ? `<text class="addr" y="52" text-anchor="middle">${esc(addr)}</text>` : ''}
+        <rect class="lfx-halo name" x="${(lb.x0 - n.x).toFixed(1)}" y="${(lb.y0 - n.y).toFixed(1)}" width="${(lb.x1 - lb.x0).toFixed(1)}" height="${(lb.y1 - lb.y0).toFixed(1)}" rx="4"/>
+        ${n.lines.map((l, j) => `<text class="${l.cls}" x="${(N.lines[j].x - n.x).toFixed(1)}" y="${(N.lines[j].y - n.y).toFixed(1)}" text-anchor="middle">${esc(l.text)}</text>`).join('')}
       </g>`;
     }
-    $('#topo').innerHTML = `<svg viewBox="0 0 680 ${H}" role="img" aria-label="Network topology for ${esc(t.title)}">${links}${labels}${g}</svg>`;
+    const B = lay.bounds;
+    const vx = Math.min(0, Math.floor(B.x0 - 10));
+    const vy = Math.min(0, Math.floor(B.y0 - 26));
+    const vw = Math.max(680, Math.ceil(B.x1 + 10)) - vx;
+    const vh = Math.ceil(B.y1 + 16) - vy;
+    // a ping still in flight survives the redraw that its own command triggers
+    const old = $('#topo svg');
+    const running = old ? { u: $$('.lfx-under > .lfx-run', old), o: $$('.lfx-over > .lfx-run', old) } : null;
+    $('#topo').innerHTML = `<svg viewBox="${vx} ${vy} ${vw} ${vh}" role="img" aria-label="Network topology for ${esc(t.title)}">${links}<g class="lfx-under">${shimmer}</g>${labels}${marks}${g}<g class="lfx-over"></g></svg>`;
+    const svg = $('#topo svg');
+    const under = $('.lfx-under', svg);
+    const over = $('.lfx-over', svg);
+    if (running) { running.u.forEach((x) => under.appendChild(x)); running.o.forEach((x) => over.appendChild(x)); }
+    const lineEls = {};
+    $$('.link', svg).forEach((e) => { lineEls[e.dataset.k] = e; });
+    r.fxLinks = FX.linkChanges(r.fxLinks || null, changes.map((c) => Object.assign(c, { line: lineEls[c.k] })), under);
+    FX.hoverLinks(svg, '.node', '.link');
+    const legend = $('.topo-wrap .legend');
+    if (legend && marks && !$('.lfx-k-stp', legend)) legend.insertAdjacentHTML('beforeend', '<span class="lfx-k-stp"><b aria-hidden="true"></b>STP blocking port</span>');
     $$('#topo .node').forEach((el) => {
       el.addEventListener('click', () => selectDev(t, r, el.dataset.dev));
       el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectDev(t, r, el.dataset.dev); } });
+    });
+    if (r.fxPending) {
+      const p = r.fxPending;
+      r.fxPending = null;
+      playProbe(t, r, p);
+    }
+  }
+  /** Animate a ping or traceroute on the ticket diagram along the path the simulator really used. */
+  function playProbe(t, r, p) {
+    const FX = TT.labfx;
+    const svg = $('#topo svg');
+    if (!svg || !r.w.devices[p.from]) return;
+    let trace;
+    try { trace = TT.net.tracePath(r.w, p.from, p.to); } catch (e) { return; }
+    const L = r.fxLay;
+    FX.play({
+      under: $('.lfx-under', svg),
+      over: $('.lfx-over', svg),
+      trace,
+      target: p.to,
+      kind: p.kind,
+      name: (id) => (r.w.devices[id] ? r.w.devices[id].hostname : id),
+      view: () => { const v = svg.viewBox.baseVal; return { x0: v.x, y0: v.y, x1: v.x + v.width, y1: v.y + v.height }; },
+      pos: (id) => { const n = L.pos[id]; const N = L.nodes[id]; return n && N ? { x: n.x, y: n.y, top: Math.min(N.glyph.y0, N.label.y0) } : null; },
     });
   }
 
