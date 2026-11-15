@@ -2,7 +2,8 @@
  * TT.renderLessons(main, opts): index view, or one lesson when opts.id is set.
  * Lesson data lives in lessons-1.js (domains 1-2) and lessons-2.js (domains 3-6); see the format note in lessons-1.js.
  * Progress: localStorage 'trouble-ticket-lessons-v1' = { done: { id: true }, scores: { id: n } }.
- * Routes (wired by app.js): #learn (index), #learn-<id> (one lesson).
+ * Routes (wired by app.js): #learn (index), #learn-<id> (one lesson), #learn-scene-<sceneId> (one "Watch it happen"
+ * scene on its own; renderLessons also accepts opts.scene). Scenes come from scenes.js / scenes-1.js / scenes-2.js.
  */
 (function (G) {
   'use strict';
@@ -143,6 +144,7 @@
             <input id="ls-q" class="search ls-search" type="search" placeholder="Search lessons (e.g. trunk, EUI-64, 1.6)" autocomplete="off">
           </div>
         </div>
+        ${sceneGallery()}
         <div id="ls-groups" class="ls-groups"></div>
       </section>`;
     const input = main.querySelector('#ls-q');
@@ -292,6 +294,7 @@
         </header>
         <div class="ls-layout">
           <div class="ls-content sheet">
+            ${watchBlock(l)}
             ${sections}
             ${tryIts ? `<section class="ls-sec" aria-labelledby="ls-tryh"><h3 id="ls-tryh">Try it on the lab bench</h3><p class="ls-bench">The bench is a tiny network: <code>HPL-LAB-R1</code> Gi0/0 to <code>HPL-LAB-SW1</code> Fa0/8, two links (Gi0/1, Gi0/2) from SW1 to <code>HPL-LAB-SW2</code>, <code>LAB-PC1</code> on SW1 Fa0/1 and <code>LAB-PC2</code> on SW2 Fa0/1, all in 10.10.10.0/24. Each run starts from a fresh bench.</p>${tryIts}</section>` : ''}
             ${traps ? `<section class="ls-traps" aria-labelledby="ls-traph"><h3 id="ls-traph">Exam traps</h3><ul>${traps}</ul></section>` : ''}
@@ -324,6 +327,61 @@
       })
     );
     drawQuiz(main.querySelector('#ls-quiz'), l);
+    mountWatch(main, l);
+    G.scrollTo && G.scrollTo(0, 0);
+  }
+
+  /* ---------------- "Watch it happen" scenes ---------------- */
+  const sceneList = () => (TT.scenes || []).slice().sort(byObj);
+  const canPlay = () => typeof TT.renderScene === 'function';
+  function watchBlock(l) {
+    const scs = canPlay() && TT.scenesFor ? TT.scenesFor(l.id) : [];
+    if (!scs.length) return '';
+    const pick = scs.length > 1
+      ? `<div class="sc-pick" role="group" aria-label="Choose a scene">${scs.map((s, k) => `<button type="button" class="chip" data-scene="${esc(s.id)}" aria-pressed="${k === 0}">${esc(s.title)}</button>`).join('')}</div>`
+      : '';
+    return `<section class="sc-lessonbox" aria-labelledby="ls-watchh"><h3 id="ls-watchh">Watch it happen <small>${scs.length} animated scene${scs.length > 1 ? 's' : ''}</small></h3>${pick}<div class="sc-mount" id="ls-scene"></div></section>`;
+  }
+  function mountWatch(main, l) {
+    const slot = main.querySelector('#ls-scene');
+    if (!slot) return;
+    const scs = TT.scenesFor(l.id);
+    const show = (id) => {
+      const sc = scs.find((s) => s.id === id) || scs[0];
+      TT.renderScene(slot, sc);
+      main.querySelectorAll('.sc-pick .chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.scene === sc.id)));
+    };
+    main.querySelectorAll('.sc-pick .chip').forEach((b) => b.addEventListener('click', () => show(b.dataset.scene)));
+    show(scs[0].id);
+  }
+  function sceneGallery() {
+    const scs = canPlay() ? sceneList() : [];
+    if (!scs.length) return '';
+    const cards = scs
+      .map((s) => `<li><a class="sc-card" href="#learn-scene-${esc(s.id)}"><span class="sc-card-art">${TT.sceneThumb ? TT.sceneThumb(s) : ''}</span><span class="sc-card-o"><span class="sc-card-play" aria-hidden="true"><svg viewBox="0 0 24 24" width="12" height="12"><path d="M8 5v14l11-7z"/></svg></span>${esc(s.obj)} · ${s.steps.length} steps</span><span class="sc-card-t">${esc(s.title)}</span></a></li>`)
+      .join('');
+    return `<section class="sheet sc-gallery" aria-labelledby="sc-gal-h">
+      <div class="sc-gal-head"><h3 id="sc-gal-h">Watch it happen</h3><p>${scs.length} short animations of protocols doing their thing on the wire. Pick one, press play.</p></div>
+      <ul class="sc-strip">${cards}</ul>
+    </section>`;
+  }
+  function renderSceneView(main, sc) {
+    const all = sceneList();
+    const i = all.indexOf(sc);
+    const prev = all[i - 1];
+    const next = all[i + 1];
+    const l = find(sc.lesson);
+    main.innerHTML = `
+      <section class="sc-view" aria-label="Watch it happen">
+        <nav class="ls-crumbs" aria-label="Breadcrumb"><a href="#learn">Lessons</a><span aria-hidden="true">/</span><span>Watch it happen</span><span aria-hidden="true">/</span><span>${esc(sc.obj)}</span></nav>
+        <div class="sheet"><div id="sc-solo"></div></div>
+        <nav class="sc-view-nav" aria-label="More scenes">
+          ${prev ? `<a class="btn" href="#learn-scene-${esc(prev.id)}"><span class="ls-pk">Previous scene · ${esc(prev.obj)}</span>${esc(prev.title)}</a>` : '<span></span>'}
+          ${l ? `<a class="btn primary" href="#learn-${esc(l.id)}"><span class="ls-pk" style="color:inherit;opacity:.8">The lesson · ${esc(l.obj)}</span>${esc(l.title)}</a>` : ''}
+          ${next ? `<a class="btn" href="#learn-scene-${esc(next.id)}"><span class="ls-pk">Next scene · ${esc(next.obj)}</span>${esc(next.title)}</a>` : '<a class="btn" href="#learn"><span class="ls-pk">Done</span>Back to all lessons</a>'}
+        </nav>
+      </section>`;
+    TT.renderScene(main.querySelector('#sc-solo'), sc);
     G.scrollTo && G.scrollTo(0, 0);
   }
 
@@ -506,6 +564,11 @@
   /* ---------------- entry point ---------------- */
   TT.renderLessons = function renderLessons(main, opts) {
     const id = opts && opts.id;
+    const sceneId = (opts && opts.scene) || (typeof id === 'string' && id.startsWith('scene-') ? id.slice(6) : null);
+    if (sceneId && canPlay()) {
+      const sc = TT.sceneById(sceneId);
+      if (sc) return renderSceneView(main, sc);
+    }
     const l = id ? find(id) : null;
     if (l) renderLesson(main, l);
     else {
