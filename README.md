@@ -11,15 +11,17 @@ A free CCNA 200-301 study site that runs in the browser. You play the night-shif
 | Section | What you do |
 | --- | --- |
 | **Learn** | 53 lessons, one per objective of the CCNA v1.1 exam blueprint. Each opens with a Harbor Point case file and has diagrams, the senior tech's notes, exam traps, "try it" blocks that run in the simulator, and a 3-question check (159 questions in all) |
+| **Watch it happen** | 36 animated concept scenes, from switch MAC learning to OSPF elections, NAT and REST calls: packets travel the wires step by step while the senior tech narrates. Each plays inside its lesson, with play, pause, step and speed controls |
 | **Tickets** | 23 troubleshooting scenarios, each with a story, a live topology, self-checking objectives, three hints and a debrief with exam tips |
-| **Lab** | A Packet Tracer-style sandbox: drag routers, switches, Layer 3 switches, PCs and servers onto a canvas, cable ports, watch link lights, configure every device in the CLI, and trace pings. Includes 15 guided projects with automatic checks |
-| **Mock exam** | 433 original practice questions in the style of the best commercial practice exams: exhibits, multi-select, drag-to-order, matching and 25 hands-on CLI simulations. Full 120-minute exams are weighted like the real blueprint, with a score report by domain |
+| **Lab** | A Packet Tracer-style sandbox: drag routers, switches, Layer 3 switches, PCs and servers onto a canvas, cable ports, watch link lights, configure every device in the CLI, and watch pings and traceroutes travel the real path, ending with a red X where they die. Includes 15 guided projects with automatic checks |
+| **Mock exam** | 433 original practice questions in the style of the best commercial practice exams: exhibits, multi-select, drag-to-order, matching and 25 hands-on CLI simulations. Five fixed practice exams (A to E) cover the whole bank, plus random full exams. All are 120 minutes, weighted like the real blueprint, with a score report by domain |
 | **Flashcards** | 1015 cards in 11 decks (ports, acronyms, protocols, defaults, commands, OSI, subnetting, wireless, security, automation, terms) with spaced repetition and a typed-answer mode |
 | **Course map** | All 63 days of Jeremy's IT Lab's free course, and all 53 v1.1 exam objectives, each linked to the lessons, tickets, cards and labs that practice it |
 | **Field guide** | 58 protocol cards with a port table and a 98-question quick quiz |
 | **Subnet drill** | Timed IPv4 subnetting practice plus IPv6 modified EUI-64 practice |
 | **Hardware lab** | Pick the right cable, find ports on clickable switch and router panels, learn the device families, and configure WLANs in a wireless controller GUI (exam topics 2.9 and 5.10) |
 | **Progress** | A study dashboard: what to do next, lessons and tickets done, flashcards due, and exam readiness by domain |
+| **Career mode** | Earn XP for everything you finish and rise from Night Shift Intern to CCNA-ready. Pager alerts, badges, a promotion stamp, and a shift record with your streak |
 
 ### The tickets
 
@@ -88,7 +90,7 @@ You can also open `dist/index.html` directly in a browser.
 
 ## Tests
 
-`npm test` runs 778 tests with Node's built-in test runner. They check that:
+`npm test` runs 966 tests with Node's built-in test runner. They check that:
 
 1. every ticket starts broken and typing its reference solution into the CLI makes every objective pass, and realistic wrong fixes fail the way they would on real equipment (for example `switchport trunk allowed vlan 20` without `add`, bouncing an err-disabled port before clearing the old sticky MAC, or changing OSPF priority without clearing the process);
 2. every lab project fails at the start and passes after its solution;
@@ -143,6 +145,11 @@ Hosting a single static page like this should cost little or nothing at low traf
 │   ├── lessons-1.js      lessons for exam domains 1-2
 │   ├── lessons-2.js      lessons for exam domains 3-6
 │   ├── lessons-ui.js     lesson reader
+│   ├── scenes.js         animation player for "Watch it happen"
+│   ├── scenes-1.js       animated scenes, domains 1-2
+│   ├── scenes-2.js       animated scenes, domains 3-6
+│   ├── career.js         XP, ranks, badges and pager alerts
+│   ├── theme.js          night/light theme toggle
 │   ├── questions-1.js    mock exam questions, domains 1-2
 │   ├── questions-2.js    mock exam questions, domains 3-6
 │   ├── exam-ui.js        mock exam
@@ -171,6 +178,6 @@ Hosting a single static page like this should cost little or nothing at low traf
 
 ## Credits and disclaimer
 
-Built by Ty Mackall while studying for the CCNA. Lessons are linked from [Jeremy's IT Lab](https://www.youtube.com/@JeremysITLab) free CCNA course; this project is not affiliated with Cisco or Jeremy's IT Lab. CCNA, Catalyst and IOS are trademarks of Cisco Systems. Harbor Point Logistics and every network in the game are fictional. All lessons, questions and flashcards are original; none are copied from any course, book or practice exam. Cisco does not publish an official passing score. All lessons, questions and flashcards are original; none are copied from any course, book or practice exam. Cisco does not publish an official passing score.
+Built by Ty Mackall while studying for the CCNA. Lessons are linked from [Jeremy's IT Lab](https://www.youtube.com/@JeremysITLab) free CCNA course; this project is not affiliated with Cisco or Jeremy's IT Lab. CCNA, Catalyst and IOS are trademarks of Cisco Systems. Harbor Point Logistics and every network in the game are fictional. All lessons, questions and flashcards are original; none are copied from any course, book or practice exam. Cisco does not publish an official passing score. All lessons, questions and flashcards are original; none are copied from any course, book or practice exam. Cisco does not publish an official passing score. All lessons, questions and flashcards are original; none are copied from any course, book or practice exam. Cisco does not publish an official passing score. All lessons, questions and flashcards are original; none are copied from any course, book or practice exam. Cisco does not publish an official passing score.
 
 Licensed under the MIT License.

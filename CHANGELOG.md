@@ -2,6 +2,19 @@
 
 All notable changes to Trouble Ticket. Dates are release dates.
 
+## [2.2.0] - 2026-11-15
+
+### Added
+- **Night-shift theme:** dark is now the default, with a light-mode toggle in the header.
+- **Watch it happen:** 36 animated concept scenes in the lessons and a gallery on the Learn page. Each shows packets moving step by step with narration, and has play, pause, step and speed controls.
+- **Animated pings and traceroutes** in tickets and labs. They follow the simulator's real path and end with a red X at the device that drops the packet, along with the reason.
+- **`traceroute` / `tracert`** commands.
+- **Living links:** a pulse when a link comes up, a red flash when it goes down, and a blinking marker on STP-blocked ports.
+- **Career mode:** XP, 8 ranks, 15 badges, pager alerts, a promotion overlay, and a shift record with a streak on the Progress page.
+
+### Fixed
+- Port and device labels no longer overlap in any ticket or lab diagram.
+
 ## [2.1.0] - 2026-11-15
 
 ### Added
