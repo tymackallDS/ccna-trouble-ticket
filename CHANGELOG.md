@@ -2,6 +2,15 @@
 
 All notable changes to Trouble Ticket. Dates are release dates.
 
+## [2.4.0] - 2026-11-15
+
+### Added
+- **Lesson 1.0, "The layers":** a foundation primer covering the OSI and TCP/IP models, PDUs, encapsulation, which device works at which layer, and bottom-up troubleshooting. It comes with a "Watch it happen" scene that follows one web request being wrapped and unwrapped through a switch and a router. New users and the study plan now start here.
+- **Sound (off by default):** a speaker button in the header controls an endless generated ambient "night shift" track and subtle sound effects for pages, resolves, promotions, pings, links, flashcards and answer checks. Music and effects each have their own on/off switch and volume. All audio is synthesized in the browser, with no audio files.
+
+### Fixed
+- The phone header no longer overlaps at narrow widths, and the room tabs fit between 600 and 860px.
+
 ## [2.3.0] - 2026-11-15
 
 ### Added

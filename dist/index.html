@@ -761,6 +761,16 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
   .btn:active:not(:disabled), .tt-theme:active { transform: none; }
 }
 
+/* tighter room tabs between phone and desktop widths, so five rooms always fit */
+@media (min-width: 601px) and (max-width: 860px) {
+  a.room { padding: 0 9px 0 8px; gap: 6px; font-size: 13.5px; }
+  .rooms-row { gap: 2px; }
+}
+@media (max-width: 380px) {
+  .brand { min-width: 0; }
+  header.mast .brand a.wordmark { font-size: 23px; }
+}
+
 /* ---- lessons.css ---- */
 /* Trouble Ticket — Lessons module (prefix ls-). Uses the variables from styles.css, so dark mode comes free. */
 
@@ -2682,6 +2692,89 @@ button.pl-day-btn:hover { border-color: var(--accent); }
 @media (prefers-reduced-motion: reduce) {
   .pl-stamp-anim, .pl-night.pl-flash { animation: none; }
   .pl-bar i, .pl-box::before, .pl-week > summary::before { transition: none; }
+}
+
+/* ---- audio.css ---- */
+/* ---------- sound: the speaker button and its popover (audio.js) ---------- */
+.tt-audio { position: relative; display: inline-flex; align-self: center; }
+.tt-audio-btn {
+  display: inline-grid; place-items: center;
+  width: 40px; height: 40px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--sheet);
+  color: var(--muted);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: border-color 0.18s var(--ease), color 0.18s var(--ease), box-shadow 0.25s var(--ease), transform 0.25s var(--ease);
+}
+.tt-audio-btn svg { width: 20px; height: 20px; display: block; }
+.tt-audio-btn.is-on { color: var(--accent); }
+.tt-audio-btn:hover, .tt-audio-btn[aria-expanded='true'] { border-color: var(--accent); color: var(--accent); box-shadow: var(--glow-accent); }
+.tt-audio-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: var(--glow-accent); }
+.tt-audio-btn:active { transform: scale(0.94); }
+
+.tt-audio-pop {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 60;
+  width: 296px; max-width: calc(100vw - 28px);
+  padding: 14px 14px 12px;
+  background: var(--sheet);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow-hover);
+  text-align: left;
+}
+.tt-audio-pop[hidden] { display: none; }
+.tt-audio.tt-au-left .tt-audio-pop { right: auto; left: 0; }
+.tt-au-h { margin: 0 0 10px; font: 600 12px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); display: flex; justify-content: space-between; align-items: baseline; }
+.tt-au-h span { color: var(--muted); font-weight: 500; letter-spacing: 0.06em; }
+
+/* switches: real buttons with role="switch"; the word On / Off carries the state, not just the colour */
+.tt-au-sw {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  min-height: 40px; padding: 4px 8px; margin: 0;
+  border: 1px solid transparent; border-radius: 8px;
+  background: none; color: var(--ink);
+  font: 500 14px var(--body); text-align: left; cursor: pointer;
+}
+.tt-au-sw:hover:not(:disabled) { background: var(--accent-soft); }
+.tt-au-sw:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.tt-au-sw:disabled { cursor: default; color: var(--muted); }
+.tt-au-l { flex: 1; }
+.tt-au-master { border-color: var(--line); background: var(--sheet-2); font-weight: 600; }
+.tt-au-track { position: relative; width: 34px; height: 20px; border-radius: 10px; background: var(--line); border: 1px solid var(--line-strong); flex: none; transition: background 0.18s var(--ease); }
+.tt-au-track i { position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--muted); transition: transform 0.18s var(--ease), background 0.18s var(--ease); }
+.tt-au-sw[aria-checked='true'] .tt-au-track { background: color-mix(in srgb, var(--accent) 35%, var(--line)); border-color: var(--accent); }
+.tt-au-sw[aria-checked='true'] .tt-au-track i { transform: translateX(14px); background: var(--accent); }
+.tt-au-state { width: 2.4em; font: 500 12.5px var(--body); color: var(--muted); text-align: right; }
+
+.tt-au-body { margin-top: 6px; display: grid; gap: 6px; }
+.tt-au-row { padding: 2px 0 6px; border-top: 1px solid var(--line); padding-top: 6px; }
+.tt-au-vol { display: grid; grid-template-columns: auto 1fr 3.2em; align-items: center; gap: 10px; padding: 0 8px; min-height: 40px; }
+.tt-au-vol label { font-size: 12.5px; color: var(--muted); }
+.tt-au-vol output { font: 500 12px var(--mono); color: var(--muted); text-align: right; }
+.tt-au-vol input[type='range'] { width: 100%; min-width: 0; height: 40px; margin: 0; accent-color: var(--accent); background: transparent; cursor: pointer; }
+.tt-au-vol input[type='range']:disabled { cursor: default; opacity: 0.55; }
+.tt-au-vol input[type='range']:focus-visible { outline: 2px solid var(--accent); outline-offset: -8px; border-radius: 6px; }
+.tt-au-prev { width: calc(100% - 16px); margin: 2px 8px 0; min-height: 40px; font-size: 13px; justify-content: center; }
+.tt-au-body.is-off .tt-au-vol label, .tt-au-body.is-off .tt-au-vol output { opacity: 0.8; }
+.tt-au-note { margin: 10px 2px 0; font-size: 12px; line-height: 1.4; color: var(--muted); }
+
+/* desktop cluster: a little tighter than the cluster's own gap, so the two icons read as a pair */
+.tt-hud > .tt-audio + .tt-theme { margin-left: -4px; }
+
+/* phones: the masthead cluster only has room for two icons, so the speaker joins the rank chip's row */
+@media (max-width: 600px) {
+  .mast.tt-au-narrow > .tt-audio { order: 3; }
+  .mast.tt-au-narrow > .cr-hud { width: calc(100% - 50px); flex: 1 1 0; min-width: 0; }
+  .tt-audio-pop { width: min(296px, calc(100vw - 28px)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tt-audio-btn, .tt-au-track, .tt-au-track i { transition: none; }
+  .tt-audio-btn:active { transform: none; }
 }
 
 </style>
@@ -10305,6 +10398,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
       const step = sc.steps[i];
       const reduce = reduceMQ();
       animate = animate && !reduce;
+      if (animate && TT.sfx) TT.sfx('scene-step');
       const d = drawStatic(sc, snap, S.ui, { animate });
       L('zones').innerHTML = d.zones;
       L('links').innerHTML = d.links;
@@ -10787,6 +10881,112 @@ button.pl-day-btn:hover { border-color: var(--accent); }
   const hide = (target) => ({ do: 'table', target, rows: null });
   const sub = (target, s) => ({ do: 'label', target, sub: s });
   const nw = (cells) => ({ new: true, cells });
+
+  /* ------------------------------------------------------------------ 1.0 primer: encapsulation */
+  const STACK_DOWN = ['Layer', 'Adds', 'PDU'];
+  const L7 = ['7 HTTP', 'GET /status', 'data'];
+  const PHY = ['1 Physical', 'preamble + signal', 'bits'];
+  const L4 = ['4 TCP', 'ports 49732 > 80', 'segment'];
+  const L3 = ['3 IPv4', '.30.15 > .60.80, TTL', 'packet'];
+  const L2 = ['2 Ether', 'MACs + FCS trailer', 'frame'];
+  const encapsulation = {
+    id: 'sc-encapsulation',
+    lesson: 'l1-0',
+    obj: '1.0',
+    title: 'Wrapped, switched, rewrapped: one web request down and up the stack',
+    summary: 'PC1 asks a web server for a page. Watch each layer add its header, the switch read only the frame, and the router swap the frame while the packet rides through.',
+    stage: { w: 720, h: 360 },
+    actors: [
+      { id: 'PC1', kind: 'pc', x: 70, y: 270, label: 'PC1', sub: '10.20.30.15' },
+      { id: 'SW1', kind: 'switch', x: 230, y: 270, label: 'SW1', sub: 'dispatch' },
+      { id: 'R1', kind: 'router', x: 450, y: 270, label: 'R1', sub: '.30.1 | .60.1' },
+      { id: 'SRV', kind: 'server', x: 650, y: 270, label: 'HPL-WEB01', sub: '10.20.60.80' },
+    ],
+    links: [
+      { id: 'L1', a: 'PC1', b: 'SW1', kind: 'eth', label: 'Fa0/5' },
+      { id: 'L2', a: 'SW1', b: 'R1', kind: 'eth', label: 'Gi0/1 > Gi0/0' },
+      { id: 'L3', a: 'R1', b: 'SRV', kind: 'eth', label: 'Gi0/1' },
+    ],
+    steps: [
+      {
+        caption: 'PC1 opens `http://10.20.60.80/status`. The TCP handshake is already done, so the browser hands `GET /status` to the stack. At Layer 7 it is just **data**: no addresses yet.',
+        actions: [hl('PC1'), badge('PC1', 'data'), table('PC1', 'Going down the stack', STACK_DOWN, [nw(L7)], 'top')],
+      },
+      {
+        caption: 'Transport adds a **TCP header**: source port 49732 (a random ephemeral port) and destination port 80. Ports name the program at each end. Data plus TCP header is a **segment**.',
+        actions: [badge('PC1', 'segment', 'good'), table('PC1', 'Going down the stack', STACK_DOWN, [L7, nw(L4)], 'top')],
+      },
+      {
+        caption: 'Network adds an **IPv4 header**: source 10.20.30.15, destination 10.20.60.80, Protocol 6 (TCP), TTL 128. The server is on another subnet, so this **packet** goes to the default gateway, R1.',
+        actions: [badge('PC1', 'packet'), table('PC1', 'Going down the stack', STACK_DOWN, [L7, L4, nw(L3)], 'top'), hl('R1', 'muted')],
+      },
+      {
+        caption: "Data Link adds an **Ethernet header** (destination MAC = R1 Gi0/0, found by ARP; source = PC1; Type 0x0800) and an **FCS trailer**. Now it is a **frame**. Layer 2 is the only layer that adds a trailer.",
+        actions: [badge('PC1', 'frame', 'warn'), table('PC1', 'Going down the stack', STACK_DOWN, [L7, L4, L3, nw(L2)], 'top')],
+      },
+      {
+        caption: 'Physical turns the frame into **bits**: voltage changes on the copper, led by a preamble so the far end can sync. The frame leaves PC1 for SW1, the first box on this link.',
+        actions: [badge('PC1', 'bits', 'warn'), table('PC1', 'Going down the stack', STACK_DOWN, [L7, L4, L3, L2, nw(PHY)], 'top'), pk('PC1', 'SW1', 'bits', { tone: 'warn' })],
+      },
+      {
+        caption: "SW1 reads only the **Ethernet header**. It learns PC1's MAC on Fa0/5, finds R1's MAC on Gi0/1 and forwards the frame out that port **unchanged**. It never looks at the IP addresses.",
+        actions: [
+          hide('PC1'),
+          badge('PC1', null),
+          table('SW1', 'show mac address-table', ['Vlan', 'Mac Address', 'Ports'], [nw(['30', '0050.7966.0a15', 'Fa0/5']), ['30', '00a3.d1f4.0001', 'Gi0/1']], 'top'),
+          badge('SW1', 'L2 only', 'muted'),
+          pk('SW1', 'R1', 'same frame', { tone: 'warn' }),
+        ],
+      },
+      {
+        caption: 'R1 checks the FCS, sees its own MAC, and **strips the frame**. Then it reads the destination IP and does a **route lookup**: 10.20.60.0/24, connected on Gi0/1. It lowers the TTL to 127. Ports and HTTP are not its business.',
+        actions: [
+          hide('SW1'),
+          hl('R1'),
+          badge('R1', 'packet'),
+          table('R1', 'show ip route (excerpt)', ['Code', 'Network', 'Out'], [['C', '10.20.30.0/24', 'Gi0/0'], nw(['C', '10.20.60.0/24', 'Gi0/1']), ['S*', '0.0.0.0/0', 'via 10.20.0.1']], 'top'),
+        ],
+      },
+      {
+        caption: "R1 builds a **brand-new frame** for the next link: source MAC = R1 Gi0/1, destination MAC = HPL-WEB01 (from R1's ARP cache), fresh FCS. The IP addresses inside have not changed.",
+        actions: [
+          badge('R1', 'new frame', 'warn'),
+          table('R1', 'Frame in vs frame out', ['Field', 'In on Gi0/0', 'Out Gi0/1'], [
+            nw(['Dst MAC', 'R1 Gi0/0', 'HPL-WEB01']),
+            nw(['Src MAC', 'PC1', 'R1 Gi0/1']),
+            ['Src IP', '10.20.30.15', '10.20.30.15'],
+            ['Dst IP', '10.20.60.80', '10.20.60.80'],
+            nw(['TTL', '128', '127']),
+          ], 'top'),
+          pk('R1', 'SRV', 'new frame', { tone: 'warn', delay: 600 }),
+        ],
+      },
+      {
+        caption: 'HPL-WEB01 de-encapsulates all the way up. Its own MAC: strip the frame. Its own IP, Protocol 6: strip the packet, hand it to TCP. Port 80: strip the segment, hand it to the web server, which finally reads `GET /status`.',
+        actions: [
+          hide('R1'),
+          badge('R1', null),
+          hl('SRV', 'good'),
+          table('SRV', 'Going up the stack', ['Layer', 'Checks', 'Leaves'], [
+            ['2 Ethernet', 'dst MAC is mine, FCS ok', 'packet'],
+            ['3 IPv4', 'dst IP is mine, proto 6', 'segment'],
+            ['4 TCP', 'dst port 80', 'data'],
+            nw(['7 HTTP', 'GET /status', 'page!']),
+          ], 'top'),
+          badge('SRV', 'HTTP', 'good'),
+        ],
+      },
+      {
+        caption: 'The reply, **HTTP 200 OK**, makes the same trip backwards: port 80 to 49732, IP 10.20.60.80 to 10.20.30.15. R1 rewrites the frame again; SW1 just switches it. Layer 2 changes every hop; Layer 3 rides end to end.',
+        actions: [
+          hide('SRV'),
+          via(['SRV', 'R1', 'SW1', 'PC1'], '200 OK', { tone: 'good', labels: ['frame to R1', 'new frame to PC1', 'same frame'] }),
+          hl('PC1', 'good'),
+        ],
+      },
+    ],
+    takeaway: 'Each layer adds its own header on the way down and reads only its own header on the way up; a switch reads the frame, a router swaps the frame but keeps the packet, and only the end hosts open the segment and data.',
+  };
 
   /* ------------------------------------------------------------------ 1.13 */
   const MAC = ['Vlan', 'Mac Address', 'Type', 'Ports'];
@@ -11625,7 +11825,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
     takeaway: 'Telnet sends usernames, passwords and commands in cleartext; SSH encrypts the whole session, so use SSH version 2 and `transport input ssh` on the vty lines.',
   };
 
-  TT.scenes.push(macLearning, arp, tcpUdp, duplex, privateNat, slaac, wifi, vswitch, dot1q, cdp, ether, stp, capwap, ssh);
+  TT.scenes.push(encapsulation, macLearning, arp, tcpUdp, duplex, privateNat, slaac, wifi, vswitch, dot1q, cdp, ether, stp, capwap, ssh);
 })(typeof globalThis !== 'undefined' ? globalThis : window);
 
 /* ---- scenes-2.js ---- */
@@ -13629,6 +13829,251 @@ button.pl-day-btn:hover { border-color: var(--accent); }
    * 1.0 NETWORK FUNDAMENTALS
    * ================================================================ */
 
+  /* ---------- 1.0 primer: the layer models (not a blueprint objective) ---------- */
+  // `show ip interface brief` rows padded the way IOS prints them
+  const sipib = (i, ip, m, s, p) => i.padEnd(23) + ip.padEnd(16) + 'YES ' + m.padEnd(7) + s.padEnd(22) + p;
+  const SIPIB_HEAD = 'Interface'.padEnd(23) + 'IP-Address'.padEnd(16) + 'OK? Method Status'.padEnd(33) + 'Protocol';
+  const encapRow = (y, name, parts) => {
+    let out = t(12, y + 22, name, 'ls-b', 'start');
+    for (const [x, w, label, cls, sub] of parts) out += box(x, y, w, 36, label, cls, sub);
+    return out;
+  };
+  const DATA = [380, 180, 'HTTP GET', 'ls-box', 'the actual message'];
+  const TCPH = [300, 80, 'TCP', 'ls-goodf', 'ports'];
+  const IPH = [220, 80, 'IPv4', 'ls-accf', 'IPs, TTL'];
+  const ETHH = [140, 80, 'Ethernet', 'ls-warnf', 'MACs, Type'];
+  const FCS = [560, 70, 'FCS', 'ls-warnf', 'trailer'];
+
+  L.push({
+    id: 'l1-0',
+    obj: '1.0',
+    primer: true, // foundation lesson: not a numbered v1.1 objective, but every objective assumes it
+    domain: 'fund',
+    title: 'The layers: how a message gets wrapped for the trip',
+    minutes: 16,
+    caseFile:
+      "Your first ticket of the night just says \"the internet is down at dispatch.\" Kenji reads it over your shoulder, sets down his coffee and asks one question: \"Down at which layer?\" You don't have an answer yet. By the end of this lesson you will, and so will every ticket after it, because every later lesson is really about one or two of these layers.",
+    sections: [
+      {
+        h: 'Why networking comes in layers',
+        body: [
+          'Getting a web page from a server to a dispatcher\'s screen involves a dozen separate problems: which program gets the data, how to recover lost pieces, how to find a path across networks, how to reach the next box on this cable, how to turn ones and zeros into voltage. A **layer model** gives each problem its own layer, with one job, so a change in one layer does not ripple through the others. Wi-Fi can replace copper and your browser never notices.',
+          'Two rules hold the whole thing together:',
+          {
+            list: [
+              '**Same-layer interaction**: a layer on one device talks to the **same** layer on the other device, using the header it adds. PC1\'s TCP writes a sequence number; the server\'s TCP reads it. Nothing in between needs to understand it.',
+              '**Adjacent-layer interaction**: on one device, each layer serves the layer above it and uses the layer below. TCP hands its segment down to IP to deliver; IP hands its packet down to Ethernet to put on the wire.',
+            ],
+          },
+          'There are two models you need: **OSI**, the seven-layer reference model everyone uses for vocabulary ("that is a Layer 2 problem"), and **TCP/IP**, the model the actual internet protocols were built on. Same ideas, different number of boxes.',
+        ],
+      },
+      {
+        h: 'The seven OSI layers',
+        body: [
+          'Read this table from the bottom up, because that is the order a signal arrives in.',
+          {
+            table: [
+              ['#', 'Layer', 'Its job', 'Examples', 'Gear that works here'],
+              ['7', '**Application**', 'The network services programs use', 'HTTP/HTTPS, DNS, DHCP, SSH, SMTP, SNMP, FTP', 'Hosts and servers; NGFWs inspect it'],
+              ['6', '**Presentation**', 'Data format: encoding, compression, encryption', 'ASCII/UTF-8, JPEG, MPEG; TLS is often filed here', 'Hosts'],
+              ['5', '**Session**', 'Opens, manages and closes conversations between programs', 'RPC, NetBIOS sessions', 'Hosts'],
+              ['4', '**Transport**', 'Host-to-host delivery to the right program: ports, segmenting, reliability', 'TCP, UDP', 'Hosts; stateful firewalls track it'],
+              ['3', '**Network**', 'Logical addressing and finding a path across networks', 'IPv4, IPv6, ICMP, OSPF, EIGRP', 'Routers, Layer 3 switches'],
+              ['2', '**Data Link**', 'Delivery across one link or LAN: framing, MAC addresses, error detection', 'Ethernet (802.3), Wi-Fi (802.11), 802.1Q, PPP, HDLC, STP', 'Switches, bridges, NICs, APs'],
+              ['1', '**Physical**', 'Bits as signals: voltage, light, radio; cables, connectors, speed and duplex', '1000BASE-T, RJ45, single-mode fiber, 802.11 radio', 'Hubs, repeaters, cables, transceivers'],
+            ],
+          },
+          'Layers 5, 6 and 7 are the **upper layers**: they live inside the software on the end hosts. Layers 1 to 4 are where network engineers spend their nights. Layer 2 is sometimes split into two sublayers, **LLC** on top and **MAC** underneath.',
+          { note: 'A Harbor Point way to remember the order. From Layer 1 up: **Pallets Dock Nightly; Trucks Shuttle Parcels Away** (Physical, Data Link, Network, Transport, Session, Presentation, Application). From Layer 7 down: **Any Parcel Shipped Tonight Needs Dock Paperwork.** Pick one direction and drill it until you can write the layers in ten seconds.' },
+        ],
+      },
+      {
+        h: 'The TCP/IP model: four layers, sometimes five',
+        body: [
+          'The TCP/IP model (RFC 1122) folds OSI into four layers. **Application** covers OSI 5, 6 and 7, because real protocols like HTTP handle their own formatting and sessions. **Transport** is OSI 4. **Internet** is OSI 3. **Link** (also called Network Access or Network Interface) covers OSI 1 and 2.',
+          'Many textbooks, Cisco\'s included, use a **five-layer** version that splits Link back into Data Link and Physical, and calls Internet "Network". Exam questions can use either; the mapping below is what they test.',
+          {
+            svg: svg(
+              640,
+              320,
+              'OSI seven layers mapped to the four-layer TCP/IP model and the five-layer variant',
+              t(115, 24, 'OSI (7)', 'ls-b') + t(325, 24, 'TCP/IP (4)', 'ls-b') + t(530, 24, 'TCP/IP, 5-layer view', 'ls-b') +
+                ['7 Application', '6 Presentation', '5 Session', '4 Transport', '3 Network', '2 Data Link', '1 Physical']
+                  .map((n, i) => box(20, 40 + i * 38, 190, 34, n, i < 3 ? 'ls-goodf' : i === 3 ? 'ls-accf' : i === 4 ? 'ls-warnf' : 'ls-dev'))
+                  .join('') +
+                box(240, 40, 170, 110, 'Application', 'ls-goodf', 'HTTP, DNS, SSH') +
+                box(240, 154, 170, 34, 'Transport', 'ls-accf') +
+                box(240, 192, 170, 34, 'Internet', 'ls-warnf') +
+                box(240, 230, 170, 72, 'Link', 'ls-dev', 'Ethernet, Wi-Fi') +
+                box(440, 40, 180, 110, 'Application', 'ls-goodf') +
+                box(440, 154, 180, 34, 'Transport', 'ls-accf') +
+                box(440, 192, 180, 34, 'Network', 'ls-warnf') +
+                box(440, 230, 180, 34, 'Data Link', 'ls-dev') +
+                box(440, 268, 180, 34, 'Physical', 'ls-dev') +
+                ln(210, 95, 240, 95, 'ls-thin ls-dash') + ln(410, 95, 440, 95, 'ls-thin ls-dash')
+            ),
+            caption: 'Same stack, three ways of drawing it. The colors line up the layers that match.',
+          },
+        ],
+      },
+      {
+        h: 'PDUs: what the thing is called at each layer',
+        body: [
+          'The unit of data a layer works with is its **protocol data unit (PDU)**. The exam uses these words precisely, so you should too.',
+          {
+            table: [
+              ['Layer', 'PDU', 'What makes it that'],
+              ['5-7 (Application)', '**Data**', 'The message itself: an HTTP request, a DNS query'],
+              ['4 (Transport)', '**Segment** (TCP) or **datagram** (UDP)', 'Data plus a TCP or UDP header with port numbers'],
+              ['3 (Network)', '**Packet**', 'Segment plus an IP header with source and destination IP'],
+              ['2 (Data Link)', '**Frame**', 'Packet plus a header with MAC addresses **and a trailer** (the FCS)'],
+              ['1 (Physical)', '**Bits**', 'The frame as signals on copper, glass or air'],
+            ],
+          },
+          'Down the stack, in order: **data, segment, packet, frame, bits.** A switch forwards frames. A router forwards packets. If a question says a router "forwards frames", read it again.',
+        ],
+      },
+      {
+        h: 'Encapsulation, one header at a time',
+        body: [
+          'When dispatch PC1 (10.20.30.15) asks the web server HPL-WEB01 (10.20.60.80) for a page, each layer wraps what it got from the layer above in its own header. That is **encapsulation**:',
+          {
+            steps: [
+              '**Application**: the browser creates `GET /status`. That is the data.',
+              '**Transport**: TCP adds a header with source port 49732 (a random ephemeral port) and destination port 80, plus sequence and acknowledgment numbers. Now it is a segment.',
+              '**Network**: IP adds a header with source 10.20.30.15, destination 10.20.60.80, Protocol 6 (TCP) and a TTL. Now it is a packet.',
+              '**Data Link**: Ethernet adds a header (destination MAC, source MAC, Type 0x0800 for IPv4) **and** a 4-byte FCS trailer so the receiver can detect corruption. Now it is a frame. This is the only layer that adds a trailer.',
+              '**Physical**: the NIC sends the frame as bits, after a preamble that lets the receiver lock on to the signal.',
+            ],
+          },
+          {
+            svg: svg(
+              660,
+              262,
+              'Encapsulation: data, then a TCP header makes a segment, an IP header makes a packet, an Ethernet header and FCS trailer make a frame, and the frame is sent as bits',
+              encapRow(6, 'Data', [DATA]) +
+                encapRow(56, 'Segment', [TCPH, DATA]) +
+                encapRow(106, 'Packet', [IPH, TCPH, DATA]) +
+                encapRow(156, 'Frame', [ETHH, IPH, TCPH, DATA, FCS]) +
+                t(12, 228, 'Bits', 'ls-b', 'start') +
+                `<rect x="140" y="206" width="490" height="36" rx="6" class="ls-box"/>` +
+                t(385, 229, '10110100 01011100 00101101 ...', 'ls-mono ls-t-mut') +
+                arrow(648, 14, 648, 240, 'ls-acc') +
+                t(642, 254, 'down the stack', 'ls-sm ls-t-mut', 'end')
+            ),
+            caption: 'Each layer wraps the one above it. Only Layer 2 adds something at the end as well as the front.',
+          },
+          '**De-encapsulation** is the same thing in reverse. The receiver checks the FCS and its own MAC, strips the frame; checks the destination IP, strips the packet; reads the destination port to find the program, strips the segment; and hands the data to the web server. Each layer reads only its own header, then passes the rest up.',
+          'In between, devices only open as many layers as they need. A switch reads the frame header and forwards. A router strips the frame, reads the packet, then builds a **new** frame for the next link. Watch it happen in the scene at the top of this lesson.',
+        ],
+      },
+      {
+        h: 'Three addresses, three layers',
+        body: [
+          'Every frame you send carries three kinds of address, and each one answers a different question.',
+          {
+            table: [
+              ['Address', 'Layer', 'Answers', 'Example', 'Changes at a router?'],
+              ['**Port number**', '4', 'Which program on that host?', 'TCP 80, UDP 53', 'No (unless NAT/PAT rewrites it)'],
+              ['**IP address**', '3', 'Which host, on which network, end to end?', '10.20.60.80', 'No (unless NAT rewrites it)'],
+              ['**MAC address**', '2', 'Which device on this link is next?', '0050.7966.0a15', '**Yes, every routed hop**'],
+            ],
+          },
+          'That last column is the exam favorite. The IP addresses describe the whole trip, so they stay put. The MAC addresses describe only the current hop, so each router throws away the old frame and writes new source and destination MACs. The router also lowers the TTL by one and, because the frame is new, calculates a new FCS.',
+          'This is also why PC1 needs ARP. To reach a server in another subnet, PC1 puts the server\'s IP in the packet but its **default gateway\'s** MAC in the frame. Lesson [1.13](#learn-l1-13) covers how switches use those MACs, and [1.5](#learn-l1-5) covers ports, TCP and UDP.',
+        ],
+      },
+      {
+        h: 'Which box works at which layer',
+        body: [
+          'A device "works at" the highest layer it reads to make its forwarding decision. Lesson [1.1](#learn-l1-1) covers each box in detail; here is the layer view.',
+          {
+            list: [
+              '**Hub (Layer 1)**: repeats bits out every other port. It understands no addresses at all.',
+              '**Switch (Layer 2)**: forwards frames by destination MAC using its MAC address table. An **access point** is also a Layer 2 device: it bridges 802.11 frames onto 802.3 Ethernet.',
+              '**Router (Layer 3)**: forwards packets by destination IP using its routing table, and rebuilds the frame at every hop.',
+              '**Layer 3 switch (Layers 2 and 3)**: switches frames inside a VLAN and routes packets between VLANs, both in hardware.',
+              '**Firewall (Layers 3 and 4, and up to 7)**: a classic stateful firewall filters on IPs, protocols and ports and tracks sessions. A **next-generation firewall** reads all the way up to Layer 7, so it can tell one application from another even when both use TCP 443.',
+            ],
+          },
+          'Hosts (PCs, servers, phones) run all seven layers, because they are where the data starts and ends.',
+        ],
+      },
+      {
+        h: 'Troubleshoot from the bottom up',
+        body: [
+          'Every layer depends on the one below it, so a fault low in the stack looks like a fault everywhere above it. "The internet is down" can be a cut cable. The fast, honest method is **bottom-up**: prove Layer 1, then 2, then 3, and only then blame the application.',
+          'Cisco hands you the first two layers in one command. In `show ip interface brief`, the **Status** column is roughly Layer 1 (is the port enabled, and is there a signal?) and the **Protocol** column is Layer 2 (is the line protocol up: keepalives, matching encapsulation?).',
+          {
+            cli: [
+              'HPL-BR2-R1# show ip interface brief',
+              SIPIB_HEAD,
+              sipib('GigabitEthernet0/0/0', '10.40.1.1', 'NVRAM', 'up', 'up'),
+              sipib('GigabitEthernet0/0/1', '10.40.2.1', 'NVRAM', 'down', 'down'),
+              sipib('GigabitEthernet0/0/2', 'unassigned', 'NVRAM', 'administratively down', 'down'),
+              sipib('Serial0/1/0', '10.255.0.6', 'NVRAM', 'up', 'down'),
+            ],
+          },
+          {
+            table: [
+              ['Status / Protocol', 'What it means', 'Look at'],
+              ['up / up', 'Layers 1 and 2 are fine', 'Move up: IP address, mask, gateway, routing (Layer 3)'],
+              ['down / down', 'No usable signal', 'Layer 1: cable, far-end port, transceiver, speed. (An err-disabled switch port also shows down/down.)'],
+              ['administratively down / down', 'Someone typed `shutdown`', 'Type `no shutdown`, after finding out why it was shut'],
+              ['up / down', 'Signal is there, but Layer 2 will not come up', 'Layer 2: on serial links, an HDLC vs PPP encapsulation mismatch or failed keepalives'],
+            ],
+          },
+          'Once both columns say up, step up the stack: does the host have the right IP, mask and gateway, and does a ping to the gateway work (Layer 3)? Is an ACL or firewall blocking the port (Layer 4)? Does the name resolve and does the service answer (Layer 7)? Skip a layer and you will spend an hour on DNS while the cable sits unplugged.',
+        ],
+      },
+    ],
+    techNotes: [
+      'Say the layer in your ticket notes: "L1: replaced patch cable on Fa0/12" tells the morning shift exactly what you proved and what you did not.',
+      'A successful ping proves Layers 1 to 3 end to end. It says nothing about Layer 4 and up, so "ping works but the web page does not load" points you at ports, ACLs, firewalls or the service itself.',
+      'When someone says "Layer 2 issue" they nearly always mean switching: VLANs, trunks, STP, MAC table or port security. "Layer 3" means addressing and routing.',
+    ],
+    examTraps: [
+      'Only Layer 2 adds a trailer (the FCS). Layers 3 and 4 add headers only.',
+      'At every routed hop the source and destination **MAC** addresses change; the source and destination **IP** addresses do not (unless NAT is involved). The TTL drops by one.',
+      'TCP\'s PDU is a segment; UDP\'s is a datagram. The Layer 3 PDU is a packet, the Layer 2 PDU is a frame.',
+      'The four-layer TCP/IP model\'s Application layer covers OSI Layers 5, 6 and 7, and its Link (Network Access) layer covers OSI 1 and 2.',
+      'up/down on `show ip interface brief` is a Layer 2 problem, not Layer 1: the Status column already says the physical side is up.',
+    ],
+    tryIt: [
+      {
+        device: 'router',
+        mode: 'priv',
+        prompt: 'Start at the bottom. Read the Status column (Layer 1) and the Protocol column (Layer 2) for each interface: one is up/up, one is administratively down. Then look at the Layer 3 view, the routing table.',
+        cmds: ['show ip interface brief', 'show ip route'],
+      },
+      {
+        device: 'pc',
+        mode: 'priv',
+        prompt: 'From LAB-PC1, check the Layer 3 settings, then ping the gateway. A reply proves Layers 1, 2 and 3 all work between the PC and the router.',
+        cmds: ['ipconfig', 'ping 10.10.10.1'],
+      },
+      {
+        device: 'switch',
+        mode: 'priv',
+        prompt: 'The switch only ever looks at Layer 2. See which MAC addresses it has learned and which port each one lives on. There is not an IP address in sight.',
+        cmds: ['show mac address-table'],
+      },
+      {
+        device: 'router',
+        mode: 'priv',
+        prompt: 'The router\'s ARP table is the glue between Layer 3 and Layer 2: each neighbor\'s IP address next to the MAC address the router will put in the frame.',
+        cmds: ['show arp'],
+      },
+    ],
+    check: [
+      ['Which layer adds both a header and a trailer to the data it receives from the layer above?', ['Transport', 'Network', 'Data Link', 'Physical'], 2, 'The Data Link layer adds a header with MAC addresses and an FCS trailer for error detection. Transport and Network add headers only, and the Physical layer sends bits.'],
+      ['PC1 sends a packet to a server in another subnet through one router. Compared with the frame PC1 sent, what is different in the frame the router sends toward the server?', ['The source and destination IP addresses', 'The source and destination MAC addresses (and the TTL in the packet is one lower)', 'The TCP source and destination ports', 'Nothing; the router forwards the original frame unchanged'], 1, 'A router strips the incoming frame and builds a new one with its own exit-interface MAC as the source and the next device\'s MAC as the destination. The IP addresses and ports stay the same without NAT; the TTL is decremented.'],
+      ['`show ip interface brief` shows Serial0/1/0 with Status up and Protocol down. Where should you look first?', ['Layer 1: the cable is unplugged', 'Layer 2: an encapsulation mismatch or keepalive problem on the link', 'Layer 3: a wrong IP address', 'Layer 7: the application server is down'], 1, 'Status up means the physical side has a signal. Protocol down means the data link layer is not coming up, commonly an HDLC/PPP encapsulation mismatch or failed keepalives. A wrong IP address does not bring the line protocol down.'],
+    ],
+    related: { tickets: ['t01'], cards: ['osi', 'ethernet', 'tcp', 'ipv4hdr'], hw: null, drill: false },
+  });
+
   L.push({
     id: 'l1-1',
     obj: '1.1',
@@ -13642,7 +14087,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
         h: 'Every box decides something',
         body: [
           'The easiest way to keep network devices straight is to ask one question about each: **what does it look at to make its decision, and what does it decide?** A switch looks at MAC addresses and decides which port a frame leaves from. A router looks at IP addresses and decides which network a packet goes to next. A firewall looks at addresses, ports, sessions and even applications, and decides whether the traffic is allowed at all.',
-          'Here is the Harbor Point HQ network you just inherited. Read it from the top (the internet) down to the people.',
+          'If "Layer 2" and "Layer 3" are not second nature yet, read the [1.0 primer on the layers](#learn-l1-0) first. Here is the Harbor Point HQ network you just inherited. Read it from the top (the internet) down to the people.',
           {
             svg: svg(
               640,
@@ -19672,7 +20117,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
         <div class="sheet ls-hero">
           <p class="label">Lessons · the study binder</p>
           <h2 class="ls-h2">Learn it before the pager goes off</h2>
-          <p class="ls-lede">One lesson per CCNA 200-301 v1.1 objective. Each one opens with the Harbor Point situation that makes the topic matter, teaches it properly, lets you try the commands on a lab bench, and ends with a three-question check. Pass the check (2 of 3) and the lesson is marked done.</p>
+          <p class="ls-lede">A primer on the network layers, then one lesson per CCNA 200-301 v1.1 objective. Each one opens with the Harbor Point situation that makes the topic matter, teaches it properly, lets you try the commands on a lab bench, and ends with a three-question check. Pass the check (2 of 3) and the lesson is marked done.</p>
           <div class="ls-hero-row">
             <div class="ls-total"><b>${doneCount}</b><span>of ${all.length} lessons done</span></div>
             <div class="ls-total-bar">${bar(pct, 'All lessons progress')}</div>
@@ -19821,7 +20266,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
         <header class="ls-case sheet">
           <div id="ls-stamp-slot">${done ? '<div class="ls-stamp" aria-label="Lesson complete">LEARNED</div>' : ''}</div>
           <div class="ls-case-row">
-            <span class="ls-case-num">CASE FILE · OBJ ${esc(l.obj)}</span>
+            <span class="ls-case-num">CASE FILE · ${l.primer ? 'PRIMER' : 'OBJ ' + esc(l.obj)}</span>
             <span class="pill topic">${esc(domainName(l.domain))}</span>
             <span class="pill">${esc(l.minutes)} min read</span>
           </div>
@@ -20070,6 +20515,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
           const i = Number(b.dataset.q);
           if (picks[i] !== null) return;
           picks[i] = Number(b.dataset.k);
+          if (TT.sfx) TT.sfx(picks[i] === qs[i][2] ? 'correct' : 'wrong');
           paint();
           const nextQ = el.querySelectorAll('.ls-q')[i];
           const first = nextQ && nextQ.querySelector('.ls-why');
@@ -25737,7 +26183,7 @@ Content-Type: application/json
     on('mark', () => { run.marked[q.id] = !run.marked[q.id]; drawRun(); focusAct('mark'); });
     on('prev', () => go(run.i - 1));
     on('next', () => { if (run.i === n - 1) askEnd(); else go(run.i + 1); });
-    on('check', () => { if (q.type === 'sim') gradeSim(run, q); run.checked[q.id] = true; noteResult(q.id, isCorrect(run, q)); drawRun(); focusAct('next'); });
+    on('check', () => { if (q.type === 'sim') gradeSim(run, q); run.checked[q.id] = true; noteResult(q.id, isCorrect(run, q)); if (TT.sfx) TT.sfx(isCorrect(run, q) ? 'correct' : 'wrong'); drawRun(); focusAct('next'); });
     on('end', askEnd);
     main.querySelector('.ex-grid-wrap').addEventListener('toggle', (e) => { run.gridOpen = e.target.open; });
     main.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => go(Number(b.dataset.go))));
@@ -26195,7 +26641,7 @@ Content-Type: application/json
     { id: 'protocols', name: 'Protocols', blurb: 'What each protocol does and the facts the exam pokes at.' },
     { id: 'defaults', name: 'Defaults and timers', blurb: 'AD values, timers, priorities, costs, ranges.' },
     { id: 'commands', name: 'IOS commands', blurb: 'Task to command, and command to meaning.' },
-    { id: 'osi', name: 'OSI and layers', blurb: 'Layers, PDUs, and who works where.' },
+    { id: 'osi', name: 'OSI and layers', blurb: 'Layers, PDUs, and who works where.', lesson: 'l1-0' }, // drills the 1.0 primer; plan.js schedules it with that lesson
     { id: 'subnetting', name: 'Subnetting and IPv6', blurb: 'Masks, block sizes, host counts, ranges, IPv6 prefixes.' },
     { id: 'wireless', name: 'Wireless', blurb: 'Bands, channels, RF behavior, WLC and AP modes.' },
     { id: 'security', name: 'Security', blurb: 'Threats, AAA, ACLs, Layer 2 security, VPNs, Wi-Fi security.' },
@@ -26819,7 +27265,7 @@ Content-Type: application/json
     { id: 'fc-0613', deck: 'osi', domain: 'fund', obj: '1.5', front: 'OSI Layer 5', back: 'Session' },
     { id: 'fc-0614', deck: 'osi', domain: 'fund', obj: '1.5', front: 'OSI Layer 6', back: 'Presentation', extra: 'Encoding, encryption, compression.' },
     { id: 'fc-0615', deck: 'osi', domain: 'fund', obj: '1.5', front: 'OSI Layer 7', back: 'Application' },
-    { id: 'fc-0616', deck: 'osi', domain: 'fund', obj: '1.5', front: 'OSI mnemonic, layer 1 up', back: 'Please Do Not Throw Sausage Pizza Away' },
+    { id: 'fc-0616', deck: 'osi', domain: 'fund', obj: '1.5', front: 'OSI mnemonic, layer 1 up', back: 'Pallets Dock Nightly; Trucks Shuttle Parcels Away', extra: 'Physical, Data Link, Network, Transport, Session, Presentation, Application. Top down: Any Parcel Shipped Tonight Needs Dock Paperwork. Any mnemonic works if it sticks.', accept: ['physical data link network transport session presentation application'] },
     { id: 'fc-0617', deck: 'osi', domain: 'fund', obj: '1.5', front: 'PDU at Layer 2', back: 'Frame' },
     { id: 'fc-0618', deck: 'osi', domain: 'fund', obj: '1.5', front: 'PDU at Layer 3', back: 'Packet' },
     { id: 'fc-0619', deck: 'osi', domain: 'fund', obj: '1.5', front: 'PDU at Layer 4 (TCP)', back: 'Segment' },
@@ -27502,6 +27948,7 @@ Content-Type: application/json
     const flip = () => {
       if (typed && !s.flipped && s.typedOk === null) return checkTyped();
       s.flipped = !s.flipped;
+      if (TT.sfx) TT.sfx('flip');
       applyFlip();
     };
     cardEl.addEventListener('click', flip);
@@ -27523,6 +27970,7 @@ Content-Type: application/json
       const sug = main.querySelector('.fc-r-' + (s.typedOk ? 'good' : 'again'));
       if (sug) sug.classList.add('fc-suggest');
       s.flipped = true;
+      if (TT.sfx) TT.sfx(s.typedOk ? 'correct' : 'flip');
       applyFlip();
     }
 
@@ -28427,6 +28875,7 @@ Content-Type: application/json
       const ok = trace.ok;
       const word = o.kind === 'traceroute' ? 'Trace' : 'Echo';
       const ending = () => {
+        if (TT.sfx) TT.sfx(ok ? 'ping-ok' : 'ping-fail');
         if (ok) {
           if (trace.local) { const P = pos(src); if (P) caption(go, P.x, (P.top || P.y - 26) - 10, 'Replied to itself', 'good', o.view && o.view()); return; }
           const P = pos(src);
@@ -28530,6 +28979,7 @@ Content-Type: application/json
         if (!prev) continue;
         const was = prev[it.key] === undefined ? 'down' : prev[it.key]; // a brand-new cable counts as coming up
         if (was === st) continue;
+        if (TT.sfx) TT.sfx(st === 'up' ? 'link-up' : 'link-down');
         if (st === 'up') {
           if (!layer) continue;
           const len = Math.hypot(it.x2 - it.x1, it.y2 - it.y1);
@@ -30493,7 +30943,7 @@ Content-Type: application/json
   const ROOMS = [
     {
       id: 'training', name: 'Training Room', short: 'Training',
-      line: 'Read the binder: every v1.1 objective in plain English, with animated scenes.',
+      line: 'Read the binder: a primer on the layers, then every v1.1 objective in plain English, with animated scenes.',
       subs: [
         { id: 'lessons', label: 'Lessons', href: '#learn', view: 'learn' },
         { id: 'scenes', label: 'Watch it happen', href: '#scenes', view: 'learn' },
@@ -31176,6 +31626,8 @@ Content-Type: application/json
     const lessons = (TT.lessons || []).slice().sort((a, b) => cmpObj(a.obj, b.obj)).map((l) => ({
       id: l.id, obj: l.obj, domain: l.domain || domOf(l.obj)[1], title: l.title, minutes: Math.max(5, Number(l.minutes) || 15),
       scenes: scenesFor(l.id).map((s) => ({ id: s.id, title: s.title, minutes: Math.max(5, Math.min(12, Math.round(((s.steps && s.steps.length) || 6) * 1.2))) })),
+      // flashcard decks that drill this lesson (flashDecks[].lesson), e.g. the OSI deck with the 1.0 layers primer
+      decks: (TT.flashDecks || []).filter((d) => d && d.lesson === l.id).map((d) => d.id),
     }));
     const objs = new Set(lessons.map((l) => l.obj));
     const ticketObjs = {};
@@ -31371,7 +31823,7 @@ Content-Type: application/json
       for (let i = 0; i < nights.length; i++) {
         const n = nights[i];
         const lastNight = i === nights.length - 1;
-        const target = Math.max(left / (nights.length - i), Math.min(B, B * 0.8));
+        const target = Math.max(left / (nights.length - i), B * 0.9);
         const fits = (m) => lastNight || !n.items.length || n.minutes + m <= target + 8;
         const put = (x) => { n.items.push(x); n.minutes += x.minutes; left -= x.minutes; if (!n.domain) n.domain = x.domain || null; };
         while (queue.length && queue[0].eligible <= i && fits(queue[0].item.minutes)) put(queue.shift().item);
@@ -31391,18 +31843,27 @@ Content-Type: application/json
 
     // flashcards fill spare minutes on learning nights; empty nights become buffer nights
     const turn = {};
+    const lessonById = Object.fromEntries(cat.lessons.map((l) => [l.id, l]));
     const learnNights = packed.nights.map((n, i) => {
       const date = learnDates[i];
       const items = n.items.slice();
       let minutes = n.minutes;
+      // a deck tied to a lesson (flashDecks[].lesson, e.g. OSI with the 1.0 primer) takes that night's flashcard slot
+      const tied = [];
+      for (const x of items) if (x.kind === 'lesson') for (const d of (lessonById[x.id] || {}).decks || []) if (!tied.includes(d)) tied.push(d);
+      for (const d of tied) {
+        const f = Object.assign(flashItem(cat, d, Math.max(MIN.flashMin, Math.min(MIN.flash, B - minutes)), date), { lesson: items.find((x) => x.kind === 'lesson' && (lessonById[x.id].decks || []).includes(d)).id });
+        items.push(f);
+        minutes += f.minutes;
+      }
       if (!items.length) {
         items.push(flashItem(cat, 'due', Math.min(MIN.flash, B), date));
         if (B - MIN.flash >= 20) items.push(weakItem(date, Math.min(MIN.weak, B - MIN.flash)));
         return { date, phase: 'buffer', domain: null, items, minutes: items.reduce((m, x) => m + x.minutes, 0) };
       }
       const spare = B - minutes;
-      if (spare >= MIN.flashMin && n.domain && DECKS[n.domain]) {
-        const list = DECKS[n.domain].filter((d) => !Object.keys(cat.decks).length || cat.decks[d]);
+      if (!tied.length && spare >= MIN.flashMin && n.domain && DECKS[n.domain]) {
+        const list = DECKS[n.domain].filter((d) => (!Object.keys(cat.decks).length || cat.decks[d]) && !items.some((x) => x.kind === 'flash' && x.id === d));
         if (list.length) {
           const t = (turn[n.domain] = (turn[n.domain] || 0));
           turn[n.domain] = t + 1;
@@ -32703,6 +33164,7 @@ Content-Type: application/json
       }
       const secs = Math.round((Date.now() - pr.started) / 1000);
       pr.checked = true;
+      if (TT.sfx) TT.sfx(all ? 'correct' : 'wrong');
       clearInterval(drill.timer);
       if (all) {
         drill.streak++;
@@ -32751,6 +33213,9 @@ Content-Type: application/json
       const done = (x.t || []).length && x.t.every((id) => store.solved[id]);
       return `<li class="mapday${done ? ' done' : ''}"><span class="dnum">${obj}</span><span class="dttl">${esc(title)}</span><span class="dlinks">${links.join('')}</span></li>`;
     });
+    // Foundation primers (lessons that aren't official objectives, like 1.0 the layers) go first, labelled as such.
+    const primers = (TT.lessons || []).filter((l) => l.primer);
+    bpRows.unshift(...primers.map((l) => `<li class="mapday"><span class="dnum">${esc(l.obj)}</span><span class="dttl">Primer: ${esc(l.title)} <span style="color:var(--muted);font-size:12px">(foundation, not an official objective)</span></span><span class="dlinks"><a class="pill topic" href="#learn-${l.id}">Lesson</a><a class="pill" href="#flash-osi">OSI cards</a></span></li>`));
     const view = store.mapView || 'days';
     $('#main').innerHTML = `
       <div class="map-head">
@@ -32883,6 +33348,7 @@ Content-Type: application/json
       if (v === x.a) b.classList.add('right');
       else if (v === oi) b.classList.add('wrong');
     });
+    if (TT.sfx) TT.sfx(ok ? 'correct' : 'wrong');
     $('#why').innerHTML = `<b style="color:var(${ok ? '--good' : '--stamp'})">${ok ? 'Correct.' : 'Not quite.'}</b> ${esc(x.why)}
       <div class="tools"><button class="btn primary" type="button" id="nextQ">${quiz.i + 1 < quiz.qs.length ? 'Next question' : 'See results'}</button></div>`;
     $('#nextQ').addEventListener('click', () => { quiz.i++; renderQuiz(); });
@@ -33858,6 +34324,749 @@ Content-Type: application/json
 
   if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', inject);
   else inject();
+})(globalThis);
+
+/* ---- audio.js ---- */
+/* Trouble Ticket: optional sound. A generative "night shift" ambience and a few quiet effects.
+ *
+ * Off by default. Nothing is created or played until the learner turns sound on from the speaker
+ * button in the masthead. Everything is synthesized live with the Web Audio API: no audio files,
+ * no downloads, nothing to license.
+ *
+ *   TT.sfx(name)        play one effect (a no-op when sound or effects are off). Names: TT.audio.NAMES.
+ *   TT.audio.get()      a copy of the settings
+ *   TT.audio.set(patch) change settings ({on, music, musicVol, sfx, sfxVol}); saved to localStorage
+ *   TT.audio.toggle()   flip the master switch
+ *   document.dispatchEvent(new CustomEvent('tt:sfx', { detail: { name } }))   same as TT.sfx(name)
+ *
+ * Music: a low server-room bed (filtered noise plus a quiet 60 Hz hum and its harmonics), a warm pad
+ * that drifts through a D minor / modal chord palette every 8-16 s through a lowpass filter, a slow
+ * LFO and a generated convolution reverb, and every 20-40 s a sparse distant pluck or harbor tone.
+ */
+(function (G) {
+  'use strict';
+  const TT = (G.TT = G.TT || {});
+  const doc = G.document;
+  const KEY = 'trouble-ticket-audio-v1';
+  const DEFAULTS = Object.freeze({ on: false, music: true, musicVol: 0.35, sfx: true, sfxVol: 0.6 });
+  const GAP_MS = 120; // the same effect never plays twice within this window
+  const NAMES = ['pager', 'resolve', 'promote', 'badge', 'ping-ok', 'ping-fail', 'link-up', 'link-down', 'flip', 'correct', 'wrong', 'scene-step', 'clockin'];
+
+  /* ---------- settings ---------- */
+  const clamp01 = (v, d) => { const n = Number(v); return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : d; };
+  function clean(s) {
+    s = s && typeof s === 'object' ? s : {};
+    return {
+      on: s.on === true,
+      music: s.music === undefined ? DEFAULTS.music : s.music === true,
+      musicVol: clamp01(s.musicVol, DEFAULTS.musicVol),
+      sfx: s.sfx === undefined ? DEFAULTS.sfx : s.sfx === true,
+      sfxVol: clamp01(s.sfxVol, DEFAULTS.sfxVol),
+    };
+  }
+  function load() {
+    try {
+      const raw = G.localStorage && G.localStorage.getItem(KEY);
+      return clean(raw ? JSON.parse(raw) : null);
+    } catch (e) { return clean(null); }
+  }
+  function store(s) {
+    try { if (G.localStorage) G.localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) { /* blocked storage: the choice just won't stick */ }
+  }
+  let S = load();
+
+  /* ---------- rate limiter ---------- */
+  const lastAt = {};
+  /** True (and remembered) when `name` may play at time `now` (ms); false within GAP_MS of its last play. */
+  function allow(name, now) {
+    const t = typeof now === 'number' ? now : Date.now();
+    const prev = lastAt[name];
+    if (prev !== undefined && t - prev < GAP_MS && t >= prev) return false;
+    lastAt[name] = t;
+    return true;
+  }
+
+  /* ---------- level curves ----------
+   * The slider is linear; gain follows a power curve so the middle of the slider sounds like the middle.
+   * At the default music volume the ambience measures roughly -24 LUFS (see tests/notes in the report). */
+  const MUSIC_REF = 0.85;
+  const SFX_REF = 1.0;
+  const musicGain = (v) => (v <= 0 ? 0 : MUSIC_REF * Math.pow(v / DEFAULTS.musicVol, 1.6));
+  const sfxGain = (v) => (v <= 0 ? 0 : SFX_REF * Math.pow(v / DEFAULTS.sfxVol, 1.6));
+
+  /* ---------- small synthesis helpers (work on any BaseAudioContext, so they can render offline) ---------- */
+  const mtof = (m) => 440 * Math.pow(2, (m - 69) / 12);
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+  /** A stereo impulse response: decaying noise that darkens as it fades, with a short pre-delay. */
+  function makeIR(c, seconds, predelay, bright) {
+    const rate = c.sampleRate;
+    const len = Math.max(1, Math.floor(rate * seconds));
+    const pre = Math.floor(rate * predelay);
+    const buf = c.createBuffer(2, len, rate);
+    const tau = seconds / 6.9; // about -60 dB at the end
+    for (let ch = 0; ch < 2; ch++) {
+      const d = buf.getChannelData(ch);
+      let lp = 0;
+      for (let i = pre; i < len; i++) {
+        const t = (i - pre) / rate;
+        // one-pole lowpass whose cutoff falls over time: the tail gets darker, like a big room
+        const k = Math.max(0.04, bright * Math.exp(-t / (seconds * 0.35)));
+        lp += k * ((Math.random() * 2 - 1) - lp);
+        d[i] = lp * Math.exp(-t / tau);
+      }
+    }
+    return buf;
+  }
+
+  /** A looping brown-noise buffer whose ends meet, so the loop point never clicks. */
+  function makeNoise(c, seconds) {
+    const rate = c.sampleRate;
+    const len = Math.floor(rate * seconds);
+    const buf = c.createBuffer(1, len, rate);
+    const d = buf.getChannelData(0);
+    let v = 0;
+    for (let i = 0; i < len; i++) { v = (v + 0.02 * (Math.random() * 2 - 1)) * 0.998; d[i] = v; }
+    const drift = d[len - 1] - d[0];
+    let peak = 0;
+    for (let i = 0; i < len; i++) { d[i] -= drift * (i / (len - 1)); peak = Math.max(peak, Math.abs(d[i])); }
+    for (let i = 0; i < len; i++) d[i] /= peak || 1;
+    return buf;
+  }
+
+  /** Plain white noise for the effects (paper, a card, a relay click). */
+  function makeWhite(c, seconds) {
+    const len = Math.floor(c.sampleRate * seconds);
+    const buf = c.createBuffer(1, len, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    return buf;
+  }
+
+  /** Attack-hold-release envelope on a gain param. */
+  function env(p, t, peak, a, hold, rel) {
+    p.cancelScheduledValues(t);
+    p.setValueAtTime(0.0001, t);
+    p.linearRampToValueAtTime(peak, t + a);
+    p.setValueAtTime(peak, t + a + hold);
+    p.exponentialRampToValueAtTime(0.0001, t + a + hold + rel);
+  }
+
+  /** One short tone: an oscillator through an optional lowpass and an envelope, into out (and a reverb send). */
+  function tone(c, out, o) {
+    const t = o.t;
+    const osc = c.createOscillator();
+    osc.type = o.type || 'sine';
+    osc.frequency.setValueAtTime(o.f0, t);
+    if (o.f1) osc.frequency.exponentialRampToValueAtTime(o.f1, t + (o.glide || o.a + o.d));
+    if (o.detune) osc.detune.value = o.detune;
+    const g = c.createGain();
+    g.gain.value = 0;
+    let node = osc;
+    if (o.lp) { const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = o.lp; f.Q.value = 0.5; osc.connect(f); node = f; }
+    node.connect(g);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(o.g, t + o.a);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + o.a + o.d);
+    g.connect(out.dry);
+    if (out.wet && o.wet) { const s = c.createGain(); s.gain.value = o.wet; g.connect(s); s.connect(out.wet); }
+    osc.start(t);
+    osc.stop(t + o.a + o.d + 0.05);
+    osc.onended = () => { try { g.disconnect(); } catch (e) { /* already gone */ } };
+  }
+
+  /** A short filtered noise burst (paper, a card flip, a relay click). */
+  function noiseHit(c, out, noise, o) {
+    const t = o.t;
+    const src = c.createBufferSource();
+    src.buffer = noise;
+    src.playbackRate.value = o.rate || 1;
+    const f = c.createBiquadFilter();
+    f.type = o.ftype || 'bandpass';
+    f.frequency.setValueAtTime(o.f0, t);
+    if (o.f1) f.frequency.exponentialRampToValueAtTime(o.f1, t + o.a + o.d);
+    f.Q.value = o.q || 0.8;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(o.g, t + o.a);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + o.a + o.d);
+    src.connect(f); f.connect(g); g.connect(out.dry);
+    if (out.wet && o.wet) { const s = c.createGain(); s.gain.value = o.wet; g.connect(s); s.connect(out.wet); }
+    src.start(t, Math.random() * 2);
+    src.stop(t + o.a + o.d + 0.05);
+    src.onended = () => { try { g.disconnect(); } catch (e) { /* already gone */ } };
+  }
+
+  /* ---------- the effects: each under ~600 ms, soft attacks, nothing bright or arcade-like ---------- */
+  // Peak levels are low on purpose: they sit just above the ambience at the default volumes.
+  const FX = {
+    // two soft chirps, a pager on the desk two cubicles over
+    pager(c, o, t, n) {
+      tone(c, o, { t, f0: 1318, f1: 1250, a: 0.008, d: 0.09, g: 0.07, lp: 3000, wet: 0.25 });
+      tone(c, o, { t: t + 0.14, f0: 1568, f1: 1480, a: 0.008, d: 0.11, g: 0.06, lp: 3000, wet: 0.3 });
+    },
+    // a stamp coming down on the ticket: a low thunk and a little paper
+    resolve(c, o, t, n) {
+      tone(c, o, { t, f0: 140, f1: 58, glide: 0.12, a: 0.004, d: 0.28, g: 0.13, lp: 600, wet: 0.15 });
+      noiseHit(c, o, n, { t: t + 0.005, f0: 2600, a: 0.003, d: 0.07, g: 0.06, q: 0.6, wet: 0.1 });
+      noiseHit(c, o, n, { t: t + 0.07, f0: 1800, f1: 3200, a: 0.02, d: 0.12, g: 0.025, q: 0.5 });
+    },
+    // rank up: a gentle rising F-A-C chime (the relative major of the D minor ambience)
+    promote(c, o, t, n) {
+      [698.5, 880, 1046.5].forEach((f, i) => {
+        tone(c, o, { t: t + i * 0.12, f0: f, a: 0.01, d: 0.42 - i * 0.04, g: 0.06, lp: 2600, wet: 0.45 });
+        tone(c, o, { t: t + i * 0.12, f0: f * 2, a: 0.01, d: 0.18, g: 0.012, lp: 4000, wet: 0.4 });
+      });
+    },
+    // badge: one small bell (inharmonic partials, quick fade)
+    badge(c, o, t, n) {
+      tone(c, o, { t, f0: 1174.7, a: 0.006, d: 0.5, g: 0.06, wet: 0.45 });
+      tone(c, o, { t, f0: 1174.7 * 2.76, a: 0.004, d: 0.16, g: 0.012, wet: 0.3 });
+      tone(c, o, { t, f0: 587.3, a: 0.01, d: 0.35, g: 0.025, wet: 0.3 });
+    },
+    // the echo reply arrives: a soft blip
+    'ping-ok'(c, o, t, n) {
+      tone(c, o, { t, f0: 1100, f1: 1400, glide: 0.05, a: 0.006, d: 0.12, g: 0.06, lp: 3200, wet: 0.2 });
+    },
+    // the ping dies: a muted low buzz
+    'ping-fail'(c, o, t, n) {
+      tone(c, o, { t, f0: 110, f1: 92, a: 0.012, d: 0.22, g: 0.05, type: 'sawtooth', lp: 380, wet: 0.08 });
+      tone(c, o, { t, f0: 110.8, f1: 92.6, a: 0.012, d: 0.22, g: 0.03, type: 'square', lp: 300 });
+    },
+    // a link light goes green: a tiny rising tick
+    'link-up'(c, o, t, n) {
+      tone(c, o, { t, f0: 880, f1: 1320, glide: 0.04, a: 0.003, d: 0.06, g: 0.065, lp: 3500, wet: 0.15 });
+    },
+    // a link light goes out: a small falling tone
+    'link-down'(c, o, t, n) {
+      tone(c, o, { t, f0: 660, f1: 392, glide: 0.1, a: 0.004, d: 0.13, g: 0.065, type: 'triangle', lp: 1800, wet: 0.12 });
+    },
+    // a flashcard turns over: a soft paper swish
+    flip(c, o, t, n) {
+      noiseHit(c, o, n, { t, f0: 900, f1: 2600, a: 0.025, d: 0.08, g: 0.07, q: 0.7 });
+    },
+    // a practice answer is right: two soft rising notes
+    correct(c, o, t, n) {
+      tone(c, o, { t, f0: 659.3, a: 0.008, d: 0.18, g: 0.075, type: 'triangle', lp: 2400, wet: 0.3 });
+      tone(c, o, { t: t + 0.09, f0: 880, a: 0.008, d: 0.28, g: 0.075, type: 'triangle', lp: 2400, wet: 0.35 });
+    },
+    // a practice answer is wrong: one low, muted, slightly beating tone (a nudge, not a buzzer)
+    wrong(c, o, t, n) {
+      tone(c, o, { t, f0: 233, f1: 220, a: 0.012, d: 0.24, g: 0.05, type: 'triangle', lp: 900, wet: 0.15 });
+      tone(c, o, { t, f0: 226, f1: 214, a: 0.012, d: 0.24, g: 0.035, type: 'triangle', lp: 900 });
+    },
+    // a scene moves on: the faintest tick
+    'scene-step'(c, o, t, n) {
+      tone(c, o, { t, f0: 2200, f1: 1900, a: 0.002, d: 0.035, g: 0.026, lp: 5000, wet: 0.1 });
+    },
+    // the time clock: a muffled punch, then a low warm tone
+    clockin(c, o, t, n) {
+      noiseHit(c, o, n, { t, f0: 1400, a: 0.002, d: 0.04, g: 0.06, q: 1.2 });
+      tone(c, o, { t, f0: 180, f1: 120, glide: 0.05, a: 0.002, d: 0.08, g: 0.08, lp: 500 });
+      tone(c, o, { t: t + 0.07, f0: 293.7, a: 0.03, d: 0.45, g: 0.035, type: 'triangle', lp: 1200, wet: 0.4 });
+    },
+  };
+  // Bigger cues get a moment to themselves: a pager page that lands with them waits until they finish.
+  const CUE = { resolve: 0.32, promote: 0.55, clockin: 0.4 };
+  const WAITS = { pager: 1, badge: 1 };
+
+  /* ---------- the music ---------- */
+  // Chords as MIDI notes: a bass note, then the pad voicing. D minor / dorian with a lydian colour on Bb.
+  const CHORDS = {
+    Dm9: [38, 50, 57, 60, 64],
+    Bbmaj7: [34, 50, 53, 57, 64], // with the E on top (#11)
+    Fmaj9: [41, 53, 57, 60, 67],
+    Am11: [45, 52, 55, 60, 62],
+    Gm9: [43, 50, 53, 57, 58],
+    Csus2: [36, 55, 60, 62, 67],
+  };
+  // Where each chord likes to go next: gentle movement, no strong cadences.
+  const NEXT = {
+    Dm9: ['Bbmaj7', 'Fmaj9', 'Am11', 'Gm9'],
+    Bbmaj7: ['Fmaj9', 'Dm9', 'Csus2', 'Gm9'],
+    Fmaj9: ['Csus2', 'Dm9', 'Bbmaj7', 'Am11'],
+    Am11: ['Dm9', 'Fmaj9', 'Bbmaj7'],
+    Gm9: ['Dm9', 'Bbmaj7', 'Csus2'],
+    Csus2: ['Fmaj9', 'Dm9', 'Am11'],
+  };
+
+  /**
+   * Build the ambience on any audio context into `dest`. tick(horizon) schedules everything due before
+   * currentTime + horizon, so a live context calls it every second and an offline one calls it once.
+   */
+  function Music(c, dest) {
+    const out = c.createGain();
+    out.gain.value = 1;
+    out.connect(dest);
+    const rev = c.createConvolver();
+    rev.buffer = makeIR(c, 4.5, 0.03, 0.55);
+    const revIn = c.createGain();
+    revIn.gain.value = 1;
+    revIn.connect(rev);
+    rev.connect(out);
+    const noise = makeNoise(c, 9);
+    const nodes = [];
+    const keep = (n) => { nodes.push(n); return n; };
+
+    // bed: air handling and a rack of fans (brown noise, rumble plus a faint airy band)
+    const ns = keep(c.createBufferSource());
+    ns.buffer = noise; ns.loop = true;
+    const lo = c.createBiquadFilter(); lo.type = 'lowpass'; lo.frequency.value = 280; lo.Q.value = 0.4;
+    const hi = c.createBiquadFilter(); hi.type = 'highpass'; hi.frequency.value = 45;
+    const bedG = c.createGain(); bedG.gain.value = 0.05;
+    ns.connect(lo); lo.connect(hi); hi.connect(bedG); bedG.connect(out);
+    const air = c.createBiquadFilter(); air.type = 'bandpass'; air.frequency.value = 1100; air.Q.value = 0.6;
+    const airG = c.createGain(); airG.gain.value = 0.006;
+    ns.connect(air); air.connect(airG); airG.connect(out);
+    // the air breathes very slowly
+    const bedL = keep(c.createOscillator()); bedL.frequency.value = 0.041;
+    const bedLG = c.createGain(); bedLG.gain.value = 0.012;
+    bedL.connect(bedLG); bedLG.connect(bedG.gain);
+
+    // mains hum: 60 Hz (Baltimore) with the harmonics small speakers can actually reproduce
+    [[60, 0.006], [120, 0.004], [180, 0.0015], [240, 0.0006]].forEach(([f, g]) => {
+      const o = keep(c.createOscillator()); o.frequency.value = f;
+      const og = c.createGain(); og.gain.value = g;
+      o.connect(og); og.connect(out);
+    });
+
+    // pad: voices -> shared lowpass (slow LFO on the cutoff) -> dry + reverb
+    const padF = c.createBiquadFilter(); padF.type = 'lowpass'; padF.frequency.value = 820; padF.Q.value = 0.6;
+    const padLfo = keep(c.createOscillator()); padLfo.frequency.value = 0.047;
+    const padLfoG = c.createGain(); padLfoG.gain.value = 260;
+    padLfo.connect(padLfoG); padLfoG.connect(padF.frequency);
+    const padOut = c.createGain(); padOut.gain.value = 1;
+    padF.connect(padOut);
+    const padDry = c.createGain(); padDry.gain.value = 0.55; padOut.connect(padDry); padDry.connect(out);
+    const padWet = c.createGain(); padWet.gain.value = 0.85; padOut.connect(padWet); padWet.connect(revIn);
+    // a second, slower LFO breathes the pad level a little
+    const swell = keep(c.createOscillator()); swell.frequency.value = 0.019;
+    const swellG = c.createGain(); swellG.gain.value = 0.12;
+    swell.connect(swellG); swellG.connect(padOut.gain);
+
+    const t0 = c.currentTime + 0.05;
+    nodes.forEach((n) => n.start(t0));
+
+    let chord = pick(['Dm9', 'Fmaj9', 'Bbmaj7']);
+    let nextChord = t0;
+    let nextTex = t0 + rnd(14, 24);
+    let alive = true;
+    const voices = []; // {stopAt, nodes}
+
+    function playChord(t, dur) {
+      const notes = CHORDS[chord];
+      const att = rnd(3.5, 5.5);
+      const rel = rnd(5, 7);
+      const end = t + dur + 0.2; // hold until the next chord has begun to swell in
+      notes.forEach((m, i) => {
+        const bass = i === 0;
+        const g = c.createGain();
+        const p = c.createStereoPanner ? c.createStereoPanner() : null;
+        const peak = bass ? 0.06 : 0.032 * (i === notes.length - 1 ? 0.7 : 1);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.linearRampToValueAtTime(peak, t + att);
+        g.gain.setValueAtTime(peak, end);
+        g.gain.linearRampToValueAtTime(0.0001, end + rel);
+        if (p) { p.pan.value = bass ? 0 : rnd(-0.45, 0.45); g.connect(p); p.connect(padF); } else g.connect(padF);
+        const f = mtof(m);
+        const oscs = bass
+          ? [['sine', 0], ['triangle', 4]]
+          : [['sawtooth', -7 + rnd(-2, 2)], ['triangle', 6 + rnd(-2, 2)]];
+        oscs.forEach(([type, det]) => {
+          const o = c.createOscillator();
+          o.type = type; o.frequency.value = f; o.detune.value = det;
+          const og = c.createGain(); og.gain.value = type === 'sawtooth' ? 0.55 : 1;
+          o.connect(og); og.connect(g);
+          o.start(t); o.stop(end + rel + 0.1);
+          o.onended = () => { try { og.disconnect(); } catch (e) { /* gone */ } };
+        });
+        voices.push({ stopAt: end + rel + 0.1, g });
+      });
+    }
+
+    function texture(t) {
+      const notes = CHORDS[chord];
+      if (Math.random() < 0.62) {
+        // a soft, distant pluck an octave above one of the chord's upper notes
+        const m = pick(notes.slice(2)) + 12;
+        const p = c.createStereoPanner ? c.createStereoPanner() : null;
+        const g = c.createGain(); g.gain.value = 1;
+        if (p) { p.pan.value = rnd(-0.6, 0.6); g.connect(p); p.connect(out); } else g.connect(out);
+        tone(c, { dry: g, wet: revIn }, { t, f0: mtof(m), a: 0.012, d: 2.6, g: 0.022, type: 'triangle', lp: 1500, wet: 1.6 });
+        if (Math.random() < 0.5) tone(c, { dry: g, wet: revIn }, { t: t + rnd(0.35, 0.6), f0: mtof(pick(notes.slice(2)) + 12), a: 0.012, d: 2.2, g: 0.014, type: 'triangle', lp: 1400, wet: 1.6 });
+      } else {
+        // a harbor horn far across the water: low, slow, almost all reverb
+        const f = mtof(pick([38, 41, 36]));
+        [0, 0.6].forEach((det, k) => {
+          const osc = c.createOscillator(); osc.type = 'sawtooth'; osc.frequency.value = f + det; osc.detune.value = k ? 5 : -5;
+          const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 240; lp.Q.value = 0.7;
+          const g = c.createGain();
+          env(g.gain, t, 0.022, 1.8, 1.4, 3.2);
+          const dry = c.createGain(); dry.gain.value = 0.25;
+          osc.connect(lp); lp.connect(g); g.connect(dry); dry.connect(out); g.connect(revIn);
+          osc.start(t); osc.stop(t + 6.6);
+          osc.onended = () => { try { g.disconnect(); } catch (e) { /* gone */ } };
+        });
+      }
+    }
+
+    function tick(horizon) {
+      if (!alive) return;
+      const until = c.currentTime + horizon;
+      while (nextChord < until) {
+        const dur = rnd(8, 16);
+        playChord(nextChord, dur);
+        nextChord += dur;
+        chord = pick(NEXT[chord]);
+      }
+      while (nextTex < until) {
+        texture(nextTex);
+        nextTex += rnd(20, 40);
+      }
+      for (let i = voices.length - 1; i >= 0; i--) {
+        if (voices[i].stopAt < c.currentTime) { try { voices[i].g.disconnect(); } catch (e) { /* gone */ } voices.splice(i, 1); }
+      }
+    }
+
+    function stop(at) {
+      alive = false;
+      const t = at || c.currentTime;
+      nodes.forEach((n) => { try { n.stop(t); } catch (e) { /* not started */ } });
+      setTimeoutSafe(() => { try { out.disconnect(); } catch (e) { /* gone */ } }, Math.max(0, (t - c.currentTime) * 1000) + 200);
+    }
+
+    return { tick, stop, out, get chord() { return chord; } };
+  }
+  const setTimeoutSafe = (f, ms) => (G.setTimeout ? G.setTimeout(f, ms) : null);
+
+  /* ---------- the live engine ---------- */
+  const E = { ctx: null, master: null, musicBus: null, sfxBus: null, sfxRev: null, noise: null, music: null, timer: null, idle: null, cueUntil: 0 };
+
+  function AC() { return G.AudioContext || G.webkitAudioContext || null; }
+
+  /** Create the context and buses. Call only from a user gesture. */
+  function ensureCtx() {
+    if (E.ctx) return E.ctx;
+    const Ctor = AC();
+    if (!Ctor) return null;
+    let c;
+    try { c = new Ctor({ latencyHint: 'playback' }); } catch (e) { try { c = new Ctor(); } catch (e2) { return null; } }
+    E.ctx = c;
+    // a gentle safety limiter at the end of the chain
+    const lim = c.createDynamicsCompressor();
+    lim.threshold.value = -12; lim.knee.value = 8; lim.ratio.value = 6; lim.attack.value = 0.005; lim.release.value = 0.25;
+    lim.connect(c.destination);
+    E.master = c.createGain(); E.master.gain.value = 0; E.master.connect(lim);
+    E.musicBus = c.createGain(); E.musicBus.gain.value = 0; E.musicBus.connect(E.master);
+    E.sfxBus = c.createGain(); E.sfxBus.gain.value = sfxGain(S.sfxVol); E.sfxBus.connect(E.master);
+    E.sfxRev = c.createConvolver(); E.sfxRev.buffer = makeIR(c, 1.6, 0.012, 0.6); E.sfxRev.connect(E.sfxBus);
+    E.noise = makeWhite(c, 3);
+    return c;
+  }
+
+  const ramp = (p, v, secs) => {
+    const c = E.ctx;
+    const t = c.currentTime;
+    p.cancelScheduledValues(t);
+    p.setValueAtTime(p.value, t);
+    p.linearRampToValueAtTime(v, t + secs);
+  };
+
+  function resume() { if (E.ctx && E.ctx.state === 'suspended' && !(doc && doc.hidden)) { try { E.ctx.resume(); } catch (e) { /* ignore */ } } }
+
+  function startMusic() {
+    if (!E.ctx || E.music) return;
+    E.music = Music(E.ctx, E.musicBus);
+    E.music.tick(4);
+    E.timer = G.setInterval(() => { if (E.music) E.music.tick(4); }, 1000);
+    ramp(E.musicBus.gain, musicGain(S.musicVol), 4); // fade in over 4 s
+  }
+
+  function stopMusic(fade) {
+    if (!E.ctx || !E.music) return;
+    const m = E.music;
+    E.music = null;
+    G.clearInterval(E.timer); E.timer = null;
+    const secs = fade == null ? 2.5 : fade;
+    ramp(E.musicBus.gain, 0, secs);
+    m.stop(E.ctx.currentTime + secs + 0.1);
+  }
+
+  /** Bring the engine in line with the settings. Safe to call any time; makes no sound unless on. */
+  function apply(fromGesture) {
+    if (fromGesture && S.on) ensureCtx();
+    const c = E.ctx;
+    if (!c) return;
+    if (!S.on) {
+      stopMusic(0.8);
+      ramp(E.master.gain, 0, 0.8);
+      G.clearTimeout(E.idle);
+      E.idle = G.setTimeout(() => { if (!S.on && E.ctx) E.ctx.suspend(); }, 1000);
+      return;
+    }
+    G.clearTimeout(E.idle);
+    resume();
+    ramp(E.master.gain, 1, 0.05);
+    ramp(E.sfxBus.gain, S.sfx ? sfxGain(S.sfxVol) : 0, 0.05);
+    if (S.music) {
+      if (!E.music) startMusic();
+      else ramp(E.musicBus.gain, musicGain(S.musicVol), 0.15);
+    } else {
+      stopMusic();
+      idleSoon();
+    }
+  }
+
+  /** With the music off, let the context sleep between effects so it costs nothing. */
+  function idleSoon() {
+    G.clearTimeout(E.idle);
+    if (!E.ctx || (S.on && S.music)) return;
+    E.idle = G.setTimeout(() => { if (E.ctx && !(S.on && S.music)) E.ctx.suspend(); }, 4000);
+  }
+
+  const played = []; // the last few effects that actually played (for tests)
+  /** Play one effect. Returns true if it was scheduled. Never throws. */
+  function sfx(name) {
+    try {
+      if (!S.on || !S.sfx || S.sfxVol <= 0) return false;
+      const fn = FX[name];
+      if (!fn) return false;
+      if (!E.ctx) return false; // the context only exists after the learner turned sound on
+      if (doc && doc.hidden) return false;
+      if (!allow(name)) return false;
+      resume();
+      const c = E.ctx;
+      let t = c.currentTime + 0.01;
+      if (WAITS[name] && E.cueUntil > t) t = E.cueUntil;
+      if (CUE[name]) E.cueUntil = Math.max(E.cueUntil, t + CUE[name]);
+      fn(c, { dry: E.sfxBus, wet: E.sfxRev }, t, E.noise);
+      played.push(name); if (played.length > 30) played.shift();
+      idleSoon();
+      return true;
+    } catch (e) { return false; }
+  }
+
+  /* ---------- public API ---------- */
+  function get() { return Object.assign({}, S); }
+  function set(patch, fromGesture) {
+    const before = S;
+    S = clean(Object.assign({}, S, patch || {}));
+    store(S);
+    if (before.on !== S.on || before.music !== S.music || before.sfx !== S.sfx || before.musicVol !== S.musicVol || before.sfxVol !== S.sfxVol) {
+      try { apply(fromGesture !== false); } catch (e) { /* audio is optional; never break the page */ }
+    }
+    syncUi();
+    return get();
+  }
+  function toggle() { return set({ on: !S.on }); }
+
+  TT.sfx = sfx;
+  TT.audio = {
+    KEY, DEFAULTS, NAMES, GAP_MS,
+    get, set, toggle, allow,
+    musicGain, sfxGain,
+    get state() { return E.ctx ? E.ctx.state : 'none'; },
+    get context() { return E.ctx; },
+    get played() { return played.slice(); },
+    // for tests and tuning: build the ambience or one effect on any (offline) context
+    _music: Music,
+    _fx: (c, dest, name, t) => FX[name](c, { dry: dest, wet: null }, t || 0, makeWhite(c, 3)),
+  };
+
+  /* ---------- UI: a speaker button in the masthead and a small popover ---------- */
+  const ICON = {
+    on: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M15.5 9.2a4 4 0 0 1 0 5.6M18 6.8a7.4 7.4 0 0 1 0 10.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    off: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M16 9.5l5 5M21 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  };
+  let ui = null;
+  const PREVIEW = ['pager', 'resolve', 'ping-ok', 'correct', 'badge', 'link-up', 'flip', 'promote', 'ping-fail', 'wrong', 'link-down', 'scene-step', 'clockin'];
+  const LABEL = { pager: 'pager', resolve: 'ticket resolved', promote: 'promotion', badge: 'badge', 'ping-ok': 'ping reply', 'ping-fail': 'ping dropped', 'link-up': 'link up', 'link-down': 'link down', flip: 'card flip', correct: 'right answer', wrong: 'wrong answer', 'scene-step': 'scene step', clockin: 'clock in' };
+  let previewI = 0;
+
+  function syncUi() {
+    watch();
+    if (!ui) return;
+    const { btn, root } = ui;
+    const live = S.on && (S.music || S.sfx);
+    const want = live ? 'on' : 'off';
+    if (btn.dataset.icon !== want) { btn.innerHTML = ICON[want]; btn.dataset.icon = want; }
+    btn.classList.toggle('is-on', live);
+    const label = live ? 'Sound settings (sound on)' : 'Sound settings (sound off)';
+    btn.setAttribute('aria-label', label);
+    btn.title = live ? 'Sound on' : 'Sound off';
+    const sw = (sel, v, dis) => { const b = root.querySelector(sel); b.setAttribute('aria-checked', String(v)); b.querySelector('.tt-au-state').textContent = v ? 'On' : 'Off'; if (dis !== undefined) b.disabled = dis; };
+    sw('[data-au="on"]', S.on);
+    sw('[data-au="music"]', S.music, !S.on);
+    sw('[data-au="sfx"]', S.sfx, !S.on);
+    const mv = root.querySelector('#tt-au-mv');
+    const sv = root.querySelector('#tt-au-sv');
+    mv.value = String(Math.round(S.musicVol * 100)); mv.disabled = !S.on || !S.music;
+    sv.value = String(Math.round(S.sfxVol * 100)); sv.disabled = !S.on || !S.sfx;
+    mv.setAttribute('aria-valuetext', `${mv.value} percent`);
+    sv.setAttribute('aria-valuetext', `${sv.value} percent`);
+    root.querySelector('#tt-au-mvo').textContent = mv.value + '%';
+    root.querySelector('#tt-au-svo').textContent = sv.value + '%';
+    root.querySelector('[data-au="preview"]').disabled = !S.on || !S.sfx;
+    root.querySelector('.tt-au-body').classList.toggle('is-off', !S.on);
+    root.querySelector('.tt-au-note').textContent = !S.on
+      ? 'Off. Nothing plays until you switch it on.'
+      : !AC() ? 'This browser has no Web Audio, so it stays silent.' : S.music ? 'Night shift ambience is playing. It is generated live, never looped.' : 'Ambience off. Effects only.';
+  }
+
+  function open(v) {
+    if (!ui) return;
+    const was = !ui.pop.hidden;
+    ui.pop.hidden = !v;
+    ui.btn.setAttribute('aria-expanded', String(!!v));
+    if (v && !was) {
+      // open toward the side with room: right-aligned under the button, unless that would run off the left edge
+      ui.root.classList.remove('tt-au-left');
+      const r = ui.btn.getBoundingClientRect();
+      if (r.right - ui.pop.offsetWidth < 8) ui.root.classList.add('tt-au-left');
+      syncUi();
+      const f = ui.pop.querySelector('[data-au="on"]'); if (f) f.focus(); }
+  }
+
+  function build() {
+    const root = doc.createElement('div');
+    root.className = 'tt-audio';
+    root.innerHTML = `
+      <button type="button" class="tt-audio-btn" id="tt-audio-btn" aria-expanded="false" aria-controls="tt-audio-pop"></button>
+      <div class="tt-audio-pop" id="tt-audio-pop" role="dialog" aria-modal="false" aria-labelledby="tt-au-h" hidden>
+        <p class="tt-au-h" id="tt-au-h">Sound <span>Night shift</span></p>
+        <button type="button" class="tt-au-sw tt-au-master" role="switch" data-au="on" aria-checked="false"><span class="tt-au-l">All sound</span><span class="tt-au-track" aria-hidden="true"><i></i></span><span class="tt-au-state">Off</span></button>
+        <div class="tt-au-body">
+          <div class="tt-au-row">
+            <button type="button" class="tt-au-sw" role="switch" data-au="music" aria-checked="true"><span class="tt-au-l">Ambient music</span><span class="tt-au-track" aria-hidden="true"><i></i></span><span class="tt-au-state">On</span></button>
+            <div class="tt-au-vol"><label for="tt-au-mv">Music volume</label><input type="range" id="tt-au-mv" min="0" max="100" step="1"><output id="tt-au-mvo" for="tt-au-mv"></output></div>
+          </div>
+          <div class="tt-au-row">
+            <button type="button" class="tt-au-sw" role="switch" data-au="sfx" aria-checked="true"><span class="tt-au-l">Sound effects</span><span class="tt-au-track" aria-hidden="true"><i></i></span><span class="tt-au-state">On</span></button>
+            <div class="tt-au-vol"><label for="tt-au-sv">Effects volume</label><input type="range" id="tt-au-sv" min="0" max="100" step="1"><output id="tt-au-svo" for="tt-au-sv"></output></div>
+            <button type="button" class="btn quiet tt-au-prev" data-au="preview">Preview effects</button>
+          </div>
+        </div>
+        <p class="tt-au-note" aria-live="polite"></p>
+      </div>`;
+    const btn = root.querySelector('.tt-audio-btn');
+    const pop = root.querySelector('.tt-audio-pop');
+    ui = { root, btn, pop };
+    btn.addEventListener('click', () => open(pop.hidden));
+    root.addEventListener('click', (e) => {
+      const b = e.target.closest && e.target.closest('[data-au]');
+      if (!b || b.disabled) return;
+      const k = b.getAttribute('data-au');
+      if (k === 'on') set({ on: !S.on }, true);
+      else if (k === 'music') set({ music: !S.music }, true);
+      else if (k === 'sfx') set({ sfx: !S.sfx }, true);
+      else if (k === 'preview') {
+        const name = PREVIEW[previewI++ % PREVIEW.length];
+        b.textContent = `Preview effects (${LABEL[name]})`;
+        sfx(name);
+      }
+    });
+    root.querySelector('#tt-au-mv').addEventListener('input', (e) => set({ musicVol: Number(e.target.value) / 100 }, true));
+    root.querySelector('#tt-au-sv').addEventListener('input', (e) => set({ sfxVol: Number(e.target.value) / 100 }, true));
+    root.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !pop.hidden) { e.preventDefault(); e.stopPropagation(); open(false); btn.focus(); }
+    });
+    // close when focus or a click goes elsewhere
+    root.addEventListener('focusout', (e) => { if (!pop.hidden && e.relatedTarget && !root.contains(e.relatedTarget)) open(false); });
+    doc.addEventListener('click', (e) => { if (pop.hidden) return; const path = e.composedPath ? e.composedPath() : [e.target]; if (path.indexOf(root) === -1 && !root.contains(e.target)) open(false); });
+    return root;
+  }
+
+  /* Wide screens: in the top-right cluster, just before the theme toggle.
+   * Phones (the cluster there only has room for two icons): at the end of the rank chip's row. */
+  const NARROW = '(max-width: 600px)';
+  function place() {
+    if (!ui) return;
+    const mast = doc.querySelector('header.mast') || doc.querySelector('header');
+    if (!mast) return;
+    const narrow = G.matchMedia && G.matchMedia(NARROW).matches;
+    const hud = mast.querySelector('.tt-hud');
+    const chip = mast.querySelector(':scope > .cr-hud');
+    if (narrow && chip) {
+      if (chip.nextElementSibling !== ui.root) chip.insertAdjacentElement('afterend', ui.root);
+      mast.classList.add('tt-au-narrow');
+      return;
+    }
+    mast.classList.remove('tt-au-narrow');
+    if (hud) {
+      const theme = hud.querySelector('#tt-theme');
+      if (theme) { if (theme.previousElementSibling !== ui.root) hud.insertBefore(ui.root, theme); }
+      else if (ui.root.parentNode !== hud) hud.appendChild(ui.root);
+    } else if (ui.root.parentNode !== mast) mast.appendChild(ui.root);
+  }
+
+  function inject() {
+    if (!doc.querySelector('header.mast') && !doc.querySelector('header')) return;
+    if (!ui) build();
+    place();
+    syncUi();
+    // career.js moves its chip between the cluster and its own row as the window changes; follow it
+    if (G.matchMedia) {
+      const mq = G.matchMedia(NARROW);
+      const re = () => G.setTimeout(place, 0);
+      if (mq.addEventListener) mq.addEventListener('change', re); else if (mq.addListener) mq.addListener(re);
+      const wide = G.matchMedia('(min-width: 901px)');
+      if (wide.addEventListener) wide.addEventListener('change', re); else if (wide.addListener) wide.addListener(re);
+    }
+    const mast = doc.querySelector('header.mast') || doc.querySelector('header');
+    if (G.MutationObserver && mast) new G.MutationObserver(() => { if (ui && (!ui.root.isConnected || (G.matchMedia && G.matchMedia(NARROW).matches) !== mast.classList.contains('tt-au-narrow') || (mast.classList.contains('tt-au-narrow') && !mast.querySelector(':scope > .tt-audio')))) place(); }).observe(mast, { childList: true });
+  }
+
+  /* ---------- watching the page instead of editing it ---------- */
+  // Career toasts, the rank-up notice and the RESOLVED / LEARNED stamps are noticed as they are added.
+  let watcher = null;
+  function onAdded(list) {
+    for (const m of list) {
+      for (const n of m.addedNodes) {
+        if (n.nodeType !== 1 || !n.classList) continue;
+        const cl = n.classList;
+        if (cl.contains('cr-toast')) sfx(cl.contains('cr-toast-badge') ? 'badge' : 'pager');
+        else if (cl.contains('cr-promo')) sfx('promote');
+        else if ((cl.contains('stamp') || cl.contains('ls-stamp')) && cl.contains('fresh')) sfx('resolve');
+      }
+    }
+  }
+  function watch() {
+    if (!doc) return;
+    const want = S.on && S.sfx;
+    if (want && !watcher && G.MutationObserver && doc.body) {
+      watcher = new G.MutationObserver(onAdded);
+      watcher.observe(doc.body, { childList: true, subtree: true });
+    } else if (!want && watcher) { watcher.disconnect(); watcher = null; }
+  }
+
+  if (!doc) return; // loaded under node for tests
+
+  // the same as TT.sfx, for modules that would rather not reach into TT
+  doc.addEventListener('tt:sfx', (e) => { if (e && e.detail && e.detail.name) sfx(e.detail.name); });
+  // Clock in on the home page (a link, so no edit to home.js is needed)
+  doc.addEventListener('click', (e) => { const a = e.target && e.target.closest && e.target.closest('#hm-clockin'); if (a) sfx('clockin'); }, true);
+
+  // A background tab costs nothing: suspend when hidden, resume when visible.
+  doc.addEventListener('visibilitychange', () => {
+    if (!E.ctx) return;
+    if (doc.hidden) { try { E.ctx.suspend(); } catch (e) { /* ignore */ } }
+    else if (S.on && S.music) resume();
+  });
+
+  // Sound was on last visit: browsers block autoplay, so wait for the first gesture before starting.
+  if (S.on) {
+    const first = () => {
+      doc.removeEventListener('pointerdown', first, true);
+      doc.removeEventListener('keydown', first, true);
+      if (S.on && !E.ctx) { try { apply(true); } catch (e) { /* ignore */ } }
+    };
+    doc.addEventListener('pointerdown', first, true);
+    doc.addEventListener('keydown', first, true);
+  }
+
+  if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', () => { inject(); watch(); });
+  else { inject(); watch(); }
 })(globalThis);
 
 </script>
