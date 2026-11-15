@@ -59,13 +59,25 @@
   const objState = (t, r) => t.objectives.map((o) => { try { return !!o.check(r.w, r); } catch (e) { return false; } });
 
   /* ---------------- router ---------------- */
-  const views = { tickets: renderTickets, map: renderMap, drill: renderDrill, hardware: (tab) => TT.renderHardware($('#main'), tab), guide: renderGuide, quiz: renderQuiz, progress: renderProgress };
+  const soon = (name, what) => () => {
+    $('#main').innerHTML = `<div class="sheet" style="max-width:640px"><p class="label">${name}</p><h2 style="margin:6px 0">On the night-shift whiteboard</h2><p>${what} is being built and will appear here in the next update.</p><p><a href="#tickets">Back to the tickets</a></p></div>`;
+  };
+  const module = (fnName, name, what) => (arg) => (typeof TT[fnName] === 'function' ? TT[fnName]($('#main'), arg || {}) : soon(name, what)());
+  const views = {
+    learn: module('renderLessons', 'Learn', 'The lesson library'),
+    lab: module('renderSandbox', 'Lab', 'The network lab sandbox'),
+    exam: module('renderExam', 'Mock exam', 'The mock exam'),
+    flash: module('renderFlashcards', 'Flashcards', 'The flashcard trainer'),
+    tickets: renderTickets, map: renderMap, drill: renderDrill, hardware: (tab) => TT.renderHardware($('#main'), tab), guide: renderGuide, quiz: renderQuiz, progress: renderProgress };
   function route() {
     let h = (G.location.hash || '').replace('#', '');
     let ticketId = null;
     if (TT.tickets.byId[h]) { ticketId = h; h = 'tickets'; }
     else if (h.startsWith('card-')) { guideState = { domain: 'all', q: '', only: h.slice(5) }; h = 'guide'; }
     else if (h.startsWith('hw-')) { ticketId = h.slice(3); h = 'hardware'; }
+    else if (h.startsWith('learn-')) { ticketId = { id: h.slice(6) }; h = 'learn'; }
+    else if (h.startsWith('lab-')) { ticketId = { project: h.slice(4) }; h = 'lab'; }
+    else if (h.startsWith('flash-')) { ticketId = { deck: h.slice(6) }; h = 'flash'; }
     else if (h === 'guide' && guideState.only) guideState.only = null;
     if (!views[h]) h = 'tickets';
     $$('nav.tabs a').forEach((a) => a.setAttribute('aria-current', a.dataset.view === h ? 'page' : 'false'));
@@ -117,7 +129,7 @@
                 <div class="q"><label for="q-${q.id}">${i + 1}. ${esc(q.q)}</label>
                 <div class="inrow"><input id="q-${q.id}" data-q="${q.id}" autocomplete="off" spellcheck="false" value="${esc(r.values[q.id] || '')}"></div>
                 <div class="fb" id="fb-${q.id}"></div></div>`).join('')}
-                <div><button class="btn primary" type="submit">Check answers</button></div></form></section>` : `<section aria-label="Where to start"><p class="label">Where to start</p><p style="margin:0;font-size:14px;max-width:52ch">Open a console below and look before you change anything. ${t.id === 't01' ? 'Try <code>show ip interface brief</code> after <code>enable</code>.' : 'The show commands that fit this topic: ' + ({ t03: '<code>show vlan brief</code>, <code>show running-config</code>', t04: '<code>show interfaces trunk</code>, <code>show vlan brief</code>', t05: '<code>show ip route</code>, <code>show running-config</code>', t06: '<code>show ip ospf neighbor</code>, <code>show ip ospf interface brief</code>, <code>show ip route</code>', t07: '<code>show interfaces trunk</code>, <code>show ip interface brief</code>, <code>show running-config</code>', t08: '<code>show spanning-tree</code>, <code>show spanning-tree vlan 10</code>', t09: '<code>show etherchannel summary</code>, <code>show running-config</code>; <code>interface range g0/1 - 2</code> works too', t10: '<code>show running-config</code> on the router; on the scanner, <code>ipconfig</code> and <code>ipconfig /renew</code>', t11: '<code>show access-lists</code>, <code>show running-config</code>', t12: '<code>show running-config</code>, <code>show ip nat translations</code>, <code>show ip route</code>', t13: '<code>show ipv6 interface brief</code>, <code>show ipv6 route</code>, <code>show running-config</code>; PCs can <code>ping</code> IPv6 addresses', t14: '<code>show ip ssh</code>, <code>show running-config</code>; on PC-ADMIN try <code>telnet 10.0.99.1</code> and <code>ssh -l netadmin 10.0.99.1</code>', t15: '<code>show interfaces status</code>, <code>show port-security</code>, <code>show port-security interface fa0/3</code>', t16: '<code>show standby brief</code>, <code>show running-config</code>, <code>show ip route</code>', t17: '<code>show ip eigrp neighbors</code>, <code>show ip route</code>, <code>show running-config</code>', t18: '<code>show ip dhcp snooping</code>, <code>show ip dhcp snooping binding</code>, <code>show ip arp inspection</code>; on PC-A, <code>ipconfig</code>' }[t.id] || '<code>show running-config</code>') + '.'} PCs understand <code>ipconfig</code> and <code>ping</code>.</p></section>`}
+                <div><button class="btn primary" type="submit">Check answers</button></div></form></section>` : `<section aria-label="Where to start"><p class="label">Where to start</p><p style="margin:0;font-size:14px;max-width:52ch">Open a console below and look before you change anything. ${t.id === 't01' ? 'Try <code>show ip interface brief</code> after <code>enable</code>.' : 'The show commands that fit this topic: ' + ({ t03: '<code>show vlan brief</code>, <code>show running-config</code>', t04: '<code>show interfaces trunk</code>, <code>show vlan brief</code>', t05: '<code>show ip route</code>, <code>show running-config</code>', t06: '<code>show ip ospf neighbor</code>, <code>show ip ospf interface brief</code>, <code>show ip route</code>', t07: '<code>show interfaces trunk</code>, <code>show ip interface brief</code>, <code>show running-config</code>', t08: '<code>show spanning-tree</code>, <code>show spanning-tree vlan 10</code>', t09: '<code>show etherchannel summary</code>, <code>show running-config</code>; <code>interface range g0/1 - 2</code> works too', t10: '<code>show running-config</code> on the router; on the scanner, <code>ipconfig</code> and <code>ipconfig /renew</code>', t11: '<code>show access-lists</code>, <code>show running-config</code>', t12: '<code>show running-config</code>, <code>show ip nat translations</code>, <code>show ip route</code>', t13: '<code>show ipv6 interface brief</code>, <code>show ipv6 route</code>, <code>show running-config</code>; PCs can <code>ping</code> IPv6 addresses', t14: '<code>show ip ssh</code>, <code>show running-config</code>; on PC-ADMIN try <code>telnet 10.0.99.1</code> and <code>ssh -l netadmin 10.0.99.1</code>', t15: '<code>show interfaces status</code>, <code>show port-security</code>, <code>show port-security interface fa0/3</code>', t16: '<code>show standby brief</code>, <code>show running-config</code>, <code>show ip route</code>', t17: '<code>show ip eigrp neighbors</code>, <code>show ip route</code>, <code>show running-config</code>', t18: '<code>show ip dhcp snooping</code>, <code>show ip dhcp snooping binding</code>, <code>show ip arp inspection</code>; on PC-A, <code>ipconfig</code>', t19: '<code>show ip ospf interface g0/0</code>, <code>show ip ospf neighbor</code>, <code>show ip ospf interface brief</code>', t20: '<code>show ip interface brief</code>, <code>show etherchannel summary</code>, <code>show ip route</code>', t21: '<code>show ip nat translations</code>, <code>show running-config</code>; ping 203.0.113.5 from CUSTOMER', t22: '<code>show spanning-tree</code>, <code>show running-config</code> on both access switches', t23: '<code>show ip interface brief</code>, <code>show cdp neighbors</code>, <code>show lldp neighbors</code>, <code>show ntp status</code>, <code>show clock</code>' }[t.id] || '<code>show running-config</code>') + '.'} PCs understand <code>ipconfig</code> and <code>ping</code>.</p></section>`}
           </div>
           <section class="console" aria-label="Console">
             <p class="label">Console</p>
@@ -406,6 +418,48 @@
     const names = ['first', 'second', 'third', 'fourth'];
     return `The interesting octet is the ${names[octet]} (mask ${maskOct}). Block size = 256 - ${maskOct} = <b>${block}</b>. ${val} falls in the block that starts at ${start} and ends at ${start + block - 1}, so the network is <code>${pr.ans.net}</code> and the broadcast is <code>${pr.ans.bc}</code>. Hosts = 2<sup>${32 - pr.p}</sup> - 2 = ${pr.ans.hosts}.`;
   }
+  /* IPv6 modified EUI-64 practice (exam topic 1.9) */
+  let eui = null;
+  function newEui() {
+    const r = () => Math.floor(Math.random() * 256);
+    const mac = [r() & 0xfc, r(), r(), r(), r(), r()];
+    const pfx = ['2001:DB8:' + (r() * 256 + r()).toString(16).toUpperCase() + ':' + (r()).toString(16).toUpperCase() + '::', '2001:DB8:ACAD:' + (r() % 64 + 1) + '::', 'FE80::'][Math.floor(Math.random() * 3)];
+    const id = [mac[0] ^ 0x02, mac[1], mac[2], 0xff, 0xfe, mac[3], mac[4], mac[5]];
+    const hex = (a, b) => ((a << 8) | b).toString(16).toUpperCase();
+    const iid = [hex(id[0], id[1]), hex(id[2], id[3]), hex(id[4], id[5]), hex(id[6], id[7])].join(':');
+    const macStr = [0, 2, 4].map((k) => ((mac[k] << 8) | mac[k + 1]).toString(16).padStart(4, '0')).join('.');
+    return { mac, macStr, pfx, iid, flipFrom: mac[0], flipTo: mac[0] ^ 0x02 };
+  }
+  const normV6 = (t) => { const n = TT.ip6.v6parse(String(t).trim()); return n === null ? null : TT.ip6.v6fmt(n); };
+  function renderEui() {
+    if (!eui) eui = newEui();
+    const box = $('#euiSheet');
+    if (!box) return;
+    box.innerHTML = `
+      <p class="label" style="margin:0">IPv6 EUI-64 practice</p>
+      <div class="prob" style="font-size:clamp(20px,4vw,32px)">MAC ${eui.macStr} &nbsp;·&nbsp; prefix ${eui.pfx}/64</div>
+      <p style="margin:0;color:var(--muted)">Build the modified EUI-64 interface ID, then the full address. Split the MAC, insert FFFE, flip the 7th bit of the first byte.</p>
+      <form id="euiForm"><div class="drill-grid">
+        <div class="field"><label for="e-iid">Interface ID (last 64 bits)</label><input id="e-iid" autocomplete="off" spellcheck="false" placeholder="xxxx:xxxx:xxxx:xxxx"><div class="ans" id="ea-iid"></div></div>
+        <div class="field"><label for="e-full">Full IPv6 address</label><input id="e-full" autocomplete="off" spellcheck="false"><div class="ans" id="ea-full"></div></div>
+      </div>
+      <div class="tools"><button class="btn primary" type="submit">Check</button><button class="btn" type="button" id="euiNext">New MAC</button></div></form>
+      <div class="method" id="euiMethod"></div>`;
+    $('#euiForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const want = TT.ip6.v6fmt(TT.ip6.v6parse(eui.pfx) | TT.ip6.v6parse('::' + eui.iid));
+      const gotIid = normV6('::' + $('#e-iid').value.replace(/^:+/, ''));
+      const okIid = gotIid !== null && gotIid === normV6('::' + eui.iid);
+      const okFull = normV6($('#e-full').value) === want;
+      $('#ea-iid').innerHTML = okIid ? '<span class="ok">Correct</span>' : `<span class="no">${eui.iid}</span>`;
+      $('#ea-full').innerHTML = okFull ? '<span class="ok">Correct</span>' : `<span class="no">${want}</span>`;
+      const b0 = eui.flipFrom.toString(16).padStart(2, '0').toUpperCase();
+      const b1 = eui.flipTo.toString(16).padStart(2, '0').toUpperCase();
+      $('#euiMethod').innerHTML = `<b>How it works:</b> ${eui.macStr.toUpperCase()} splits into ${eui.macStr.slice(0, 7).replace('.', '').toUpperCase().slice(0, 6)} | ${eui.macStr.replace(/\./g, '').slice(6).toUpperCase()}. Insert FFFE between the halves. The first byte ${b0} is ${eui.flipFrom.toString(2).padStart(8, '0')} in binary; flipping the 7th bit gives ${eui.flipTo.toString(2).padStart(8, '0')} = ${b1}. Interface ID: <code>${eui.iid}</code>. Append it to the /64 prefix: <code>${want}</code>.`;
+    });
+    $('#euiNext').addEventListener('click', () => { eui = newEui(); renderEui(); });
+  }
+
   function renderDrill() {
     if (!drill) drill = { mode: store.drill.mode || 'focus', streak: 0, pr: null };
     if (!drill.pr) drill.pr = newProblem(drill.mode);
@@ -442,7 +496,9 @@
           <div class="stat"><b id="s-time">0s</b><span>This question</span></div>
           <div class="stat"><b>${store.drill.bestTime ? store.drill.bestTime + 's' : 'none'}</b><span>Fastest perfect answer</span></div>
         </div>
-      </div>`;
+      </div>
+      <div class="sheet drill" id="euiSheet" style="margin-top:16px"></div>`;
+    renderEui();
     $$('.seg button').forEach((b) => b.addEventListener('click', () => {
       drill.mode = b.dataset.mode;
       store.drill.mode = drill.mode;
@@ -493,20 +549,35 @@
    * ====================================================================== */
   function renderMap() {
     const cardName = Object.fromEntries(TT.cards.map((c) => [c.id, c.name]));
-    const hwName = { cable: 'Cabling lab', ports: 'Port ID lab', gear: 'Gear lab' };
+    const hwName = { cable: 'Cabling lab', ports: 'Port ID lab', gear: 'Gear lab', wlc: 'WLC GUI lab' };
     const done = (day) => {
       const t = day[2].t || [];
       return t.length && t.every((id) => store.solved[id]);
     };
     const nT = new Set(TT.course.flatMap((d) => d[2].t || [])).size;
     const covered = TT.course.filter((d) => (d[2].t || []).length || (d[2].c || []).length || d[2].hw || d[2].drill).length;
+    const lessonIds = new Set((TT.lessons || []).map((l) => l.obj));
+    const hwLabel = { cable: 'Cabling lab', ports: 'Port ID lab', gear: 'Gear lab', wlc: 'WLC GUI lab' };
+    const bpRows = (TT.blueprint || []).map(([obj, title, x]) => {
+      const links = [
+        ...(lessonIds.has(obj) ? [`<a class="pill topic" href="#learn-l${obj.replace('.', '-')}">Lesson</a>`] : []),
+        ...(x.t || []).map((id) => `<a class="pill topic" href="#${id}">${TT.tickets.byId[id].number}${store.solved[id] ? ' ✓' : ''}</a>`),
+        ...(x.c || []).map((id) => `<a class="pill" href="#card-${id}">${esc(cardName[id] || id)}</a>`),
+        ...(x.hw ? [`<a class="pill" href="#hw-${x.hw}">${hwLabel[x.hw]}</a>`] : []),
+        ...(x.drill ? ['<a class="pill" href="#drill">Drill</a>'] : []),
+      ];
+      const done = (x.t || []).length && x.t.every((id) => store.solved[id]);
+      return `<li class="mapday${done ? ' done' : ''}"><span class="dnum">${obj}</span><span class="dttl">${esc(title)}</span><span class="dlinks">${links.join('')}</span></li>`;
+    });
+    const view = store.mapView || 'days';
     $('#main').innerHTML = `
       <div class="map-head">
+        <div class="seg" role="group" aria-label="Map view" style="margin-bottom:10px"><button type="button" data-mv="days" aria-pressed="${view === 'days'}">By course day</button><button type="button" data-mv="exam" aria-pressed="${view === 'exam'}">By exam objective (v1.1)</button></div>
         <div><p class="label">Course map</p>
         <h2 style="margin:4px 0 6px">Jeremy's IT Lab, all 63 days</h2>
         <p style="margin:0;max-width:62ch;font-size:14px">Watch the day's video, then use what is linked beside it here: a ticket to troubleshoot, field-guide cards to review, or a lab. ${covered} of 63 days have practice in this app, with ${nT} tickets in all.</p></div>
       </div>
-      <ol class="map">
+      ${view === 'exam' ? `<p style="margin:0 0 10px;font-size:14px;max-width:62ch">All ${bpRows.length} objectives of the CCNA 200-301 v1.1 blueprint. Weights: Fundamentals 20%, Access 20%, IP Connectivity 25%, IP Services 10%, Security 15%, Automation 10%.</p><ol class="map">${bpRows.join('')}</ol>` : `<ol class="map">
         ${TT.course.map((d) => {
           const [day, title, x] = d;
           const links = [
@@ -520,7 +591,8 @@
             <span class="dttl"><a href="${TT.courseVideo(day, title)}" target="_blank" rel="noopener">${esc(title)}</a></span>
             <span class="dlinks">${links.join('')}</span></li>`;
         }).join('')}
-      </ol>`;
+      </ol>`}`;
+    $$('[data-mv]').forEach((b) => b.addEventListener('click', () => { store.mapView = b.dataset.mv; save(); renderMap(); }));
   }
 
   function renderGuide() {
@@ -670,15 +742,51 @@
   /* ======================================================================
    * PROGRESS
    * ====================================================================== */
+  function readKey(k) { try { return JSON.parse(G.localStorage.getItem(k)) || null; } catch (e) { return null; } }
   function renderProgress() {
     const solved = TT.tickets.filter((t) => store.solved[t.id]).length;
+    const lessons = TT.lessons || [];
+    const lp = readKey('trouble-ticket-lessons-v1') || {};
+    const lessonsDone = lessons.filter((l) => lp.done && lp.done[l.id]).length;
+    const cards = TT.flashcards || [];
+    const fp = (readKey('trouble-ticket-flash-v1') || {}).cards || {};
+    const now = Date.now();
+    const due = cards.filter((c) => !fp[c.id] || (fp[c.id].due || 0) <= now).length;
+    const mastered = cards.filter((c) => fp[c.id] && fp[c.id].box >= 4).length;
+    const ex = readKey('trouble-ticket-exam-v1') || {};
+    const attempts = ex.attempts || ex.history || [];
+    const last = attempts[attempts.length - 1];
+    const best = attempts.reduce((m, a) => Math.max(m, a.score || 0), 0);
+    const doms = [['1.0', 'Network Fundamentals', 20], ['2.0', 'Network Access', 20], ['3.0', 'IP Connectivity', 25], ['4.0', 'IP Services', 10], ['5.0', 'Security Fundamentals', 15], ['6.0', 'Automation', 10]];
+    const domPct = (d) => {
+      const x = last && (last.perDomain || last.domains || {})[d];
+      if (x == null) return null;
+      if (typeof x === 'number') return x <= 1 ? Math.round(x * 100) : Math.round(x);
+      if (x.total) return Math.round((x.correct / x.total) * 100);
+      return null;
+    };
+    // what to do next: the first unfinished lesson in blueprint order, else due cards, else an open ticket
+    const nextLesson = lessons.slice().sort((a, b) => { const p = (o) => o.split('.').map(Number); const [a1, a2] = p(a.obj); const [b1, b2] = p(b.obj); return a1 - b1 || a2 - b2; }).find((l) => !(lp.done && lp.done[l.id]));
+    const nextTicket = TT.tickets.find((t) => !store.solved[t.id]);
+    const next = nextLesson ? `<a class="btn primary" href="#learn-${nextLesson.id}">Next lesson: ${nextLesson.obj} ${esc(nextLesson.title)}</a>`
+      : due ? `<a class="btn primary" href="#flash">Review ${due} due flashcards</a>`
+      : nextTicket ? `<a class="btn primary" href="#${nextTicket.id}">Next ticket: ${nextTicket.number}</a>`
+      : '<a class="btn primary" href="#exam">Take a full mock exam</a>';
     $('#main').innerHTML = `
+      <div class="sheet" style="margin-bottom:16px"><p class="label">Tonight's shift</p><h2 style="margin:6px 0 12px">Where you are</h2>${next}</div>
       <div class="prog">
+        <div class="stat sheet"><b>${lessonsDone} / ${lessons.length || 53}</b><span>Lessons complete</span></div>
         <div class="stat sheet"><b>${solved} / ${TT.tickets.length}</b><span>Tickets resolved</span></div>
+        <div class="stat sheet"><b>${cards.length ? due : 'n/a'}</b><span>Flashcards due${cards.length ? ` · ${mastered} mastered` : ''}</span></div>
+        <div class="stat sheet"><b>${last ? (last.score || 0) + ' / 1000' : 'none'}</b><span>Last mock exam${best ? ` · best ${best}` : ''}</span></div>
         <div class="stat sheet"><b>${store.drill.best || 0}</b><span>Best subnet streak</span></div>
-        <div class="stat sheet"><b>${store.quiz.best === null ? 'none' : store.quiz.best + '%'}</b><span>Best quiz score</span></div>
-        <div class="stat sheet"><b>${store.quiz.missed.length}</b><span>Questions to review</span></div>
+        <div class="stat sheet"><b>${store.quiz.best === null ? 'none' : store.quiz.best + '%'}</b><span>Best quick quiz</span></div>
       </div>
+      <section class="sheet" style="margin-top:20px">
+        <p class="label">Exam readiness by domain (last mock exam)</p>
+        <div class="ready">${doms.map(([d, n, wgt]) => { const v = domPct(d); return `<div class="ready-row"><span>${d} ${n} <small>(${wgt}% of exam)</small></span><span class="bar"><i style="width:${v == null ? 0 : v}%;background:${v == null ? 'var(--line)' : v >= 85 ? 'var(--good)' : v >= 70 ? 'var(--warn)' : 'var(--stamp)'}"></i></span><b>${v == null ? '—' : v + '%'}</b></div>`; }).join('')}</div>
+        <p style="margin:10px 0 0;font-size:13px;color:var(--muted)">Aim for 85% or better in every domain on full mock exams before booking. Cisco does not publish an official passing score.</p>
+      </section>
       <div class="cols" style="margin-top:20px">
         <section class="sheet">
           <p class="label">Tickets</p>
@@ -689,10 +797,10 @@
           <ul class="roadmap">${TT.roadmap.map((x) => `<li>${esc(x.topic)}<span>${esc(x.note)}</span></li>`).join('')}</ul>
         </section>
       </div>
-      <div class="tools" style="margin-top:20px"><button class="btn quiet" type="button" id="wipe">Reset all progress</button></div>`;
+      <div class="tools" style="margin-top:20px"><button class="btn quiet" type="button" id="wipe">Reset ticket, drill and quiz progress</button></div>`;
     let armed = false;
     $('#wipe').addEventListener('click', (e) => {
-      if (!armed) { armed = true; e.target.textContent = 'Click again to erase everything'; return; }
+      if (!armed) { armed = true; e.target.textContent = 'Click again to erase it'; return; }
       store = { solved: {}, tickets: {}, drill: { best: 0, bestTime: null, mode: 'focus' }, quiz: { best: null, missed: [] } };
       for (const k of Object.keys(runtime)) delete runtime[k];
       save();

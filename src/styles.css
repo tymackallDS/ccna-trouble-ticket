@@ -392,3 +392,53 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
 .mapday.done .dnum::after { content: ' ✓'; color: var(--ok, #2f7d4f); }
 .mapnote { margin: 0; font-size: 14px; }
 @media (max-width: 640px) { .mapday { grid-template-columns: 56px 1fr; } .mapday .dlinks { grid-column: 1 / -1; } }
+
+/* WLC GUI lab */
+.wl-wrap { display: grid; grid-template-columns: minmax(240px, 320px) 1fr; gap: 16px; align-items: start; }
+.wl-wrap > * { min-width: 0; }
+.wl-tasks { background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.wl-brief { font-size: 14px; margin: 0 0 10px; }
+.wl-fb { font-size: 14px; margin-top: 10px; }
+.wl-fb ul { margin: 6px 0 0; padding-left: 18px; }
+.wl-ok { color: var(--good); }
+.wl-bad { color: var(--stamp); }
+.wl-gui { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--sheet); font-size: 13px; }
+.wl-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; background: var(--term); color: var(--term-ink); padding: 6px 10px; }
+.wl-brand { font-family: var(--mono); font-weight: 600; margin-right: 12px; color: var(--term-prompt); }
+.wl-menu { background: none; border: 0; color: var(--term-ink); font: 600 12px var(--body); letter-spacing: .04em; padding: 6px 8px; border-radius: 4px; cursor: pointer; }
+.wl-menu[aria-current="true"] { background: rgba(255,255,255,.12); }
+.wl-save { margin-left: auto; font-size: 11px; color: var(--term-dim); }
+.wl-page { padding: 14px 16px 18px; }
+.wl-h { margin: 0 0 10px; font-size: 15px; }
+.wl-tablewrap { overflow-x: auto; }
+.wl-table { width: 100%; border-collapse: collapse; }
+.wl-table th, .wl-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.wl-table th { font-size: 12px; color: var(--muted); }
+.wl-link { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; }
+.wl-actions { display: flex; gap: 8px; align-items: center; margin: 12px 0; flex-wrap: wrap; }
+.wl-btn { border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 5px 12px; border-radius: 4px; cursor: pointer; font: inherit; }
+.wl-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.wl-form { display: grid; gap: 10px; max-width: 520px; }
+.wl-form label:not(.wl-cb) { display: grid; gap: 4px; font-weight: 600; font-size: 12px; }
+.wl-form input:not([type="checkbox"]):not([type="radio"]), .wl-form select, .wl-actions select { font: inherit; padding: 5px 7px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); color: var(--ink); max-width: 100%; }
+.wl-row { display: grid; grid-template-columns: 170px 1fr; gap: 8px; align-items: center; }
+.wl-row > span:first-child { font-weight: 600; font-size: 12px; }
+.wl-cb { display: inline-flex; gap: 6px; align-items: center; margin-right: 12px; font-weight: 400; }
+.wl-fs { border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px 10px; margin: 0; display: grid; gap: 8px; }
+.wl-fs legend { font-weight: 600; font-size: 12px; padding: 0 4px; }
+.wl-tabs, .wl-subtabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin-bottom: 12px; flex-wrap: wrap; }
+.wl-tab, .wl-subtab { background: none; border: 1px solid transparent; border-bottom: 0; padding: 6px 12px; border-radius: 6px 6px 0 0; cursor: pointer; font: inherit; color: var(--muted); }
+.wl-tab[aria-pressed="true"], .wl-subtab[aria-pressed="true"] { border-color: var(--line); background: var(--paper); color: var(--ink); font-weight: 600; }
+.wl-note { color: var(--muted); font-size: 13px; margin: 0; }
+.wl-read { display: grid; gap: 10px; margin-top: 10px; }
+@media (max-width: 760px) { .wl-wrap { grid-template-columns: 1fr; } .wl-row { grid-template-columns: 1fr; } }
+
+/* Progress dashboard */
+.ready { display: grid; gap: 8px; }
+.ready-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(80px, 2fr) 48px; gap: 10px; align-items: center; font-size: 14px; }
+.ready-row small { color: var(--muted); }
+.ready-row .bar { height: 10px; border-radius: 5px; background: var(--paper); border: 1px solid var(--line); overflow: hidden; }
+.ready-row .bar i { display: block; height: 100%; }
+.ready-row b { text-align: right; font-family: var(--mono); font-size: 13px; }
+.prog { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+@media (max-width: 560px) { .ready-row { grid-template-columns: 1fr 48px; } .ready-row .bar { grid-column: 1 / -1; grid-row: 2; } }
