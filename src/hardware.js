@@ -236,19 +236,20 @@
   }
 
   function render(main, tab) {
-    if (tab && ['cable', 'ports', 'gear'].includes(tab)) state.tab = tab;
+    if (tab && ['cable', 'ports', 'gear', 'wlc'].includes(tab)) state.tab = tab;
     main.innerHTML = `
       <div class="guide-top">
         <div class="chips" role="tablist" aria-label="Hardware lab">
           <button class="chip" type="button" data-t="cable" aria-pressed="${state.tab === 'cable'}">Cable it</button>
           <button class="chip" type="button" data-t="ports" aria-pressed="${state.tab === 'ports'}">Port ID</button>
           <button class="chip" type="button" data-t="gear" aria-pressed="${state.tab === 'gear'}">Know your gear</button>
+          <button class="chip" type="button" data-t="wlc" aria-pressed="${state.tab === 'wlc'}">WLC GUI</button>
         </div>
       </div>
       <div id="hwBody"></div>`;
     main.querySelectorAll('[data-t]').forEach((b) => b.addEventListener('click', () => { state.tab = b.dataset.t; render(main); }));
     const body = main.querySelector('#hwBody');
-    ({ cable: renderCable, ports: renderPorts, gear: renderGear })[state.tab](body);
+    ({ cable: renderCable, ports: renderPorts, gear: renderGear, wlc: (b) => TT.renderWlc(b) })[state.tab](body);
   }
 
   TT.renderHardware = render;
