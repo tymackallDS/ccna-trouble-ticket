@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Trouble Ticket</title>
-<meta name="description" content="A CCNA troubleshooting game with a simulated Cisco CLI, subnet drill, protocol field guide and quiz.">
+<meta name="description" content="Work the night shift at Harbor Point Logistics: fix real networks in a simulated Cisco CLI and study for the CCNA 200-301 with lessons, animated scenes, drills and mock exams.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -112,7 +112,10 @@ button, input, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 h1, h2, h3 { text-wrap: balance; margin: 0; }
 
-/* ---------- masthead ---------- */
+/* ---------- masthead ----------
+ * Row 1: the wordmark, the Field Manual button, then the rank chip, "On shift" light and theme toggle
+ * (career.js and theme.js inject those as .cr-hud and .tt-hud). Row 2: the five rooms. Row 3: the
+ * active room's views. The flex order keeps that layout whatever order the scripts inject in. */
 .mast {
   max-width: 1240px;
   margin: 0 auto;
@@ -121,9 +124,9 @@ h1, h2, h3 { text-wrap: balance; margin: 0; }
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 14px 24px;
+  gap: 14px 12px;
 }
-.brand { display: flex; flex-direction: column; gap: 2px; }
+.brand { display: flex; flex-direction: column; gap: 2px; order: 0; }
 .wordmark {
   font-family: var(--display);
   font-weight: 800;
@@ -131,36 +134,185 @@ h1, h2, h3 { text-wrap: balance; margin: 0; }
   letter-spacing: 0.02em;
   line-height: 0.9;
   text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  align-self: flex-start;
+  border-radius: 6px;
 }
 .wordmark span { color: var(--stamp); }
+.wordmark:hover span { text-shadow: 0 0 16px color-mix(in srgb, var(--stamp) 55%, transparent); }
 .tagline { color: var(--muted); font-size: 13.5px; }
-nav.tabs { display: flex; flex-wrap: wrap; gap: 4px; }
-nav.tabs a {
+
+/* the Field Manual: a book on the shelf by the door */
+.fm-btn {
+  order: 1;
+  margin-left: auto;
+  align-self: flex-start;
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 42px;
+  padding: 0 14px 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--sheet);
+  color: var(--ink);
+  font-weight: 500; font-size: 14px;
   text-decoration: none;
-  color: var(--muted);
-  font-weight: 500;
-  font-size: 14px;
-  padding: 7px 12px;
-  border-radius: 8px;
-  border: 1px solid transparent;
+  box-shadow: var(--shadow);
+  transition: border-color 0.18s var(--ease), color 0.18s var(--ease), box-shadow 0.25s var(--ease);
 }
-nav.tabs a { position: relative; transition: color 0.18s var(--ease), border-color 0.18s var(--ease), background-color 0.18s var(--ease), box-shadow 0.25s var(--ease); }
-nav.tabs a:hover { color: var(--ink); border-color: var(--line); background: color-mix(in srgb, var(--sheet) 60%, transparent); }
-nav.tabs a[aria-current='page'] {
+.fm-btn svg { color: var(--accent); flex: none; }
+.fm-btn:hover { border-color: var(--accent); box-shadow: var(--glow-accent); }
+.fm-btn[aria-current='page'] { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); box-shadow: var(--glow-accent), inset 0 -2px 0 var(--warn); }
+header.mast > .tt-hud { order: 2; margin-left: 0; }
+.mast > .cr-hud { order: 2; }
+
+/* ---------- rooms ---------- */
+nav.rooms { order: 4; flex: 1 0 100%; min-width: 0; margin-top: 4px; }
+.rooms-row { list-style: none; margin: 0; padding: 0; display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
+.rooms-row li { flex: 0 1 auto; min-width: 0; display: flex; }
+a.room {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 9px;
+  min-height: 46px;
+  margin-bottom: -1px;
+  padding: 0 16px 0 13px;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 10px 10px 0 0;
+  color: var(--muted);
+  font-weight: 500; font-size: 14.5px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.18s var(--ease), background-color 0.18s var(--ease), border-color 0.18s var(--ease);
+}
+a.room .rm-ico { width: 21px; height: 21px; flex: none; }
+a.room .room-s { display: none; }
+a.room:hover { color: var(--ink); background: color-mix(in srgb, var(--sheet) 55%, transparent); }
+a.room:hover .rm-ico { color: var(--accent); }
+a.room[aria-current='true'] {
   color: var(--ink);
   background: var(--sheet);
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
-  box-shadow: var(--glow-accent), inset 0 -2px 0 color-mix(in srgb, var(--warn) 85%, transparent);
+  border-color: var(--line);
+  box-shadow: 0 -10px 24px -18px color-mix(in srgb, var(--accent) 70%, transparent);
 }
-/* the active tab carries a small amber status light in its corner */
-nav.tabs a[aria-current='page']::after {
+a.room[aria-current='true'] .rm-ico { color: var(--accent); filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent) 50%, transparent)); }
+/* the room you are in has its light on */
+a.room[aria-current='true']::after {
   content: '';
   position: absolute;
-  top: 4px; right: 4px;
+  top: 7px; right: 7px;
   width: 5px; height: 5px;
   border-radius: 50%;
   background: var(--warn);
   box-shadow: var(--glow-warn);
+}
+a.room:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; box-shadow: var(--glow-accent); }
+
+/* ---------- the active room's views ---------- */
+nav.subtabs {
+  order: 5; flex: 1 0 100%; min-width: 0;
+  margin-top: -14px;
+  display: flex; align-items: center; gap: 14px;
+  padding: 7px 10px;
+  background: var(--sheet);
+  border: 1px solid var(--line);
+  border-top: 0;
+  border-radius: 0 0 10px 10px;
+  box-shadow: var(--shadow);
+}
+nav.subtabs[hidden] { display: none; }
+.sub-room { font: 600 11px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-left: 4px; white-space: nowrap; }
+nav.subtabs ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+nav.subtabs a {
+  display: inline-flex; align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 14px; font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  transition: color 0.18s var(--ease), background-color 0.18s var(--ease), border-color 0.18s var(--ease);
+}
+nav.subtabs a:hover { color: var(--ink); background: var(--sheet-2); }
+nav.subtabs a[aria-current='page'] {
+  color: var(--ink);
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  box-shadow: inset 0 -2px 0 var(--warn);
+}
+nav.subtabs a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* ---------- the Field Manual drawer and page ---------- */
+.fm-drawer {
+  margin: 0 0 0 auto;
+  width: min(720px, 100vw);
+  max-width: 100vw;
+  height: 100dvh; max-height: 100dvh;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid var(--line-strong);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: -30px 0 60px -30px rgba(0, 0, 0, 0.8);
+}
+.fm-drawer[open] { animation: fm-in 0.28s var(--ease); }
+.fm-drawer::backdrop { background: rgba(3, 6, 12, 0.6); backdrop-filter: blur(2px); }
+@keyframes fm-in { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+.fm-panel { display: flex; flex-direction: column; height: 100%; }
+.fm-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px 14px 20px;
+  border-bottom: 1px solid var(--line);
+  background: var(--sheet);
+}
+.fm-head h2 { font-family: var(--display); font-weight: 800; font-size: 26px; letter-spacing: 0.03em; text-transform: uppercase; margin-right: auto; }
+.fm-ico { width: 26px; height: 26px; color: var(--accent); flex: none; }
+.fm-page { min-height: 40px; display: inline-flex; align-items: center; }
+.fm-close {
+  display: inline-grid; place-items: center;
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--sheet-2);
+  color: var(--ink);
+  cursor: pointer;
+}
+.fm-close:hover { border-color: var(--accent); }
+.fm-body { flex: 1; overflow-y: auto; padding: 16px 20px 40px; overscroll-behavior: contain; }
+.fm-body .cards { grid-template-columns: 1fr; }
+.fm-pagehead { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.fm-pagehead .fm-ico { width: 40px; height: 40px; padding: 7px; border-radius: 10px; background: var(--accent-soft); }
+.fm-pagehead h2 { font-size: 22px; }
+.fm-pagehead .label { margin: 0 0 2px; }
+
+@media (max-width: 900px) {
+  .mast > .cr-hud { order: 3; }
+}
+/* phones: five rooms in one row, icon over a short label; the views sit beneath */
+@media (max-width: 600px) {
+  .mast { padding: 14px 14px 0; gap: 10px; }
+  .wordmark { font-size: 27px; white-space: nowrap; }
+  .tagline { font-size: 12.5px; }
+  .fm-btn { position: absolute; top: 14px; right: 62px; width: 40px; height: 40px; min-height: 0; padding: 0; justify-content: center; margin: 0; }
+  .fm-btn-l { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  nav.rooms { margin-top: 0; }
+  .rooms-row { gap: 2px; }
+  .rooms-row li { flex: 1 1 0; }
+  a.room { flex: 1; flex-direction: column; justify-content: center; gap: 3px; min-height: 54px; padding: 6px 2px 5px; font-size: 11.5px; letter-spacing: 0.01em; }
+  a.room .room-l { display: none; }
+  a.room .room-s { display: block; }
+  a.room .rm-ico { width: 22px; height: 22px; }
+  a.room[aria-current='true']::after { top: 5px; right: 5px; }
+  nav.subtabs { margin-top: -10px; padding: 6px; gap: 8px; }
+  .sub-room { display: none; }
+  nav.subtabs ul { flex: 1; }
+  nav.subtabs a { min-height: 40px; padding: 0 11px; font-size: 13.5px; }
+  .fm-head { padding: 10px 10px 10px 14px; }
+  .fm-head h2 { font-size: 22px; }
+  .fm-head .fm-page { display: none; }
+  .fm-body { padding: 12px 12px 40px; }
 }
 
 main { max-width: 1240px; margin: 0 auto; padding: 18px 20px 60px; }
@@ -511,7 +663,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
 .btn.primary:hover:not(:disabled) { background-color: var(--accent); }
 .btn:active:not(:disabled) { transform: translateY(1px); }
 .btn:focus-visible, .chip:focus-visible, .opt:focus-visible, .seg button:focus-visible, .devtabs button:focus-visible,
-.stub:focus-visible, .wl-btn:focus-visible, .wl-menu:focus-visible, nav.tabs a:focus-visible {
+.stub:focus-visible, .wl-btn:focus-visible, .wl-menu:focus-visible, .fm-btn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   box-shadow: var(--glow-accent);
@@ -570,7 +722,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
 @media (max-width: 600px) {
   .tt-hud { position: absolute; top: 14px; right: 14px; margin: 0; min-height: 0; }
   .tt-onshift { display: none; }
-  .brand { padding-right: 52px; }
+  .brand { padding-right: 104px; }
 }
 
 /* ---------- "live" status lights ----------
@@ -604,10 +756,10 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
 
 @media (prefers-reduced-motion: reduce) {
   .live-dot, .tt-live { animation: none; }
-  .btn, .chip, .opt, .seg button, .devtabs button, .stub, .card, .tt-theme, nav.tabs a, .mapday { transition: none; }
+  .btn, .chip, .opt, .seg button, .devtabs button, .stub, .card, .tt-theme, a.room, nav.subtabs a, .fm-btn, .mapday { transition: none; }
+  .fm-drawer[open] { animation: none; }
   .btn:active:not(:disabled), .tt-theme:active { transform: none; }
 }
-@media (max-width: 600px) { nav.tabs a { padding: 9px 12px; } }
 
 /* ---- lessons.css ---- */
 /* Trouble Ticket — Lessons module (prefix ls-). Uses the variables from styles.css, so dark mode comes free. */
@@ -2065,27 +2217,484 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
   .topo .link { transition: none; }
 }
 
+/* ---- home.css ---- */
+/* Trouble Ticket: the front door (#home).
+ * The hero is a window into the 2 a.m. NOC, so it stays a night scene in both themes; its text uses
+ * fixed light-on-dark colors that are checked against the art. Everything below the hero reads the
+ * theme variables. */
+.hm { display: grid; gap: 34px; }
+
+/* ---------- hero ---------- */
+.hm-hero {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #070b15;
+  border: 1px solid var(--line);
+  box-shadow: 0 30px 60px -40px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(130, 180, 255, 0.04) inset;
+  height: clamp(460px, calc((min(100vw, 1240px) - 40px) / 2), 600px);
+  isolation: isolate;
+}
+:root[data-theme='light'] .hm-hero { box-shadow: 0 24px 50px -30px rgba(21, 33, 45, 0.55); border-color: #1d2a3d; }
+.hm-art { position: absolute; inset: 0; z-index: 0; }
+.hm-art .hx { display: block; width: 100%; height: 100%; }
+.hm-hero::after {
+  /* the scrim that keeps the copy readable over the art */
+  content: '';
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(4, 7, 14, 0.94) 0%, rgba(4, 7, 14, 0.82) 24%, rgba(4, 7, 14, 0.35) 38%, rgba(4, 7, 14, 0) 46%),
+    linear-gradient(0deg, rgba(4, 7, 14, 0.55) 0%, rgba(4, 7, 14, 0) 22%);
+}
+.hm-copy {
+  position: relative; z-index: 2;
+  height: 100%;
+  width: min(46%, 520px);
+  padding: clamp(24px, 4vw, 48px);
+  display: flex; flex-direction: column; justify-content: center; gap: 14px;
+  color: #e9eff6;
+}
+.hm-kicker {
+  margin: 0;
+  display: inline-flex; align-items: center; gap: 9px;
+  font: 500 12px var(--mono); letter-spacing: 0.08em; text-transform: uppercase;
+  color: #a6b8cb;
+}
+.hm-kicker .live-dot { background: #4fd394; box-shadow: 0 0 6px rgba(79, 211, 148, 0.7), 0 0 14px rgba(79, 211, 148, 0.3); }
+.hm-title {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(54px, 7.4vw, 104px);
+  line-height: 0.86;
+  letter-spacing: 0.015em;
+  text-transform: uppercase;
+  color: #f1f5f9;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.6);
+}
+.hm-title span { display: block; color: #ff6f63; text-shadow: 0 0 22px rgba(255, 111, 99, 0.35), 0 2px 24px rgba(0, 0, 0, 0.6); }
+.hm-pitch { margin: 0; font-size: clamp(15.5px, 1.45vw, 18.5px); line-height: 1.5; color: #cdd8e4; max-width: 36ch; text-wrap: pretty; }
+.hm-back:empty { display: none; }
+.hm-back { display: grid; gap: 10px; }
+.hm-welcome { margin: 0; font-weight: 600; font-size: 15px; color: #f4c76a; }
+.hm-welcome span { font: 500 12px var(--mono); color: #a6b8cb; margin-left: 6px; letter-spacing: 0.04em; }
+
+/* the pager-style "tonight" card */
+.hm-pager {
+  display: flex; align-items: stretch; gap: 10px;
+  max-width: 400px;
+  padding: 8px;
+  border-radius: 12px;
+  background: #1a202d;
+  border: 1px solid #343f57;
+  box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.18s var(--ease), box-shadow 0.22s var(--ease), transform 0.22s var(--ease);
+}
+.hm-pager:hover { border-color: #f4b648; box-shadow: 0 0 0 1px rgba(244, 182, 72, 0.4), 0 10px 24px -14px rgba(0, 0, 0, 0.9); }
+.hm-pager:focus-visible { outline: 2px solid #f4b648; outline-offset: 2px; }
+.hm-pager-lcd {
+  flex: 1; min-width: 0;
+  display: grid; gap: 1px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #b4e488, #9fd273);
+  color: #142a0c;
+  font-family: var(--mono);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+.hm-pager-tag { font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; }
+.hm-pager-msg { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hm-pager-line { font-size: 12px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.hm-pager-go { align-self: center; padding: 0 6px; font: 600 13px var(--body); color: #f4c76a; white-space: nowrap; }
+
+.hm-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 4px; }
+.hm-cta {
+  display: inline-flex; align-items: center; gap: 10px;
+  min-height: 48px;
+  padding: 12px 24px 12px 20px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffc65e, #f2ab32);
+  color: #1d1303;
+  font: 700 17px var(--body);
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  border: 1px solid #ffd27e;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 10px 28px -10px rgba(244, 182, 72, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  transition: transform 0.2s var(--ease), box-shadow 0.25s var(--ease), filter 0.2s var(--ease);
+}
+.hm-cta:hover { filter: brightness(1.06); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 14px 34px -10px rgba(244, 182, 72, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.5); transform: translateY(-1px); }
+.hm-cta:active { transform: translateY(1px); }
+.hm-cta:focus-visible { outline: 3px solid #f1f5f9; outline-offset: 3px; }
+.hm-cta-why { font-size: 13px; color: #a6b8cb; max-width: 28ch; }
+
+/* ---------- what's on this shift ---------- */
+.hm-shift-h { font-family: var(--display); font-weight: 800; font-size: 30px; letter-spacing: 0.02em; text-transform: uppercase; margin: 0 0 14px; }
+.hm-rooms { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+.hm-room {
+  height: 100%;
+  display: grid; grid-template-rows: auto auto 1fr auto; gap: 8px;
+  padding: 18px 18px 16px;
+  border-radius: var(--radius);
+  background: var(--sheet);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+  text-decoration: none;
+  transition: border-color 0.18s var(--ease), box-shadow 0.22s var(--ease), transform 0.22s var(--ease);
+}
+.hm-room:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+.hm-room:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: var(--glow-accent); }
+.hm-room-ico { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 10px; background: var(--accent-soft); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
+.hm-room-ico svg { width: 24px; height: 24px; }
+.hm-room-name { font-weight: 600; font-size: 16px; }
+.hm-room-line { font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+.hm-room-num { display: grid; gap: 4px; padding-top: 10px; border-top: 1px dashed var(--line); font-size: 13px; color: var(--muted); }
+.hm-room-num b { font-family: var(--display); font-weight: 800; font-size: 30px; line-height: 1; color: var(--ink); letter-spacing: 0.02em; margin-right: 2px; }
+.hm-room-num small { font-size: 12.5px; }
+.hm-foot { margin: 16px 0 0; display: flex; align-items: flex-start; gap: 10px; color: var(--muted); font-size: 14px; }
+.hm-foot-ico { width: 20px; height: 20px; flex: none; color: var(--accent); }
+
+@media (max-width: 1100px) { .hm-rooms { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 980px) {
+  .hm-copy { width: min(58%, 520px); }
+  .hm-hero::after { background: linear-gradient(90deg, rgba(4, 7, 14, 0.95) 0%, rgba(4, 7, 14, 0.85) 36%, rgba(4, 7, 14, 0.4) 52%, rgba(4, 7, 14, 0) 62%); }
+}
+/* phones: the art on top (cropped to the desk and the window), the copy beneath it */
+@media (max-width: 760px) {
+  .hm { gap: 26px; }
+  .hm-hero { height: auto; display: flex; flex-direction: column; }
+  .hm-art { position: relative; inset: auto; aspect-ratio: 5 / 4; }
+  .hm-hero::after { display: none; }
+  .hm-copy { width: auto; height: auto; padding: 18px 18px 22px; gap: 12px; border-top: 1px solid #1a2436; }
+  .hm-k2 { display: none; }
+  .hm-shift-h { font-size: 26px; line-height: 1.05; }
+  .hm-title { font-size: clamp(52px, 16vw, 76px); }
+  .hm-pager { max-width: none; }
+  .hm-rooms { grid-template-columns: 1fr; gap: 10px; }
+  .hm-room { grid-template-columns: 42px 1fr auto; grid-template-rows: auto auto; gap: 2px 14px; padding: 14px; align-items: center; }
+  .hm-room-ico { grid-row: 1 / span 2; }
+  .hm-room-line { grid-column: 2; font-size: 13px; }
+  .hm-room-num { grid-column: 3; grid-row: 1 / span 2; border: 0; padding: 0; text-align: right; }
+  .hm-room-num b { font-size: 26px; }
+  .hm-room-num small { display: none; }
+}
+@media (max-width: 420px) {
+  .hm-room { grid-template-columns: 42px 1fr; }
+  .hm-room-num { grid-column: 2; grid-row: auto; text-align: left; display: block; }
+  .hm-room-num b { font-size: 22px; }
+}
+
+/* ---------- ambient motion in the art ---------- */
+.hx .hx-tw { animation: hx-twinkle 5.5s ease-in-out infinite; }
+.hx .hx-led { animation: hx-led 2.4s steps(1, end) infinite; }
+.hx .hx-led.fast { animation-duration: 0.9s; }
+.hx .hx-led.slow { animation: hx-breathe 3.6s ease-in-out infinite; }
+.hx .hx-beacon { animation: hx-beacon 2.2s ease-in-out infinite; }
+.hx .hx-beacon.b2 { animation-delay: -1.1s; }
+.hx .hx-cursor { animation: hx-cursor 1.05s steps(1, end) infinite; }
+.hx .hx-ref { transform-box: fill-box; transform-origin: 50% 0; animation: hx-ref 5s ease-in-out infinite; }
+.hx .hx-dash { transform-box: fill-box; animation: hx-dash 6s ease-in-out infinite; }
+.hx .hx-moonref { transform-box: fill-box; transform-origin: 50% 0; animation: hx-ref 7s ease-in-out infinite; }
+.hx .hx-pkt { animation: hx-pkt 4.8s linear infinite; }
+.hx .hx-taxi { transform: translate(560px, 256px); animation: hx-taxi 46s linear infinite; }
+.hx .hx-alert { animation: hx-alert 1.8s ease-in-out infinite; }
+.hx .hx-pager { transform-box: fill-box; transform-origin: 50% 50%; animation: hx-buzz 11s linear infinite; }
+.hx .hx-lcd { opacity: 0.28; animation: hx-lcd 11s linear infinite; }
+.hx .hx-pagetxt { opacity: 0.25; animation: hx-lcd 11s linear infinite; }
+.hx .hx-pglow { opacity: 0; animation: hx-glow 11s linear infinite; }
+.hx .hx-buzz { opacity: 0; animation: hx-glow 11s linear infinite; }
+.hx .hx-pled { animation: hx-led 1.2s steps(1, end) infinite; }
+
+@keyframes hx-twinkle { 0%, 100% { opacity: 0.85; } 50% { opacity: 0.2; } }
+@keyframes hx-led { 0%, 62% { opacity: 1; } 63%, 78% { opacity: 0.18; } 79%, 100% { opacity: 1; } }
+@keyframes hx-breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+@keyframes hx-beacon { 0%, 55%, 100% { opacity: 0.15; } 60%, 80% { opacity: 1; } }
+@keyframes hx-cursor { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+@keyframes hx-ref { 0%, 100% { transform: scaleY(1); opacity: 1; } 50% { transform: scaleY(0.82); opacity: 0.7; } }
+@keyframes hx-dash { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
+@keyframes hx-pkt {
+  0% { cx: 565px; cy: 318px; opacity: 0; }
+  4% { opacity: 1; }
+  30% { cx: 520px; cy: 348px; }
+  65% { cx: 612px; cy: 346px; }
+  96% { cx: 565px; cy: 318px; opacity: 1; }
+  100% { cx: 565px; cy: 318px; opacity: 0; }
+}
+@keyframes hx-taxi { 0% { transform: translate(470px, 256px); } 100% { transform: translate(1010px, 262px); } }
+@keyframes hx-alert { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+/* the pager: quiet, then a short buzz and wiggle with the PAGE screen lit */
+@keyframes hx-buzz {
+  0%, 74%, 86%, 100% { transform: translate(0, 0) rotate(0); }
+  75% { transform: translate(-1.6px, 0) rotate(-2.2deg); }
+  76% { transform: translate(1.6px, -0.6px) rotate(2deg); }
+  77% { transform: translate(-1.4px, 0.4px) rotate(-1.8deg); }
+  78% { transform: translate(1.4px, 0) rotate(1.6deg); }
+  79% { transform: translate(0, 0) rotate(0); }
+  81% { transform: translate(-1.4px, 0) rotate(-1.8deg); }
+  82% { transform: translate(1.4px, -0.4px) rotate(1.8deg); }
+  83% { transform: translate(-1.2px, 0.4px) rotate(-1.4deg); }
+  84% { transform: translate(1px, 0) rotate(1deg); }
+}
+@keyframes hx-lcd { 0%, 73% { opacity: 0.28; } 74%, 94% { opacity: 1; } 100% { opacity: 0.28; } }
+@keyframes hx-glow { 0%, 73% { opacity: 0; } 75%, 86% { opacity: 1; } 95%, 100% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .hx *, .hx .hx-taxi { animation: none !important; }
+  /* the still frame: the page has just come in */
+  .hx .hx-lcd, .hx .hx-pagetxt { opacity: 1; }
+  .hx .hx-pglow { opacity: 0.7; }
+  .hx .hx-pkt { cx: 520px; cy: 348px; }
+  .hm-cta, .hm-room, .hm-pager { transition: none; }
+  .hm-cta:hover, .hm-room:hover, .hm-cta:active { transform: none; }
+}
+
+/* the pager card already names tonight's work: don't repeat it under the button */
+.hm-back:has(.hm-pager) ~ .hm-actions .hm-cta-why { display: none; }
+
+/* ---- plan.css ---- */
+/* Trouble Ticket — study plan (plan.js): the "Shift schedule" pinned to the NOC wall.
+ * Paper sheets with push pins, a work-order card for tonight, a 7-day strip and collapsible weeks. */
+
+.pl-wall { max-width: 1080px; margin: 0 auto; display: grid; gap: 18px; }
+.pl-wall > * { min-width: 0; }
+.pl-paper { position: relative; box-shadow: var(--shadow); }
+.pl-paper::before { /* a strip of masking tape */
+  content: ''; position: absolute; top: -9px; left: 50%; width: 92px; height: 20px; transform: translateX(-50%) rotate(-2deg);
+  background: color-mix(in srgb, var(--warn) 22%, transparent); border: 1px solid color-mix(in srgb, var(--warn) 30%, transparent);
+  border-radius: 2px; pointer-events: none;
+}
+.pl-pin { position: absolute; top: 8px; left: 10px; width: 18px; height: 18px; fill: var(--stamp); filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.35)); pointer-events: none; }
+.pl-pin-r { left: auto; right: 10px; }
+.pl-pin .pl-pin-hi { fill: rgba(255, 255, 255, 0.45); }
+.pl-h { font: 800 clamp(30px, 4.4vw, 46px)/0.95 var(--display); text-transform: uppercase; letter-spacing: 0.02em; margin: 2px 0 6px; }
+.pl-h3 { font: 800 22px/1 var(--display); text-transform: uppercase; letter-spacing: 0.03em; margin: 0; }
+.pl-sub, .pl-lede { margin: 0; color: var(--muted); font-size: 14px; }
+.pl-lede { max-width: 66ch; font-size: 15px; color: var(--ink); }
+.pl-fine { margin: 4px 0 0; font-size: 12.5px; color: var(--muted); }
+.pl-toast { margin: 0; padding: 10px 14px; border: 1px solid color-mix(in srgb, var(--good) 45%, var(--line)); border-left-width: 4px; border-radius: 8px; background: color-mix(in srgb, var(--good) 8%, var(--sheet)); font-size: 14px; }
+.pl-toast:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- warnings ---------- */
+.pl-warn { margin: 12px 0 0; padding: 9px 12px; border-left: 3px solid var(--warn); border-radius: 0 8px 8px 0; background: color-mix(in srgb, var(--warn) 9%, transparent); font-size: 14px; max-width: 80ch; }
+.pl-warn.pl-bad { border-left-color: var(--stamp); background: color-mix(in srgb, var(--stamp) 9%, transparent); }
+.pl-warn.pl-note { border-left-color: var(--accent); background: var(--accent-soft); }
+
+/* ---------- setup form ---------- */
+.pl-setup { padding-top: 30px; }
+.pl-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 22px; margin-top: 18px; }
+.pl-field { display: grid; gap: 6px; align-content: start; margin: 0; padding: 0; border: 0; min-width: 0; }
+.pl-field > label, .pl-field > legend { font: 600 11.5px var(--body); letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); padding: 0; margin-bottom: 6px; }
+.pl-field input[type='date'] { min-height: 42px; padding: 7px 10px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--paper); font: 15px var(--mono); color: var(--ink); max-width: 240px; }
+.pl-field input[type='date']:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.pl-note { margin: 0; font-size: 13px; color: var(--muted); }
+.pl-note.pl-bad { color: var(--stamp); }
+.pl-chips .chip { min-height: 42px; min-width: 48px; font: 600 14px var(--mono); }
+.pl-preview { grid-column: 1 / -1; }
+.pl-sum { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.pl-sum > div { border: 1px dashed var(--line-strong); border-radius: 8px; padding: 8px 12px; min-width: 0; }
+.pl-sum dt { font-size: 12px; color: var(--muted); }
+.pl-sum dd { margin: 2px 0 0; font: 600 22px var(--mono); font-variant-numeric: tabular-nums; }
+.pl-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pl-actions .btn, .pl-tools .btn, .pl-hero .btn { min-height: 42px; }
+.pl-danger { margin-left: auto; }
+.pl-danger[data-armed='1'] { color: var(--stamp); border-color: var(--stamp); }
+
+/* ---------- top of the board ---------- */
+.pl-board { padding-top: 30px; }
+.pl-board-top { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: flex-end; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px dashed var(--line-strong); }
+.pl-title { min-width: 0; }
+.pl-count { text-align: right; }
+.pl-count-n { margin: 0; font: 600 15px var(--body); color: var(--muted); }
+.pl-count-n b { display: block; font: 800 clamp(48px, 7vw, 76px)/0.9 var(--display); color: var(--warn); letter-spacing: 0.01em; text-shadow: var(--glow-warn); font-variant-numeric: tabular-nums; }
+.pl-count-sub { margin: 4px 0 0; font: 12.5px var(--mono); color: var(--muted); }
+.pl-gauges { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) auto; gap: 18px 24px; align-items: start; margin-top: 16px; }
+.pl-gauge { min-width: 0; }
+.pl-gauge .label { margin-bottom: 6px; }
+.pl-bar { height: 12px; border-radius: 6px; background: var(--line); overflow: hidden; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25); }
+.pl-bar i { display: block; height: 100%; min-width: 2px; background: repeating-linear-gradient(-45deg, var(--good) 0 8px, color-mix(in srgb, var(--good) 80%, var(--sheet)) 8px 16px); border-radius: inherit; transition: width 0.6s var(--ease); }
+.pl-pace-v { margin: 0; display: flex; align-items: center; gap: 8px; font: 700 18px var(--mono); text-transform: uppercase; letter-spacing: 0.04em; }
+.pl-lamp { width: 11px; height: 11px; border-radius: 50%; background: var(--good); box-shadow: var(--glow-good); flex: none; }
+.pl-pace-ahead .pl-pace-v, .pl-pace-on-track .pl-pace-v { color: var(--good); }
+.pl-pace-behind .pl-pace-v { color: var(--warn); }
+.pl-pace-behind .pl-lamp { background: var(--warn); box-shadow: var(--glow-warn); }
+.pl-catch { display: inline-block; margin-top: 8px; min-height: 40px; border-color: color-mix(in srgb, var(--warn) 60%, var(--line)); }
+.pl-tools { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+.pl-export { display: flex; gap: 6px; flex-wrap: wrap; }
+.pl-select { min-height: 42px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--sheet); font-size: 13.5px; color: var(--ink); }
+
+/* ---------- tonight's shift ---------- */
+.pl-hero { position: relative; border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line)); border-top: 5px solid var(--accent); box-shadow: var(--shadow-hover); background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 6%, var(--sheet)), var(--sheet) 120px); }
+.pl-hero.is-complete { border-top-color: var(--good); border-color: color-mix(in srgb, var(--good) 45%, var(--line)); }
+.pl-hero.pl-off { border-top-color: var(--muted); background: var(--sheet); }
+.pl-hero-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-end; flex-wrap: wrap; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.pl-hero-h { font: 800 clamp(26px, 3.4vw, 34px)/1 var(--display); text-transform: uppercase; letter-spacing: 0.02em; margin: 0; }
+.pl-hero-h:focus { outline: none; }
+.pl-hero-min { margin: 0; text-align: right; font: 13px var(--mono); color: var(--muted); }
+.pl-hero-min b { font-size: 22px; color: var(--ink); }
+.pl-hero-foot { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin-top: 14px; }
+.pl-clock { font-size: 15px; padding: 10px 18px; display: inline-flex; align-items: center; }
+.pl-kenji { margin: 0; font: 13px var(--mono); color: var(--muted); }
+.pl-off-p { margin: 14px 0 0; font-size: 15px; max-width: 70ch; }
+.pl-extra { margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--line-strong); }
+.pl-extra .label:focus { outline: none; }
+.pl-complete { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-top: 14px; }
+.pl-complete p { margin: 0; font-size: 14.5px; }
+
+/* items */
+.pl-items { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 4px; }
+.pl-item { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 4px 8px; padding: 4px 6px 4px 0; border-radius: 8px; }
+.pl-item:hover { background: var(--sheet-2); }
+.pl-box { width: 40px; height: 40px; padding: 0; border: 0; background: none; display: grid; place-items: center; cursor: default; }
+.pl-box::before { content: ''; width: 20px; height: 20px; border: 2px solid var(--muted); border-radius: 5px; box-sizing: border-box; transition: background-color 0.15s, border-color 0.15s; }
+button.pl-box { cursor: pointer; border-radius: 8px; }
+button.pl-box:hover::before { border-color: var(--accent); }
+.pl-box.on::before { background: var(--good); border-color: var(--good); }
+.pl-box.on::after { content: ''; position: absolute; width: 9px; height: 5px; border: 2.5px solid var(--on-status); border-top: 0; border-right: 0; transform: translate(0, -1px) rotate(-45deg); }
+.pl-box { position: relative; }
+.pl-item-a { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; color: var(--ink); text-decoration: none; min-width: 0; min-height: 40px; align-content: center; padding: 2px 0; }
+.pl-item-a:hover .pl-item-t { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.pl-tag { display: inline-flex; align-items: center; gap: 5px; font: 600 11.5px var(--mono); letter-spacing: 0.05em; text-transform: uppercase; color: var(--accent); white-space: nowrap; }
+.pl-glyph { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.pl-k-ticket .pl-tag { color: var(--stamp); }
+.pl-k-lab .pl-tag { color: var(--good); }
+.pl-k-flash .pl-tag, .pl-k-review .pl-tag { color: var(--muted); }
+.pl-k-checkpoint .pl-tag, .pl-k-exam .pl-tag { color: var(--warn); }
+.pl-item-t { font-size: 15px; font-weight: 500; min-width: 0; overflow-wrap: anywhere; }
+.pl-how { flex-basis: 100%; font-size: 12.5px; color: var(--muted); }
+.pl-item-m { display: flex; align-items: center; gap: 8px; justify-self: end; }
+.pl-min { font: 12.5px var(--mono); color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pl-item.is-done .pl-item-t { text-decoration: line-through; text-decoration-thickness: 1.5px; color: var(--muted); }
+.pl-item.is-done .pl-tag { opacity: 0.75; }
+.pl-item.is-moved .pl-item-t, .pl-item.is-skipped .pl-item-t { color: var(--muted); }
+.pl-flag { display: inline-flex; align-items: center; gap: 4px; font: 700 11px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--stamp); border: 1.5px solid currentColor; border-radius: 4px; padding: 1px 6px; white-space: nowrap; }
+.pl-flag::before { content: '!'; }
+.pl-flag-moved { color: var(--accent); }
+.pl-flag-moved::before { content: '→'; }
+.pl-flag-soft { color: var(--muted); border-style: dashed; }
+.pl-flag-soft::before { content: none; }
+
+/* stamps */
+.pl-stamp { display: inline-block; font: 800 22px/1 var(--display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--stamp); border: 3px solid var(--stamp); border-radius: 6px; padding: 4px 10px; transform: rotate(-6deg); text-shadow: var(--glow-stamp); box-shadow: var(--glow-stamp); white-space: nowrap; }
+.pl-complete .pl-stamp { color: var(--good); border-color: var(--good); text-shadow: none; box-shadow: var(--glow-good); }
+.pl-stamp-sm { font-size: 13px; border-width: 2px; padding: 2px 6px; transform: rotate(-4deg); }
+.pl-stamp-big { font-size: 30px; }
+.pl-stamp-anim { animation: pl-stamp 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both; }
+@keyframes pl-stamp { from { transform: rotate(-6deg) scale(1.8); opacity: 0; } to { transform: rotate(-6deg) scale(1); opacity: 1; } }
+
+/* ---------- this week ---------- */
+.pl-week-strip { display: grid; gap: 10px; }
+.pl-strip { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.pl-day { min-width: 0; }
+.pl-day-btn { width: 100%; height: 100%; min-height: 88px; display: grid; grid-template-rows: auto auto 1fr auto; justify-items: start; gap: 2px; padding: 8px 9px; text-align: left; border: 1px solid var(--line); border-radius: 8px; background: var(--sheet); color: var(--ink); font: inherit; box-sizing: border-box; }
+button.pl-day-btn { cursor: pointer; }
+button.pl-day-btn:hover { border-color: var(--accent); }
+.pl-day-w { font: 600 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.pl-day-d { font: 800 26px/1 var(--display); }
+.pl-day-s { font: 12px var(--mono); color: var(--muted); align-self: end; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.pl-day-bar { width: 100%; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; margin-top: 4px; }
+.pl-day-bar i { display: block; height: 100%; background: var(--good); }
+.pl-day.is-off .pl-day-btn { background: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--line) 55%, transparent) 6px 7px), var(--paper); }
+.pl-day.is-off .pl-day-d { color: var(--muted); }
+.pl-day.is-done .pl-day-s { color: var(--good); }
+.pl-day.is-missed .pl-day-btn { border-color: color-mix(in srgb, var(--stamp) 55%, var(--line)); }
+.pl-day.is-missed .pl-day-s { color: var(--stamp); }
+.pl-day.has-exam .pl-day-btn { border-color: color-mix(in srgb, var(--warn) 60%, var(--line)); }
+.pl-day.is-exam .pl-day-btn { border: 2px solid var(--stamp); }
+.pl-day.is-exam .pl-day-s { color: var(--stamp); font-weight: 700; }
+.pl-day.is-today .pl-day-btn { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset, var(--glow-accent); }
+.pl-day.is-today .pl-day-w { color: var(--accent); }
+
+/* ---------- the whole schedule ---------- */
+.pl-weeks { display: grid; gap: 8px; }
+.pl-weeks-head { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; justify-content: space-between; margin-bottom: 2px; }
+.pl-weeks-head .pl-fine { margin: 0; }
+.pl-week { background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); }
+.pl-week.is-current { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
+.pl-week > summary { list-style: none; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 6px 14px; padding: 10px 16px 10px 40px; min-height: 44px; cursor: pointer; position: relative; border-radius: var(--radius); }
+.pl-week > summary::-webkit-details-marker { display: none; }
+.pl-week > summary::before { content: ''; position: absolute; left: 16px; top: 50%; width: 7px; height: 7px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: translateY(-70%) rotate(-45deg); transition: transform 0.15s var(--ease); }
+.pl-week[open] > summary::before { transform: translateY(-70%) rotate(45deg); }
+.pl-week > summary:hover { background: var(--sheet-2); }
+.pl-week > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.pl-wk-l { display: flex; flex-direction: column; }
+.pl-wk-l b { font: 800 19px/1 var(--display); text-transform: uppercase; letter-spacing: 0.03em; }
+.pl-wk-l span { font: 12px var(--mono); color: var(--muted); }
+.pl-wk-m { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.pl-wk-phase { font: 600 11.5px var(--mono); color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 1px 8px; }
+.pl-wk-now { font: 700 11px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--on-accent); background: var(--accent); border-radius: 99px; padding: 2px 8px; }
+.pl-wk-r { font: 600 14px var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); }
+.pl-week.is-past:not(.is-current) .pl-wk-l b { color: var(--muted); }
+.pl-nights { list-style: none; margin: 0; padding: 0 12px 10px; display: grid; }
+.pl-night { display: grid; grid-template-columns: 84px minmax(0, 1fr) auto; gap: 4px 12px; padding: 8px 4px; border-top: 1px dashed var(--line); align-items: start; border-radius: 6px; }
+.pl-night.is-today { background: var(--accent-soft); }
+.pl-night:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.pl-night.pl-flash { animation: pl-flash 1.2s var(--ease); }
+@keyframes pl-flash { 0%, 40% { box-shadow: 0 0 0 2px var(--accent); } 100% { box-shadow: 0 0 0 2px transparent; } }
+.pl-night-d { display: flex; flex-direction: column; padding-top: 8px; }
+.pl-night-d b { font: 700 14px var(--mono); text-transform: uppercase; }
+.pl-night-d span { font: 12.5px var(--mono); color: var(--muted); }
+.pl-night-d em { font: 700 10.5px var(--mono); font-style: normal; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-top: 3px; }
+.pl-night-r { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-top: 10px; }
+.pl-ok { font: 700 12px var(--mono); color: var(--good); white-space: nowrap; }
+.pl-items-c { margin: 0; gap: 0; }
+.pl-items-c .pl-item { grid-template-columns: 40px minmax(0, 1fr) auto; padding-top: 0; padding-bottom: 0; }
+.pl-items-c .pl-item-t { font-size: 14px; }
+.pl-items-c .pl-item-m .pl-min { min-width: 4.5em; text-align: right; }
+.pl-examday { display: flex; align-items: center; gap: 18px; padding: 16px 18px; border: 2px dashed color-mix(in srgb, var(--stamp) 55%, var(--line)); border-radius: var(--radius); background: color-mix(in srgb, var(--stamp) 5%, var(--sheet)); }
+.pl-examday b { font-size: 16px; }
+
+/* ---------- narrow screens ---------- */
+@media (max-width: 860px) {
+  .pl-gauges { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .pl-tools { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; }
+  .pl-sum { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .pl-form { grid-template-columns: minmax(0, 1fr); }
+  .pl-field input[type='date'] { max-width: none; width: 100%; box-sizing: border-box; }
+  .pl-danger { margin-left: 0; }
+  .pl-board-top { align-items: flex-start; }
+  .pl-count { text-align: left; }
+  .pl-gauges { grid-template-columns: minmax(0, 1fr); }
+  .pl-tools, .pl-export { flex-direction: column; align-items: stretch; }
+  .pl-hero-min { text-align: left; }
+  .pl-clock { width: 100%; justify-content: center; box-sizing: border-box; }
+  .pl-strip { gap: 3px; }
+  .pl-day-btn { padding: 6px 4px; min-height: 76px; justify-items: center; text-align: center; }
+  .pl-day-d { font-size: 21px; }
+  .pl-day-s { font-size: 10px; }
+  .pl-week > summary { grid-template-columns: minmax(0, 1fr) auto; padding-left: 34px; padding-right: 12px; }
+  .pl-week > summary::before { left: 13px; }
+  .pl-wk-m { grid-column: 1 / -1; grid-row: 2; }
+  .pl-nights { padding: 0 6px 8px; }
+  .pl-night { grid-template-columns: minmax(0, 1fr) auto; }
+  .pl-night-d { flex-direction: row; gap: 8px; align-items: baseline; padding-top: 2px; }
+  .pl-night-r { grid-column: 2; grid-row: 1; flex-direction: row; padding-top: 0; }
+  .pl-items-c { grid-column: 1 / -1; }
+  .pl-item { gap: 2px 6px; }
+  .pl-item-m { flex-direction: column; align-items: flex-end; gap: 3px; }
+  .pl-items-c .pl-item-m .pl-min { min-width: 0; }
+  .pl-flag { font-size: 10px; padding: 0 4px; }
+  .pl-examday { flex-direction: column; align-items: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-stamp-anim, .pl-night.pl-flash { animation: none; }
+  .pl-bar i, .pl-box::before, .pl-week > summary::before { transition: none; }
+}
+
 </style>
 </head>
 <body>
 <header class="mast">
   <div class="brand">
-    <div class="wordmark">Trouble <span>Ticket</span></div>
+    <a class="wordmark" href="#home" aria-label="Trouble Ticket: home">Trouble <span>Ticket</span></a>
     <div class="tagline">A CCNA casebook · night shift at Harbor Point Logistics</div>
   </div>
-  <nav class="tabs" aria-label="Sections">
-    <a href="#learn" data-view="learn">Learn</a>
-    <a href="#tickets" data-view="tickets">Tickets</a>
-    <a href="#lab" data-view="lab">Lab</a>
-    <a href="#exam" data-view="exam">Mock exam</a>
-    <a href="#flash" data-view="flash">Flashcards</a>
-    <a href="#map" data-view="map">Course map</a>
-    <a href="#guide" data-view="guide">Field guide</a>
-    <a href="#drill" data-view="drill">Subnet drill</a>
-    <a href="#hardware" data-view="hardware">Hardware lab</a>
-    <a href="#quiz" data-view="quiz">Quick quiz</a>
-    <a href="#progress" data-view="progress">Progress</a>
-  </nav>
+  <a class="fm-btn" id="fm-btn" href="#guide"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 7 4.6 3.5 5v13c3.5-.4 6.5 0 8.5 1.5 2-1.5 5-1.9 8.5-1.5V5C17 4.6 14 5 12 6.5z"/><path d="M12 6.5v13"/></svg><span class="fm-btn-l">Field Manual</span></a>
+  <nav class="rooms" aria-label="Rooms"></nav>
+  <nav class="subtabs" aria-label="Room views" hidden></nav>
 </header>
 <main id="main"></main>
 <footer>Built by Ty Mackall as CCNA practice. Harbor Point Logistics is fictional. Not affiliated with Cisco or Jeremy's IT Lab; CCNA is a Cisco trademark. Video links open YouTube searches for the matching lesson.</footer>
@@ -29864,9 +30473,1545 @@ Content-Type: application/json
   TT.labProjects.byId = Object.fromEntries(projects.map((p) => [p.id, p]));
 })(typeof globalThis !== 'undefined' ? globalThis : window);
 
+/* ---- home.js ---- */
+/* Trouble Ticket: the front door (#home) and the "rooms" model the navigation is built from.
+ *
+ *   TT.rooms.list          the five rooms, each with its sub-tabs (views)
+ *   TT.rooms.parse(hash)   pure: any hash -> { view, arg, room, sub }. app.js routes with it.
+ *   TT.rooms.icon(id)      a small original line icon (inline SVG string) for a room, or 'manual'
+ *   TT.renderHome(main)    the landing page: the night-shift illustration, Clock in, the shift strip
+ *   TT.homeHero()          the illustration on its own (an SVG string)
+ *
+ * Reads, never writes: the progress keys of the other modules (to greet a returning tech and pick
+ * tonight's work), TT.career (rank) and TT.plan.tonight() (the study plan) when they are loaded.
+ */
+(function (G) {
+  'use strict';
+  const TT = (G.TT = G.TT || {});
+
+  /* ================= rooms (pure data) ================= */
+  const ROOMS = [
+    {
+      id: 'training', name: 'Training Room', short: 'Training',
+      line: 'Read the binder: every v1.1 objective in plain English, with animated scenes.',
+      subs: [
+        { id: 'lessons', label: 'Lessons', href: '#learn', view: 'learn' },
+        { id: 'scenes', label: 'Watch it happen', href: '#scenes', view: 'learn' },
+      ],
+    },
+    {
+      id: 'noc', name: 'NOC Floor', short: 'NOC Floor',
+      line: 'Work the ticket queue on a simulated Cisco CLI, then build networks from scratch.',
+      subs: [
+        { id: 'tickets', label: 'Tickets', href: '#tickets', view: 'tickets' },
+        { id: 'lab', label: 'Lab bench', href: '#lab', view: 'lab' },
+        { id: 'hardware', label: 'Hardware cage', href: '#hardware', view: 'hardware' },
+      ],
+    },
+    {
+      id: 'drills', name: 'Drill Room', short: 'Drills',
+      line: 'Reps until it is muscle memory: spaced-repetition cards, subnetting against the clock.',
+      subs: [
+        { id: 'flash', label: 'Flashcards', href: '#flash', view: 'flash' },
+        { id: 'drill', label: 'Subnet drill', href: '#drill', view: 'drill' },
+        { id: 'quiz', label: 'Quick quiz', href: '#quiz', view: 'quiz' },
+      ],
+    },
+    {
+      id: 'cert', name: 'Certification Desk', short: 'Cert Desk',
+      line: 'Timed mock exams in the real format, scored per domain like the score report.',
+      subs: [{ id: 'exam', label: 'Mock exams', href: '#exam', view: 'exam' }],
+    },
+    {
+      id: 'record', name: 'Shift Record', short: 'Record',
+      line: 'Your rank, your streak, a plan for tonight and a map of the whole course.',
+      subs: [
+        { id: 'progress', label: 'Progress', href: '#progress', view: 'progress' },
+        { id: 'plan', label: 'Study plan', href: '#plan', view: 'plan' },
+        { id: 'map', label: 'Course map', href: '#map', view: 'map' },
+      ],
+    },
+  ];
+  // plain view name -> [room, sub]
+  const VIEW_HOME = {};
+  for (const r of ROOMS) for (const s of r.subs) if (!VIEW_HOME[s.view]) VIEW_HOME[s.view] = [r.id, s.id];
+
+  const isTicket = (h) => (TT.tickets && TT.tickets.byId ? !!TT.tickets.byId[h] : /^t\d{2}$/.test(h));
+
+  /** Pure: a location hash (with or without '#') -> what to render and which room and sub-tab light up.
+   *  view is a key of app.js's view table; arg is what that view's renderer receives. */
+  function parse(hash) {
+    const h = String(hash == null ? '' : hash).replace(/^#/, '');
+    const at = (view, arg, room, sub) => ({ view, arg: arg === undefined ? null : arg, room: room || null, sub: sub || null });
+    if (h === '' || h === 'home') return at('home');
+    if (isTicket(h)) return at('tickets', h, 'noc', 'tickets');
+    if (h.startsWith('card-')) return at('guide', { card: h.slice(5) }, null, 'guide');
+    if (h.startsWith('hw-')) return at('hardware', h.slice(3), 'noc', 'hardware');
+    if (h.startsWith('scene-')) return at('learn', { scene: h.slice(6) }, 'training', 'scenes');
+    if (h.startsWith('learn-scene-')) return at('learn', { id: h.slice(6) }, 'training', 'scenes');
+    if (h.startsWith('learn-')) return at('learn', { id: h.slice(6) }, 'training', 'lessons');
+    if (h.startsWith('lab-')) return at('lab', { project: h.slice(4) }, 'noc', 'lab');
+    if (h.startsWith('flash-')) return at('flash', { deck: h.slice(6) }, 'drills', 'flash');
+    if (h === 'scenes') return at('learn', { gallery: true }, 'training', 'scenes');
+    if (h === 'guide') return at('guide', null, null, 'guide');
+    if (VIEW_HOME[h]) return at(h, null, VIEW_HOME[h][0], VIEW_HOME[h][1]);
+    return at('home');
+  }
+  const room = (id) => ROOMS.find((r) => r.id === id) || null;
+
+  /* ================= icons (24x24 line art, currentColor) ================= */
+  const ICON = {
+    // a whiteboard on an easel with a little rising line
+    training: '<rect x="3.5" y="3.5" width="17" height="11.5" rx="1.5"/><path d="M7 11.5l3-3 2.5 2 4-4.5M8 15l-2.5 5.5M16 15l2.5 5.5M12 15v3"/>',
+    // a monitor with a heartbeat trace
+    noc: '<rect x="2.5" y="4" width="19" height="12.5" rx="1.8"/><path d="M5.5 10.5h3l1.5-3 2.5 6 1.8-3.5h4.2M9 20h6M12 16.5V20"/>',
+    // a stopwatch
+    drills: '<circle cx="12" cy="13.5" r="7.2"/><path d="M12 13.5V9.6M10 2.8h4M12 2.8v3.5M18.2 6.4l1.4-1.4"/>',
+    // a certificate with a seal and ribbon
+    cert: '<path d="M14.5 17.5H4.8a1.3 1.3 0 0 1-1.3-1.3V5.3A1.3 1.3 0 0 1 4.8 4h14.4a1.3 1.3 0 0 1 1.3 1.3v5"/><path d="M7 8h10M7 11h6"/><circle cx="18" cy="15" r="2.8"/><path d="M16.6 17.4L16 21l2-1 2 1-.6-3.6"/>',
+    // a clipboard with a tick
+    record: '<rect x="5" y="4.5" width="14" height="16.5" rx="1.6"/><path d="M9 4.5V3.2h6v1.3M9 3.2h6v2.6H9z"/><path d="M8.5 13l2.4 2.4 4.6-5"/>',
+    // an open field manual
+    manual: '<path d="M12 6.5C10 5 7 4.6 3.5 5v13c3.5-.4 6.5 0 8.5 1.5 2-1.5 5-1.9 8.5-1.5V5C17 4.6 14 5 12 6.5z"/><path d="M12 6.5v13"/>',
+  };
+  const icon = (id, cls) => `<svg class="${cls || 'rm-ico'}" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${ICON[id] || ''}</svg>`;
+
+  TT.rooms = { list: ROOMS, parse, room, icon, ICONS: Object.keys(ICON) };
+
+  /* ================= progress (read only) ================= */
+  const KEYS = { app: 'trouble-ticket-v1', lessons: 'trouble-ticket-lessons-v1', exam: 'trouble-ticket-exam-v1', flash: 'trouble-ticket-flash-v1', lab: 'trouble-ticket-sandbox-v1', wlc: 'trouble-ticket-wlc-v1', career: 'trouble-ticket-career-v1' };
+  const isObj = (x) => !!x && typeof x === 'object' && !Array.isArray(x);
+  const some = (o) => isObj(o) && Object.keys(o).length > 0;
+  function readAll() {
+    const raw = {};
+    for (const [k, key] of Object.entries(KEYS)) {
+      try { raw[k] = JSON.parse(G.localStorage.getItem(key)); } catch (e) { raw[k] = null; }
+    }
+    return raw;
+  }
+  /** Pure: has this browser done anything worth a "welcome back"? (Visiting a page does not count.) */
+  function hasProgress(raw) {
+    raw = raw || {};
+    const app = raw.app || {};
+    const ex = raw.exam || {};
+    const fl = (raw.flash || {}).cards;
+    return some(app.solved) || some((raw.lessons || {}).done) || some((raw.lessons || {}).scores)
+      || (Array.isArray(ex.attempts) && ex.attempts.length > 0)
+      || (isObj(fl) && Object.values(fl).some((c) => c && c.seen > 0))
+      || some((raw.lab || {}).done) || some((raw.wlc || {}).done)
+      || ((app.drill || {}).best > 0) || ((app.quiz || {}).best != null);
+  }
+  const objKey = (o) => String(o || '').split('.').map((x) => Number(x) || 0);
+  function firstOpenLesson(raw) {
+    const done = ((raw && raw.lessons) || {}).done || {};
+    return (TT.lessons || []).slice().sort((a, b) => { const x = objKey(a.obj); const y = objKey(b.obj); return x[0] - y[0] || x[1] - y[1]; }).find((l) => !done[l.id]) || null;
+  }
+  /** TT.plan.tonight() is owned by plan.js. Accept a string href or an object with href/link/url. */
+  function planTonight() {
+    try {
+      if (!TT.plan || typeof TT.plan.tonight !== 'function') return null;
+      const t = TT.plan.tonight();
+      if (!t) return null;
+      if (typeof t === 'string') return { href: t, title: 'Tonight\'s assignment' };
+      const href = t.href || t.link || t.url;
+      if (!href) return null;
+      return { href: String(href).startsWith('#') ? href : '#' + href, title: t.title || t.label || t.name || 'Tonight\'s assignment', line: t.line || t.text || t.detail || t.summary || (t.isToday === false && t.date ? 'Next shift: ' + t.date : '') };
+    } catch (e) { return null; }
+  }
+  /** Where "Clock in" goes: tonight's plan, else the first unfinished lesson, else the ticket queue. */
+  function clockIn(raw) {
+    const p = planTonight();
+    if (p) return { href: p.href, why: p.title };
+    const l = firstOpenLesson(raw);
+    if (l) return { href: '#learn-' + l.id, why: `Lesson ${l.obj}: ${l.title}` };
+    return { href: '#tickets', why: 'The ticket queue' };
+  }
+  function careerInfo(raw) {
+    const C = TT.career;
+    if (!C || typeof C.compute !== 'function' || typeof C.normalize !== 'function') return null;
+    try {
+      const state = C.normalize(raw);
+      const res = C.compute(state);
+      const next = typeof C.nextTask === 'function' ? C.nextTask(state) : null;
+      return { rank: res.rank && res.rank.name, xp: res.xp, streak: res.counts && res.counts.streak, next };
+    } catch (e) { return null; }
+  }
+
+  /* ================= the illustration ================= */
+  // Deterministic scatter so the skyline and the stars are the same on every visit.
+  function rng(seed) {
+    let a = seed >>> 0;
+    return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }
+  const f1 = (n) => Math.round(n * 10) / 10;
+
+  function heroSvg() {
+    const R = rng(2026);
+    // --- stars
+    let stars = '';
+    for (let i = 0; i < 46; i++) {
+      const x = 474 + R() * 528; const y = 50 + Math.pow(R(), 1.6) * 110; const r = 0.5 + R() * 0.9;
+      if (Math.hypot(x - 566, y - 100) < 44) continue;
+      stars += `<circle class="${i % 5 === 0 ? 'hx-tw' : ''}" cx="${f1(x)}" cy="${f1(y)}" r="${f1(r)}" style="animation-delay:-${f1(R() * 6)}s" opacity="${f1(0.35 + R() * 0.5)}"/>`;
+    }
+    // --- skyline: far haze layer, then the near layer with landmarks and lit windows
+    const HZ = 242; // the waterline: we are a few floors up, looking down at the harbor
+    const UP = 62; // the skyline was drawn for a lower waterline; lift it by this much
+    let far = `M470 ${HZ}`;
+    for (let x = 470; x < 1008;) { const w = 14 + R() * 26; const h = 18 + R() * 40; far += `V${f1(HZ - h)}H${f1(Math.min(1008, x + w))}`; x += w; }
+    far += `V${HZ}Z`;
+    // near buildings: [x, width, top, kind]
+    const near = [
+      [470, 30, 232], [500, 26, 238],
+      [526, 20, 196, 'clock'], [548, 36, 226], [586, 30, 244], [616, 44, 172, 'stepped'], [662, 30, 208],
+      [694, 46, 192, 'pent'], [742, 26, 230], [768, 34, 214], [804, 24, 248], [828, 40, 262],
+    ];
+    let nearPath = '';
+    let wins = '';
+    let refl = '';
+    const lit = (x, y, w, h, warm) => `<rect x="${f1(x)}" y="${f1(y)}" width="${f1(w)}" height="${f1(h)}" fill="${warm ? '#ffd38a' : '#a9d0ff'}" opacity="${f1(0.35 + R() * 0.55)}"/>`;
+    for (const [x, w, top0, kind] of near) {
+      const top = top0 - UP;
+      if (kind === 'stepped') {
+        nearPath += `M${x} ${HZ}V${top + 30}H${x + 4}V${top + 14}H${x + 9}V${top}H${x + w - 9}V${top + 14}H${x + w - 4}V${top + 30}H${x + w}V${HZ}Z`;
+        nearPath += `M${x + w / 2 - 0.8} ${top}V${top - 18}h1.6V${top}Z`;
+      } else if (kind === 'pent') {
+        nearPath += `M${x} ${HZ}V${top + 8}L${x + w / 2} ${top - 6}L${x + w} ${top + 8}V${HZ}Z`;
+      } else if (kind === 'clock') {
+        nearPath += `M${x} ${HZ}V${top + 26}H${x + 3}V${top + 8}L${x + w / 2} ${top - 10}L${x + w - 3} ${top + 8}V${top + 26}H${x + w}V${HZ}Z`;
+      } else {
+        nearPath += `M${x} ${HZ}V${top}H${x + w}V${HZ}Z`;
+      }
+      // window grid, sparsely lit
+      const cols = Math.max(2, Math.floor((w - 6) / 6));
+      const startY = top + (kind === 'stepped' ? 34 : kind === 'clock' ? 32 : 8);
+      for (let yy = startY; yy < HZ - 6; yy += 7) {
+        for (let c = 0; c < cols; c++) {
+          if (R() < 0.27) wins += lit(x + 4 + c * ((w - 8) / cols), yy, 2.6, 3.2, R() < 0.72);
+        }
+      }
+      // reflection columns under the brighter towers
+      // its reflection: a column of ripples that thins out toward the glass
+      const rows = 5 + Math.floor(R() * 6);
+      for (let k = 0; k < rows; k++) {
+        const ww = (w - 6) * (0.35 + R() * 0.55);
+        const xx = x + 3 + R() * (w - 6 - ww);
+        refl += `<rect class="hx-dash" x="${f1(xx)}" y="${f1(HZ + 2.5 + k * 4.2)}" width="${f1(ww)}" height="1.6" rx=".8" fill="${R() < 0.7 ? '#ffcf86' : '#9cc8ff'}" opacity="${f1((0.5 - k * 0.045) * (0.6 + R() * 0.4))}" style="animation-delay:-${f1(R() * 6)}s;animation-duration:${f1(3.5 + R() * 3)}s"/>`;
+      }
+    }
+    // the clock face on the clock tower, and a red light on the stepped tower's mast
+    const clock = '<circle cx="536" cy="216" r="4.2" fill="#f6e2a8" opacity=".9"/><path d="M536 216v-2.6M536 216l1.8 1" stroke="#3a2c14" stroke-width=".8"/>';
+    // water-taxi and harbor lights shimmer as broken horizontal dashes
+    let dashes = '';
+    for (let i = 0; i < 34; i++) {
+      const y = HZ + 4 + Math.pow(R(), 1.3) * 140; const x = 474 + R() * 528; const w = 6 + R() * 26;
+      dashes += `<rect class="hx-dash" x="${f1(x)}" y="${f1(y)}" width="${f1(w)}" height="1.3" rx=".6" fill="${R() < 0.6 ? '#ffcf86' : '#8fc2ff'}" style="animation-delay:-${f1(R() * 6)}s;animation-duration:${f1(4 + R() * 4)}s" opacity="${f1(0.18 + R() * 0.35)}"/>`;
+    }
+    // --- rack LEDs
+    let rackUnits = '';
+    let leds = '';
+    const RX = 1046; const RW = 116;
+    const units = [
+      ['patch', 84, 12], ['switch', 100, 16], ['switch', 120, 16], ['blank', 140, 8], ['router', 152, 18],
+      ['server', 176, 22], ['server', 202, 22], ['server', 228, 22], ['blank', 254, 10], ['storage', 268, 34],
+      ['server', 306, 22], ['ups', 334, 40], ['blank', 378, 12],
+    ];
+    const ledColor = ['#4fd394', '#4fd394', '#4fd394', '#6fb6ff', '#f4b648'];
+    for (const [kind, y, h] of units) {
+      rackUnits += `<rect x="${RX}" y="${y}" width="${RW}" height="${h - 2}" rx="1.5" fill="${kind === 'blank' ? '#0a101b' : '#141d2e'}" stroke="#1f2b40" stroke-width=".8"/>`;
+      if (kind === 'patch' || kind === 'switch') {
+        for (let p = 0; p < 16; p++) {
+          const px = RX + 8 + p * 6.2;
+          rackUnits += `<rect x="${f1(px)}" y="${y + 3}" width="4.4" height="${kind === 'patch' ? 5 : 4}" rx=".6" fill="#05080f"/>`;
+          if (kind === 'switch' && R() < 0.8) leds += `<circle class="hx-led ${R() < 0.5 ? 'fast' : ''}" cx="${f1(px + 2.2)}" cy="${y + 11}" r="1.1" fill="${R() < 0.9 ? '#4fd394' : '#f4b648'}" style="animation-delay:-${f1(R() * 3)}s"/>`;
+        }
+      } else if (kind === 'server' || kind === 'router') {
+        for (let b = 0; b < 5; b++) rackUnits += `<rect x="${RX + 8 + b * 13}" y="${y + 4}" width="11" height="${h - 10}" rx="1" fill="#0d1422" stroke="#223049" stroke-width=".6"/>`;
+        for (let l = 0; l < 3; l++) leds += `<circle class="hx-led${l === 0 ? ' slow' : ''}" cx="${RX + RW - 26 + l * 7}" cy="${y + h / 2 - 1}" r="1.5" fill="${ledColor[Math.floor(R() * ledColor.length)]}" style="animation-delay:-${f1(R() * 4)}s"/>`;
+        rackUnits += `<path d="M${RX + 76} ${y + 5}v${h - 12}M${RX + 80} ${y + 5}v${h - 12}M${RX + 84} ${y + 5}v${h - 12}" stroke="#0a0f19" stroke-width="1.4"/>`;
+      } else if (kind === 'storage') {
+        for (let b = 0; b < 8; b++) { rackUnits += `<rect x="${RX + 6 + b * 13.4}" y="${y + 4}" width="11.4" height="${h - 10}" rx="1" fill="#0d1422" stroke="#223049" stroke-width=".6"/>`; leds += `<circle class="hx-led fast" cx="${f1(RX + 11.7 + b * 13.4)}" cy="${y + h - 9}" r="1.1" fill="#6fb6ff" style="animation-delay:-${f1(R() * 2)}s"/>`; }
+      } else if (kind === 'ups') {
+        rackUnits += `<rect x="${RX + 10}" y="${y + 8}" width="30" height="12" rx="1.5" fill="#09202a"/><text x="${RX + 25}" y="${y + 17}" text-anchor="middle" font-family="monospace" font-size="7" fill="#58e0a8">98%</text>`;
+        leds += `<circle class="hx-led slow" cx="${RX + 50}" cy="${y + 14}" r="1.6" fill="#4fd394"/>`;
+        rackUnits += `<path d="M${RX + 64} ${y + 8}h40M${RX + 64} ${y + 14}h40M${RX + 64} ${y + 20}h40M${RX + 64} ${y + 26}h40" stroke="#0a0f19" stroke-width="2"/>`;
+      }
+    }
+
+    return `<svg class="hx" viewBox="0 0 1200 600" preserveAspectRatio="xMaxYMid slice" role="img" aria-labelledby="hx-t hx-d" xmlns="http://www.w3.org/2000/svg">
+  <title id="hx-t">The night shift at Harbor Point Logistics</title>
+  <desc id="hx-d">Two in the morning at the network operations desk, seen from behind an empty chair. Three monitors glow with a network map, a Cisco terminal and an alert board. A server rack blinks beside the desk. Through the window, the Baltimore Inner Harbor at night: a moonlit skyline, a container crane at the port and city lights on the water. On the desk: a lamp, a cold coffee mug marked HPL, sticky notes reading VLAN 99? and show ip route, and a pager.</desc>
+  <defs>
+    <linearGradient id="hx-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070b15"/><stop offset=".62" stop-color="#0b1222"/><stop offset="1" stop-color="#070a12"/></linearGradient>
+    <radialGradient id="hx-wallglow" cx="0.6" cy="0.62" r="0.55"><stop offset="0" stop-color="#2d5fb0" stop-opacity=".30"/><stop offset=".55" stop-color="#1b3a73" stop-opacity=".12"/><stop offset="1" stop-color="#0b1222" stop-opacity="0"/></radialGradient>
+    <linearGradient id="hx-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050918"/><stop offset=".45" stop-color="#0c1635"/><stop offset=".78" stop-color="#1c2650"/><stop offset="1" stop-color="#3a2e55"/></linearGradient>
+    <radialGradient id="hx-cityglow" cx=".45" cy="1" r=".7"><stop offset="0" stop-color="#ff9a6a" stop-opacity=".22"/><stop offset="1" stop-color="#ff9a6a" stop-opacity="0"/></radialGradient>
+    <radialGradient id="hx-moonhalo"><stop offset="0" stop-color="#f4ecd6" stop-opacity=".30"/><stop offset=".35" stop-color="#c9d6ff" stop-opacity=".10"/><stop offset="1" stop-color="#c9d6ff" stop-opacity="0"/></radialGradient>
+    <radialGradient id="hx-moon" cx=".4" cy=".38" r=".7"><stop offset="0" stop-color="#fffaf0"/><stop offset=".7" stop-color="#efe5cc"/><stop offset="1" stop-color="#d6c9a8"/></radialGradient>
+    <linearGradient id="hx-water" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#142048"/><stop offset=".25" stop-color="#0b1431"/><stop offset="1" stop-color="#050a19"/></linearGradient>
+    <linearGradient id="hx-ref" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffcc80" stop-opacity=".5"/><stop offset="1" stop-color="#ffcc80" stop-opacity="0"/></linearGradient>
+    <linearGradient id="hx-glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#bcd4ff" stop-opacity=".07"/><stop offset=".3" stop-color="#bcd4ff" stop-opacity="0"/><stop offset=".55" stop-color="#bcd4ff" stop-opacity=".045"/><stop offset=".62" stop-color="#bcd4ff" stop-opacity="0"/></linearGradient>
+    <linearGradient id="hx-frame" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a2438"/><stop offset="1" stop-color="#121a2b"/></linearGradient>
+    <linearGradient id="hx-desk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2538"/><stop offset=".25" stop-color="#121a29"/><stop offset="1" stop-color="#0a0f19"/></linearGradient>
+    <radialGradient id="hx-deskglow" cx=".5" cy="0" r=".9"><stop offset="0" stop-color="#4f8de8" stop-opacity=".42"/><stop offset=".5" stop-color="#2f5fae" stop-opacity=".14"/><stop offset="1" stop-color="#2f5fae" stop-opacity="0"/></radialGradient>
+    <radialGradient id="hx-lamppool"><stop offset="0" stop-color="#ffd28c" stop-opacity=".62"/><stop offset=".45" stop-color="#ffb35c" stop-opacity=".22"/><stop offset="1" stop-color="#ffb35c" stop-opacity="0"/></radialGradient>
+    <linearGradient id="hx-cone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd9a0" stop-opacity=".22"/><stop offset="1" stop-color="#ffd9a0" stop-opacity="0"/></linearGradient>
+    <linearGradient id="hx-screen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d2140"/><stop offset="1" stop-color="#071223"/></linearGradient>
+    <linearGradient id="hx-term" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#06131a"/><stop offset="1" stop-color="#040b10"/></linearGradient>
+    <radialGradient id="hx-screenglow" cx=".5" cy=".5" r=".6"><stop offset="0" stop-color="#5aa0ff" stop-opacity=".35"/><stop offset="1" stop-color="#5aa0ff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="hx-chair" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#121a2a"/><stop offset=".35" stop-color="#090d16"/><stop offset="1" stop-color="#05070c"/></linearGradient>
+    <linearGradient id="hx-rim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fb2ff" stop-opacity=".85"/><stop offset=".3" stop-color="#7fb2ff" stop-opacity=".15"/><stop offset="1" stop-color="#7fb2ff" stop-opacity="0"/></linearGradient>
+    <linearGradient id="hx-mug" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#cfc6b6"/><stop offset=".45" stop-color="#f3ecdf"/><stop offset="1" stop-color="#9d958a"/></linearGradient>
+    <linearGradient id="hx-rack" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0d1320"/><stop offset=".5" stop-color="#111a2a"/><stop offset="1" stop-color="#0a0f1a"/></linearGradient>
+    <linearGradient id="hx-panelfade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#05080f" stop-opacity=".9"/><stop offset="1" stop-color="#05080f" stop-opacity="0"/></linearGradient>
+    <radialGradient id="hx-vig" cx=".62" cy=".48" r=".78"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".55"/></radialGradient>
+    <radialGradient id="hx-pagerglow"><stop offset="0" stop-color="#b6f08a" stop-opacity=".55"/><stop offset="1" stop-color="#b6f08a" stop-opacity="0"/></radialGradient>
+    <clipPath id="hx-glassclip"><rect x="470" y="44" width="536" height="352"/></clipPath>
+    <clipPath id="hx-scrL"><path d="M494 297L636 290V390L494 386Z"/></clipPath>
+    <clipPath id="hx-scrC"><rect x="652" y="288" width="150" height="100" rx="1"/></clipPath>
+    <clipPath id="hx-scrR"><path d="M818 290L960 297V386L818 390Z"/></clipPath>
+    <filter id="hx-blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+    <filter id="hx-cloud" x="-20%" y="-200%" width="140%" height="500%"><feGaussianBlur stdDeviation="3 2.2"/></filter>
+    <filter id="hx-soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.2"/></filter>
+  </defs>
+
+  <!-- room -->
+  <rect width="1200" height="600" fill="url(#hx-wall)"/>
+  <rect width="1200" height="600" fill="url(#hx-wallglow)"/>
+  <!-- ceiling cable tray -->
+  <path d="M0 18H1200" stroke="#121a2a" stroke-width="10"/>
+  <path d="M0 24H1200" stroke="#0e1522" stroke-width="2"/>
+  <path d="M1080 24C1080 40 1092 46 1092 62M1104 24C1104 44 1118 48 1118 62" stroke="#1a2a44" stroke-width="2.2" fill="none"/>
+  <!-- wall panels, lit from the right by the screens -->
+  <g stroke="#111a2b" stroke-width="2" opacity=".8"><path d="M120 40V600M260 40V600M400 40V600"/></g>
+  <rect x="0" y="40" width="460" height="560" fill="url(#hx-panelfade)"/>
+  <!-- the window -->
+  <rect x="458" y="32" width="560" height="376" rx="4" fill="url(#hx-frame)"/>
+  <g clip-path="url(#hx-glassclip)">
+    <rect x="470" y="44" width="536" height="352" fill="url(#hx-sky)"/>
+    <rect x="470" y="150" width="536" height="160" fill="url(#hx-cityglow)"/>
+    <g fill="#e6ecff">${stars}</g>
+    <circle cx="566" cy="100" r="90" fill="url(#hx-moonhalo)"/>
+    <circle cx="566" cy="100" r="21" fill="url(#hx-moon)"/>
+    <g fill="#cbbf9f" opacity=".45"><circle cx="559" cy="94" r="4"/><circle cx="573" cy="108" r="3"/><circle cx="570" cy="91" r="1.8"/><circle cx="557" cy="108" r="2.2"/></g>
+    <!-- thin clouds drifting past the moon -->
+    <g fill="#24305e" filter="url(#hx-cloud)" opacity=".75">
+      <ellipse cx="540" cy="128" rx="70" ry="5"/><ellipse cx="610" cy="122" rx="46" ry="4"/><ellipse cx="760" cy="96" rx="80" ry="4.5"/><ellipse cx="930" cy="118" rx="60" ry="4"/>
+    </g>
+    <path fill="#1a2550" opacity=".85" d="${far}"/>
+    <path fill="#0e1631" d="${nearPath}"/>
+    <g>${wins}</g>
+    <g transform="translate(0 -${UP})">${clock}<circle class="hx-beacon" cx="638" cy="154" r="2.2" fill="#ff5a4f"/></g>
+    <!-- the port: a ship-to-shore container crane, a box ship and stacked containers -->
+    <g transform="translate(0 -${UP})">
+      <path d="M856 304V282H1006V304Z" fill="#0b1229"/>
+      <g opacity=".95">
+        <rect x="944" y="262" width="20" height="9" fill="#5b2a2a"/><rect x="965" y="262" width="20" height="9" fill="#1f4a5a"/><rect x="986" y="262" width="20" height="9" fill="#5e4a24"/>
+        <rect x="944" y="272" width="20" height="9" fill="#26385e"/><rect x="965" y="272" width="20" height="9" fill="#5b2a2a"/><rect x="986" y="272" width="20" height="9" fill="#1f4a5a"/>
+        <rect x="954" y="253" width="20" height="8" fill="#3d2a4a"/><rect x="975" y="253" width="20" height="8" fill="#26385e"/>
+      </g>
+      <g fill="none" stroke="#1c2a52" stroke-width="4" stroke-linejoin="round">
+        <path d="M880 304V196M928 304V196M880 236H928M880 270H928M880 236L928 270M928 236L880 270"/>
+        <path d="M872 196H1006M842 182L872 196M904 196V150M904 150L842 182M904 150L1006 188"/>
+      </g>
+      <path d="M842 182H1006" stroke="#25366a" stroke-width="3"/>
+      <rect x="896" y="200" width="16" height="10" fill="#1c2a52"/>
+      <path d="M960 196v38" stroke="#2a3b72" stroke-width="1.2"/>
+      <rect x="952" y="232" width="16" height="8" fill="#6a4b25"/>
+      <circle class="hx-beacon" cx="904" cy="148" r="2.4" fill="#ff5a4f"/>
+      <circle class="hx-beacon b2" cx="1004" cy="187" r="1.8" fill="#ff5a4f"/>
+      <!-- the box ship -->
+      <path d="M836 290H950L940 304H846Z" fill="#090f24"/>
+      <rect x="842" y="280" width="16" height="10" fill="#0c1430"/><rect x="845" y="283" width="3" height="2" fill="#ffd38a" opacity=".8"/><rect x="851" y="283" width="3" height="2" fill="#ffd38a" opacity=".6"/>
+      <g opacity=".8"><rect x="862" y="282" width="14" height="8" fill="#3a2440"/><rect x="877" y="282" width="14" height="8" fill="#203a52"/><rect x="892" y="282" width="14" height="8" fill="#4a3a20"/><rect x="907" y="282" width="14" height="8" fill="#3a2440"/><rect x="922" y="282" width="14" height="8" fill="#203a52"/></g>
+    </g>
+    <!-- the harbor -->
+    <rect x="470" y="${HZ}" width="536" height="${396 - HZ}" fill="url(#hx-water)"/>
+    <path d="M470 ${HZ}H1006" stroke="#6b5a86" stroke-width=".8" opacity=".5"/>
+    <g>${refl}</g>
+    <g class="hx-moonref" fill="#f4ecd6">${[0, 1, 2, 3, 4, 5, 6].map((k) => `<rect class="hx-dash" x="${f1(566 - (11 - k) * (0.6 + R() * 0.5))}" y="${HZ + 3 + k * 4}" width="${f1((11 - k) * 2 * (0.6 + R() * 0.5))}" height="1.5" rx=".75" opacity="${f1(0.42 - k * 0.05)}" style="animation-delay:-${f1(R() * 4)}s"/>`).join('')}</g>
+    <g>${dashes}</g>
+    <!-- a water taxi crossing the harbor -->
+    <g class="hx-taxi"><path d="M0 0h18l-3 4H3Z" fill="#0a1024"/><rect x="5" y="-4" width="7" height="4" fill="#0f1835"/><circle cx="16" cy="-1" r="1.1" fill="#9effc8"/><circle cx="2" cy="-1" r="1.1" fill="#ff7a6a"/></g>
+    <rect x="470" y="44" width="536" height="352" fill="url(#hx-glass)"/>
+    <!-- the room's glow, faintly reflected in the glass -->
+    <ellipse cx="725" cy="300" rx="190" ry="60" fill="#4f8de8" opacity=".06" filter="url(#hx-blur)"/>
+  </g>
+  <!-- mullions, sill -->
+  <path d="M649 44V396M827 44V396" stroke="url(#hx-frame)" stroke-width="7"/>
+  <path d="M649 44V396M827 44V396" stroke="#26324a" stroke-width="1" transform="translate(-3 0)" opacity=".7"/>
+  <rect x="450" y="402" width="576" height="10" rx="2" fill="#1a2438"/>
+  <path d="M452 402H1024" stroke="#2c3b56" stroke-width="1.2"/>
+
+  <!-- the server rack -->
+  <g>
+    <rect x="1032" y="62" width="144" height="376" rx="4" fill="url(#hx-rack)" stroke="#1c273b" stroke-width="2"/>
+    <rect x="1040" y="70" width="128" height="360" fill="#070b13"/>
+    <path d="M1043 74V428M1165 74V428" stroke="#1a2436" stroke-width="2" stroke-dasharray="1.5 4"/>
+    <text x="1104" y="80" text-anchor="middle" font-family="monospace" font-size="6.5" fill="#4a5c78" letter-spacing="1">HPL-DC RACK 02</text>
+    ${rackUnits}
+    <g>${leds}</g>
+    <!-- patch cords dropping out of the patch panel -->
+    <path d="M1060 96c-4 30 6 40 2 70M1078 96c0 24 10 30 8 54M1110 96c4 22-4 30 0 48M1140 96c6 26 0 40 10 60" stroke="#2f6fd0" stroke-width="1.6" fill="none" opacity=".75"/>
+    <path d="M1092 96c2 18 12 22 10 40M1128 96c-2 20 6 24 4 44" stroke="#d29a2a" stroke-width="1.6" fill="none" opacity=".7"/>
+    <ellipse cx="1104" cy="250" rx="70" ry="170" fill="#4fd394" opacity=".035" filter="url(#hx-blur)"/>
+  </g>
+
+  <!-- the desk -->
+  <path d="M300 430H1200V600H230Z" fill="url(#hx-desk)"/>
+  <path d="M300 430H1200" stroke="#33466a" stroke-width="1.5"/>
+  <ellipse cx="746" cy="430" rx="340" ry="92" fill="url(#hx-deskglow)"/>
+  <ellipse cx="930" cy="506" rx="150" ry="50" fill="url(#hx-lamppool)"/>
+
+  <g transform="translate(746 432) scale(1.1) translate(-726 -432)">
+  <!-- monitors: stands first, then the screens -->
+  <g fill="#0b111c">
+    <path d="M556 386l-4 40h16l-4-40Z"/><ellipse cx="560" cy="430" rx="30" ry="5"/>
+    <rect x="716" y="388" width="20" height="38"/><ellipse cx="726" cy="430" rx="36" ry="6"/>
+    <path d="M888 386l4 40h-16l4-40Z"/><ellipse cx="884" cy="430" rx="30" ry="5"/>
+  </g>
+  <ellipse cx="726" cy="340" rx="270" ry="70" fill="url(#hx-screenglow)" filter="url(#hx-blur)"/>
+  <!-- left: the network map -->
+  <path d="M488 292L642 284V396L488 392Z" fill="#05080e" stroke="#1d2a40" stroke-width="1.2"/>
+  <g clip-path="url(#hx-scrL)">
+    <rect x="490" y="286" width="150" height="106" fill="url(#hx-screen)"/>
+    <text x="500" y="303" font-family="monospace" font-size="6" fill="#7fa8d8" letter-spacing=".6">TOPOLOGY · HPL-CORE</text>
+    <g stroke="#3f86e8" stroke-width="1.3" opacity=".9" fill="none">
+      <path id="hx-link1" d="M565 318L520 348M565 318L612 346M520 348L612 346M520 348L512 374M612 346L620 372M565 318V300"/>
+    </g>
+    <path d="M612 346L620 372" stroke="#ff6f63" stroke-width="1.4" stroke-dasharray="3 2"/>
+    <circle class="hx-pkt" r="2.1" fill="#bfe3ff"/>
+    <g fill="#0d2140" stroke="#8cc8ff" stroke-width="1.3">
+      <circle cx="565" cy="318" r="6.5"/><rect x="511" y="342" width="18" height="11" rx="2"/><rect x="603" y="341" width="18" height="11" rx="2"/>
+      <rect x="506" y="370" width="12" height="9" rx="1.5"/>
+    </g>
+    <rect x="614" y="368" width="12" height="9" rx="1.5" fill="#2a0f12" stroke="#ff6f63" stroke-width="1.3"/>
+    <text x="628" y="365" font-family="monospace" font-size="5.5" fill="#ff8f85" text-anchor="end">DOWN</text>
+  </g>
+  <!-- centre: the terminal -->
+  <rect x="646" y="282" width="162" height="112" rx="3" fill="#05080e" stroke="#1d2a40" stroke-width="1.2"/>
+  <g clip-path="url(#hx-scrC)" font-family="monospace" font-size="6.4">
+    <rect x="652" y="288" width="150" height="100" fill="url(#hx-term)"/>
+    <text x="657" y="299" fill="#f4b648">HPL-EDGE#<tspan fill="#d8e3ec">show ip ospf neighbor</tspan></text>
+    <text x="657" y="309" fill="#7f93a6">Neighbor ID  Pri  State    Intf</text>
+    <text x="657" y="318" fill="#8ff0b8">10.0.0.2       1  FULL/DR  Gi0/0</text>
+    <text x="657" y="327" fill="#8ff0b8">10.0.0.3       1  FULL/BDR Gi0/0</text>
+    <text x="657" y="339" fill="#f4b648">HPL-EDGE#<tspan fill="#d8e3ec">show ip route static</tspan></text>
+    <text x="657" y="349" fill="#a9c9ec">S*  0.0.0.0/0 [1/0] via 203.0.113.1</text>
+    <text x="657" y="361" fill="#f4b648">HPL-EDGE#<tspan fill="#d8e3ec">ping 10.40.0.10</tspan></text>
+    <text x="657" y="371" fill="#8ff0b8">!!!!!  Success rate is 100 percent</text>
+    <text x="657" y="383" fill="#f4b648">HPL-EDGE#</text>
+    <rect class="hx-cursor" x="694" y="377" width="4" height="7" fill="#d8e3ec"/>
+  </g>
+  <!-- right: the alert board -->
+  <path d="M812 284L966 292V392L812 396Z" fill="#05080e" stroke="#1d2a40" stroke-width="1.2"/>
+  <g clip-path="url(#hx-scrR)" font-family="monospace" font-size="5.8">
+    <rect x="814" y="286" width="150" height="108" fill="url(#hx-screen)"/>
+    <text x="824" y="303" fill="#7fa8d8" letter-spacing=".6">ALERTS · NIGHT QUEUE</text>
+    <rect class="hx-alert" x="822" y="308" width="128" height="11" rx="2" fill="#4a1418"/>
+    <circle cx="828" cy="313.5" r="2" fill="#ff6f63"/>
+    <text x="834" y="316" fill="#ffb3ab">P1  BR2 Gi0/1 down</text>
+    <rect x="822" y="322" width="128" height="11" rx="2" fill="#3a2b0c"/>
+    <circle cx="828" cy="327.5" r="2" fill="#f4b648"/>
+    <text x="834" y="330" fill="#ffd38a">P3  DHCP pool 85%</text>
+    <path d="M824 380l10-8 9 3 10-12 9 5 10-14 9 6 10-4 9-10 10 4 10-6" stroke="#4fd394" stroke-width="1.4" fill="none"/>
+    <path d="M824 380l10-8 9 3 10-12 9 5 10-14 9 6 10-4 9-10 10 4 10-6V386H824Z" fill="#4fd394" opacity=".12"/>
+    <text x="824" y="346" fill="#7f93a6">Gi0/0 util 5 min</text>
+  </g>
+  <!-- sticky notes -->
+  <g transform="translate(478 272) rotate(-7)">
+    <rect width="46" height="40" rx="1.5" fill="#f2cf55"/>
+    <path d="M0 0h46v6H0z" fill="#e3bd3f"/>
+    <text x="23" y="25" text-anchor="middle" font-family="'Segoe Print','Bradley Hand','Chalkboard SE','Marker Felt',system-ui,sans-serif" font-size="10" font-weight="700" fill="#3a2d0a">VLAN 99?</text>
+  </g>
+  <g transform="translate(926 352) rotate(6)">
+    <rect width="50" height="42" rx="1.5" fill="#ff9fb4"/>
+    <path d="M0 0h50v6H0z" fill="#f08aa2"/>
+    <text x="25" y="21" text-anchor="middle" font-family="'Segoe Print','Bradley Hand','Chalkboard SE','Marker Felt',system-ui,sans-serif" font-size="9.5" font-weight="700" fill="#4a1426">show</text>
+    <text x="25" y="33" text-anchor="middle" font-family="'Segoe Print','Bradley Hand','Chalkboard SE','Marker Felt',system-ui,sans-serif" font-size="9.5" font-weight="700" fill="#4a1426">ip route</text>
+  </g>
+
+  </g>
+
+  <!-- the desk lamp, clamped at the right end of the desk, and its light -->
+  <path d="M968 408L1004 514H850Z" fill="url(#hx-cone)" filter="url(#hx-soft)" opacity=".85"/>
+  <g>
+    <ellipse cx="1036" cy="503" rx="36" ry="9" fill="#05080e" opacity=".6"/>
+    <ellipse cx="1036" cy="498" rx="32" ry="8" fill="#1b2334"/>
+    <path d="M1006 498a30 7 0 0 0 60 0" stroke="#384764" stroke-width="1.2" fill="none"/>
+    <path d="M1036 496L1062 440L990 400" stroke="#232d42" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M1036 496L1062 440L990 400" stroke="#4a5b7c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none" transform="translate(1.5 -1)"/>
+    <circle cx="1062" cy="440" r="5" fill="#2b3650"/>
+    <path d="M1004 384L950 402L966 430L1014 410Z" fill="#232d42"/>
+    <path d="M1004 384L950 402" stroke="#56688c" stroke-width="1.5"/>
+    <path d="M966 430L1014 410" stroke="#ffe2a8" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="990" cy="422" rx="26" ry="6" transform="rotate(-22 990 422)" fill="#ffe7b8" opacity=".5" filter="url(#hx-soft)"/>
+  </g>
+  <!-- the cold coffee -->
+  <g transform="translate(900 458)">
+    <ellipse cx="18" cy="38" rx="24" ry="6" fill="#000" opacity=".35"/>
+    <path d="M2 10c-14 0-14 20 0 20" stroke="#bdb4a6" stroke-width="5" fill="none"/>
+    <path d="M0 4h36v28a6 6 0 0 1-6 6H6a6 6 0 0 1-6-6Z" fill="url(#hx-mug)"/>
+    <ellipse cx="18" cy="4" rx="18" ry="4.5" fill="#e9e1d2"/>
+    <ellipse cx="18" cy="5" rx="15" ry="3.2" fill="#3b2516"/>
+    <ellipse cx="22" cy="4.4" rx="5" ry="1" fill="#6b4a33" opacity=".6"/>
+    <text x="19" y="27" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="800" letter-spacing=".5" fill="#1d3a6e">HPL</text>
+    <path d="M4 30h28" stroke="#b52f26" stroke-width="1.6"/>
+  </g>
+  <!-- a printed ticket, stamped P1 -->
+  <g transform="translate(486 520) rotate(-6)">
+    <rect width="78" height="54" rx="2" fill="#bfbab0"/>
+    <path d="M8 12h40M8 20h58M8 28h52M8 36h46" stroke="#7a7569" stroke-width="2"/>
+    <rect x="52" y="5" width="20" height="10" rx="2" fill="none" stroke="#a3332a" stroke-width="1.6"/>
+    <text x="62" y="13" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="7.5" font-weight="800" fill="#a3332a">P1</text>
+  </g>
+  <!-- the pager -->
+  <g transform="translate(566 470) rotate(-9)">
+    <g class="hx-pager">
+      <circle class="hx-pglow" cx="24" cy="10" r="40" fill="url(#hx-pagerglow)"/>
+      <ellipse cx="27" cy="31" rx="34" ry="6" fill="#000" opacity=".4"/>
+      <rect width="58" height="30" rx="6" fill="#1c2230" stroke="#323c52" stroke-width="1.2"/>
+      <rect x="4" y="4" width="36" height="15" rx="2" fill="#1f2b1c"/>
+      <rect class="hx-lcd" x="4" y="4" width="36" height="15" rx="2" fill="#a9de7c"/>
+      <text class="hx-pagetxt" x="22" y="15" text-anchor="middle" font-family="monospace" font-size="8.5" font-weight="700" fill="#18300f">PAGE</text>
+      <rect x="45" y="6" width="9" height="5" rx="1.5" fill="#39455e"/><rect x="45" y="14" width="9" height="5" rx="1.5" fill="#39455e"/>
+      <path d="M8 24h28" stroke="#2a3346" stroke-width="2" stroke-linecap="round"/>
+      <circle class="hx-pled" cx="52" cy="25" r="1.8" fill="#ff5a4f"/>
+    </g>
+    <g class="hx-buzz" stroke="#b6f08a" stroke-width="1.5" fill="none" stroke-linecap="round">
+      <path d="M-6 6q-4 9 0 18M-11 3q-6 12 0 24M64 6q4 9 0 18M69 3q6 12 0 24"/>
+    </g>
+  </g>
+
+  <!-- the empty chair, seen from behind -->
+  <g transform="translate(20 0)">
+    <ellipse cx="726" cy="598" rx="150" ry="16" fill="#000" opacity=".45"/>
+    <path d="M640 600V560h172v40" fill="#06080e"/>
+    <path d="M626 470c0-44 20-66 100-66s100 22 100 66v60c0 22-14 34-30 38H656c-16-4-30-16-30-38Z" fill="url(#hx-chair)"/>
+    <path d="M626 470c0-44 20-66 100-66s100 22 100 66" fill="none" stroke="url(#hx-rim)" stroke-width="2.6"/>
+    <path d="M650 470c0-30 16-46 76-46s76 16 76 46v52c0 16-10 24-22 26H672c-12-2-22-10-22-26Z" fill="none" stroke="#1a2438" stroke-width="1.5" opacity=".9"/>
+    <g stroke="#121a29" stroke-width="1" opacity=".9"><path d="M660 450H792M656 474H796M656 498H796M660 522H792"/></g>
+    <path d="M580 500c6-8 20-10 40-8M872 500c-6-8-20-10-40-8" stroke="#0a0e17" stroke-width="12" stroke-linecap="round" fill="none"/>
+    <path d="M582 494c8-6 18-7 36-6M870 494c-8-6-18-7-36-6" stroke="#2a3a5a" stroke-width="1.4" stroke-linecap="round" fill="none" opacity=".8"/>
+  </g>
+
+  <rect width="1200" height="600" fill="url(#hx-vig)"/>
+</svg>`;
+  }
+
+  /* ================= the landing page ================= */
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const fmt = (n) => Number(n || 0).toLocaleString('en-US');
+  const len = (x) => (Array.isArray(x) ? x.length : 0);
+
+  function shiftStats() {
+    let sets = 0;
+    try { sets = typeof TT.examSets === 'function' ? TT.examSets().length : 0; } catch (e) { sets = 0; }
+    return {
+      training: [[len(TT.lessons), 'lessons'], [len(TT.scenes), 'animated scenes']],
+      noc: [[len(TT.tickets), 'tickets'], [len(TT.labProjects), 'lab projects']],
+      drills: [[len(TT.flashcards), 'flashcards'], [len(TT.flashDecks), 'decks']],
+      cert: [[len(TT.questions), 'questions'], [sets, 'practice exams']],
+      record: [[TT.career ? len(TT.career.RANKS) : 0, 'ranks'], [TT.career ? len(TT.career.BADGES) : 0, 'badges']],
+    };
+  }
+
+  function welcomeHtml(raw) {
+    if (!hasProgress(raw)) return '';
+    const c = careerInfo(raw);
+    const p = planTonight();
+    const n = c && c.next;
+    const l = firstOpenLesson(raw);
+    // the same assignment Clock in opens: the plan's, else the next lesson, else what career.js would page
+    const task = p ? { href: p.href, title: p.title, line: p.line || '' }
+      : l ? { href: '#learn-' + l.id, title: `Lesson ${l.obj}`, line: l.title }
+      : n ? { href: n.href, title: `${n.label}: ${n.title}`, line: n.line } : null;
+    const greet = c && c.rank ? `Welcome back, ${esc(c.rank)}.` : 'Welcome back.';
+    return `<p class="hm-welcome">${greet}${c && c.streak ? ` <span>${c.streak}-night streak</span>` : ''}</p>
+      ${task ? `<a class="hm-pager" href="${esc(task.href)}">
+        <span class="hm-pager-lcd"><span class="hm-pager-tag">TONIGHT</span><span class="hm-pager-msg">${esc(task.title)}</span>${task.line ? `<span class="hm-pager-line">${esc(task.line)}</span>` : ''}</span>
+        <span class="hm-pager-go">Open <span aria-hidden="true">→</span></span></a>` : ''}`;
+  }
+
+  function renderHome(main, opts) {
+    const raw = readAll();
+    const go = clockIn(raw);
+    const stats = shiftStats();
+    main.innerHTML = `
+      <div class="hm">
+        <section class="hm-hero" aria-labelledby="hm-title">
+          <div class="hm-art">${heroSvg()}</div>
+          <div class="hm-copy">
+            <p class="hm-kicker"><span class="live-dot" aria-hidden="true"></span><span>02:07 · Harbor Point Logistics<span class="hm-k2"> · Baltimore NOC</span></span></p>
+            <h1 class="hm-title" id="hm-title">Trouble <span>Ticket</span></h1>
+            <p class="hm-pitch">Work the night shift at Harbor Point. Fix real networks in a simulated Cisco CLI. Pass the CCNA.</p>
+            <div class="hm-back" id="hm-back">${welcomeHtml(raw)}</div>
+            <div class="hm-actions">
+              <a class="hm-cta" id="hm-clockin" href="${esc(go.href)}"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>Clock in</a>
+              <span class="hm-cta-why" id="hm-why">${esc(go.why)}</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="hm-shift" aria-labelledby="hm-shift-h">
+          <h2 id="hm-shift-h" class="hm-shift-h">What's on this shift</h2>
+          <ul class="hm-rooms">
+            ${ROOMS.map((r) => { const s = stats[r.id]; const [n1, l1] = s[0]; const [n2, l2] = s[1]; return `
+            <li><a class="hm-room" href="${r.subs[0].href}">
+              <span class="hm-room-ico">${icon(r.id)}</span>
+              <span class="hm-room-name">${esc(r.name)}</span>
+              <span class="hm-room-line">${esc(r.line)}</span>
+              <span class="hm-room-num">${n1 ? `<span><b>${fmt(n1)}</b> ${esc(l1)}</span>` : ''}${n2 ? `<small>${fmt(n2)} ${esc(l2)}</small>` : ''}</span>
+            </a></li>`; }).join('')}
+          </ul>
+          <p class="hm-foot">${icon('manual', 'hm-foot-ico')}<span>Stuck on a protocol? The <a href="#guide">Field Manual</a> in the header has ${len(TT.cards)} quick-reference cards and the port numbers to memorize.</span></p>
+        </section>
+      </div>`;
+    // career.js and plan.js load after this file and after app.js routes for the first time:
+    // fill in the greeting, the shift-record numbers and the Clock in target once they are there.
+    if (!(opts && opts.late)) {
+      G.setTimeout(() => {
+        if (!main.querySelector('.hm')) return;
+        const raw2 = readAll();
+        const back = main.querySelector('#hm-back');
+        if (back) back.innerHTML = welcomeHtml(raw2);
+        const g2 = clockIn(raw2);
+        const a = main.querySelector('#hm-clockin');
+        if (a) a.setAttribute('href', g2.href);
+        const why = main.querySelector('#hm-why');
+        if (why) why.textContent = g2.why;
+        const rec = main.querySelector('.hm-room[href="#progress"] .hm-room-num');
+        const s = shiftStats().record;
+        if (rec && s[0][0]) rec.innerHTML = `<span><b>${fmt(s[0][0])}</b> ${esc(s[0][1])}</span><small>${fmt(s[1][0])} ${esc(s[1][1])}</small>`;
+      }, 0);
+    }
+  }
+
+  TT.renderHome = renderHome;
+  TT.homeHero = heroSvg;
+  TT.home = { hasProgress, clockIn, firstOpenLesson, planTonight };
+})(globalThis);
+
+/* ---- plan.js ---- */
+/* Trouble Ticket — the study plan ("Shift schedule").
+ * A night-by-night plan from a start date to exam day, built from what is still left to do.
+ *
+ * Pure parts (tested in tests/plan.test.mjs):
+ *   TT.plan.build(settings, progress, cat?)  -> { nights, weeks, stretchStart, totals, warnings, ... }
+ *   TT.plan.ics(plan, opts)                  -> iCalendar text (CRLF, folded at 75 octets, escaped)
+ *   TT.plan.isDone(item, progress), TT.plan.pace(plan, progress, today)
+ * Browser parts:
+ *   TT.renderPlan(main)        the #plan view
+ *   TT.plan.tonight()          { date, items, href, label, ... } for the "Clock in" button, or null
+ *   TT.plan.status()           pace: { state: 'none'|'ahead'|'on-track'|'behind', n, ... }
+ *   TT.plan.sync()             records nights finished on or before their date (career.js reads these for XP)
+ *
+ * Reads (never writes): the same progress keys career.js lists, plus career's day log for flashcard counts.
+ * Owns: trouble-ticket-plan-v1 { v, settings, since, built, nights: [{ date, phase, items }], ticks: { key: day }, shifts: { day: dayDone } }
+ */
+(function (G) {
+  'use strict';
+  const TT = (G.TT = G.TT || {});
+
+  const KEY = 'trouble-ticket-plan-v1';
+  const SOURCES = {
+    app: 'trouble-ticket-v1',
+    lessons: 'trouble-ticket-lessons-v1',
+    exam: 'trouble-ticket-exam-v1',
+    lab: 'trouble-ticket-sandbox-v1',
+    career: 'trouble-ticket-career-v1',
+  };
+  const V11_LAST = '2027-02-02'; // last day to sit 200-301 v1.1; v2.0 starts 2027-02-03
+  const DEFAULTS = { exam: '2027-01-15', nights: 5, minutes: 60 };
+  const NIGHT_CHOICES = [3, 4, 5, 6, 7];
+  const MINUTE_CHOICES = [45, 60, 90, 120];
+  // Which weekdays are study nights (0 = Sunday). Spread out so there is rarely more than one night off in a row.
+  const PATTERNS = { 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 2, 3, 4], 6: [0, 1, 2, 3, 4, 6], 7: [0, 1, 2, 3, 4, 5, 6] };
+  const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const MIN = { scene: 8, ticketP1: 35, ticketP2: 30, ticketP3: 25, lab: 25, checkpoint: 30, exam: 120, review: 45, flash: 15, flashMin: 10, weak: 30, light: 20 };
+  const SETS = ['A', 'B', 'C', 'D', 'E'];
+  const DOMAINS = [
+    ['1.0', 'fund', 'Network Fundamentals'],
+    ['2.0', 'access', 'Network Access'],
+    ['3.0', 'ipconn', 'IP Connectivity'],
+    ['4.0', 'svc', 'IP Services'],
+    ['5.0', 'sec', 'Security Fundamentals'],
+    ['6.0', 'auto', 'Automation and Programmability'],
+  ];
+  // Flashcard decks that fit each domain's nights, best fit first.
+  const DECKS = {
+    fund: ['subnetting', 'osi', 'terms', 'wireless', 'acronyms'],
+    access: ['commands', 'wireless', 'defaults', 'protocols'],
+    ipconn: ['defaults', 'commands', 'protocols'],
+    svc: ['ports', 'protocols', 'commands'],
+    sec: ['security', 'commands', 'ports'],
+    auto: ['automation', 'acronyms'],
+  };
+  // Tickets the blueprint table does not list: placed after the lesson that covers the idea.
+  const TICKET_AFTER = { t17: '3.4' };
+  const FLASH_DONE = 10; // reviews logged on a night that count as "did the flashcards"
+
+  /* ================= pure helpers ================= */
+  const isObj = (x) => !!x && typeof x === 'object' && !Array.isArray(x);
+  const obj = (x) => (isObj(x) ? x : {});
+  const pad = (n) => String(n).padStart(2, '0');
+  const isDay = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(parse(s));
+  const dayKey = (d) => { d = d instanceof Date ? d : new Date(d); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+  function parse(k) { const [y, m, d] = String(k).split('-').map(Number); return new Date(y, m - 1, d, 12); }
+  const addDays = (k, n) => { const d = parse(k); d.setDate(d.getDate() + n); return dayKey(d); };
+  const dow = (k) => parse(k).getDay();
+  const diff = (a, b) => Math.round((parse(b) - parse(a)) / 864e5);
+  const weekStart = (k) => addDays(k, -dow(k));
+  const objNum = (o) => String(o || '').split('.').map((x) => Number(x) || 0);
+  const cmpObj = (a, b) => { const x = objNum(a); const y = objNum(b); return x[0] - y[0] || x[1] - y[1]; };
+  const maxObj = (list) => list.slice().sort(cmpObj).pop();
+  const domOf = (o) => (DOMAINS.find((d) => d[0] === objNum(o)[0] + '.0') || DOMAINS[0]);
+  const hours = (m) => { const h = m / 60; return h >= 10 ? String(Math.round(h)) : String(Math.round(h * 10) / 10); };
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const nice = (k, o) => parse(k).toLocaleDateString('en-US', o || { weekday: 'short', month: 'short', day: 'numeric' });
+
+  /** The content the plan is built from. Falls back to empty lists when a data file is absent. */
+  function catalog() {
+    const scenesFor = typeof TT.scenesFor === 'function' ? TT.scenesFor : () => [];
+    const lessons = (TT.lessons || []).slice().sort((a, b) => cmpObj(a.obj, b.obj)).map((l) => ({
+      id: l.id, obj: l.obj, domain: l.domain || domOf(l.obj)[1], title: l.title, minutes: Math.max(5, Number(l.minutes) || 15),
+      scenes: scenesFor(l.id).map((s) => ({ id: s.id, title: s.title, minutes: Math.max(5, Math.min(12, Math.round(((s.steps && s.steps.length) || 6) * 1.2))) })),
+    }));
+    const objs = new Set(lessons.map((l) => l.obj));
+    const ticketObjs = {};
+    for (const [o, , m] of TT.blueprint || []) for (const t of (m && m.t) || []) (ticketObjs[t] = ticketObjs[t] || []).push(o);
+    const tickets = (TT.tickets || []).map((t) => {
+      const list = (ticketObjs[t.id] || []).concat(TICKET_AFTER[t.id] ? [TICKET_AFTER[t.id]] : []).filter((o) => objs.has(o) || !objs.size);
+      return { id: t.id, number: t.number, title: t.title, topic: t.topic, after: list.length ? maxObj(list) : '3.2', minutes: MIN['ticket' + (t.priority || 'P3')] || MIN.ticketP3 };
+    });
+    const labs = (TT.labProjects || TT.projects || []).map((p) => {
+      const list = (p.blueprint || []).filter((o) => objs.has(o) || !objs.size);
+      return { id: p.id, title: p.title, after: list.length ? maxObj(list) : '1.1', minutes: Math.max(10, Number(p.minutes) || MIN.lab) };
+    });
+    const decks = Object.fromEntries((TT.flashDecks || []).map((d) => [d.id, d.name]));
+    let sets = SETS.slice();
+    try { if (typeof TT.examSets === 'function') { const s = TT.examSets().map((x) => x.id).filter(Boolean); if (s.length) sets = s; } } catch (e) { /* keep A-E */ }
+    return { lessons, tickets, labs, decks, sets };
+  }
+
+  /* ---------- items ---------- */
+  function mk(kind, id, fields) {
+    return Object.assign({ kind, id, key: kind + ':' + id }, fields);
+  }
+  const lessonItem = (l) => mk('lesson', l.id, { tag: 'Lesson ' + l.obj, name: l.title, title: `Lesson ${l.obj} ${l.title}`, href: '#learn-' + l.id, minutes: l.minutes, obj: l.obj, domain: l.domain });
+  const sceneItem = (s, l) => mk('scene', s.id, { tag: 'Scene', name: s.title, title: `Scene: ${s.title}`, href: '#scene-' + s.id, minutes: s.minutes, lesson: l.id, obj: l.obj, domain: l.domain });
+  const ticketItem = (t) => mk('ticket', t.id, { tag: t.number || t.id, name: t.title, title: `Ticket ${t.number || t.id} ${t.title}`, href: '#' + t.id, minutes: t.minutes, obj: t.after, domain: domOf(t.after)[1] });
+  const labItem = (p) => mk('lab', p.id, { tag: 'Lab', name: p.title, title: `Lab: ${p.title}`, href: '#lab-' + p.id, minutes: p.minutes, obj: p.after, domain: domOf(p.after)[1] });
+  const checkpointItem = (d) => mk('checkpoint', d[0], { tag: 'Checkpoint ' + d[0], name: `Domain practice ${d[0]} ${d[2]}`, title: `Checkpoint: domain practice ${d[0]} ${d[2]}`, href: '#exam', minutes: MIN.checkpoint, domain: d[1], how: `Mock exam → Domain practice → ${d[0]}` });
+  const examItem = (s) => mk('exam', s, { tag: 'Exam ' + s, name: `Practice exam ${s}`, title: `Practice exam ${s} (100 questions, 120 min)`, href: '#exam', minutes: MIN.exam, how: `Mock exam → Practice exams → Exam ${s}` });
+  const reviewItem = (s) => mk('review', s, { tag: 'Review', name: `Missed questions from exam ${s}`, title: `Review missed questions from exam ${s}`, href: '#exam', minutes: MIN.review, set: s, how: 'Mock exam → Weak spots, then read each explanation' });
+  function flashItem(cat, deck, minutes, date) {
+    const name = deck === 'due' ? 'every due card' : deck + ' deck';
+    return Object.assign(mk('flash', deck, { tag: 'Flashcards', name, title: `${minutes} min flashcards: ${name}`, href: '#flash-' + deck, minutes, on: date }), { key: `flash:${deck}:${date}` });
+  }
+  const weakItem = (date, minutes) => Object.assign(mk('review', 'weak', { tag: 'Review', name: 'Weak spots drill', title: 'Weak spots drill: questions you missed before', href: '#exam', minutes: minutes || MIN.weak, how: 'Mock exam → Weak spots', on: date }), { key: 'review:weak:' + date });
+  const lightItem = (date) => Object.assign(mk('review', 'final', { tag: 'Light review', name: 'Skim your notes and the exam traps, then sleep', title: 'Light review: skim your notes and the exam traps, then sleep', href: '#learn', minutes: MIN.light, on: date }), { key: 'review:final:' + date });
+
+  /* ---------- settings and progress ---------- */
+  function normSettings(s, today) {
+    s = obj(s);
+    today = isDay(today) ? today : dayKey(new Date());
+    const nights = NIGHT_CHOICES.includes(Number(s.nights)) ? Number(s.nights) : DEFAULTS.nights;
+    const days = Array.isArray(s.days) && s.days.length ? s.days.map(Number).filter((d) => d >= 0 && d <= 6) : PATTERNS[nights];
+    return {
+      exam: isDay(s.exam) ? s.exam : DEFAULTS.exam,
+      start: isDay(s.start) ? s.start : today,
+      nights, days: [...new Set(days)].sort(),
+      minutes: Math.max(20, Math.min(240, Number(s.minutes) || DEFAULTS.minutes)),
+    };
+  }
+
+  /** Progress in the shape the planner reads. Accepts the raw parsed storage objects. */
+  function normProgress(raw, extra) {
+    raw = obj(raw);
+    if (raw.__plan) return raw; // already normalized
+    const app = obj(raw.app);
+    const les = obj(raw.lessons);
+    const ex = obj(raw.exam);
+    const lab = obj(raw.lab);
+    const car = obj(raw.career);
+    const exams = {};
+    const practice = {};
+    const weak = [];
+    for (const a of Array.isArray(ex.attempts) ? ex.attempts : []) {
+      if (!isObj(a) || typeof a.date !== 'string') continue;
+      if (a.mode === 'full' && a.set && (!exams[a.set] || a.date < exams[a.set])) exams[a.set] = a.date;
+      else if (a.mode === 'practice' && a.domain) (practice[a.domain] = practice[a.domain] || []).push(a.date);
+      else if (a.mode === 'weak' || a.mode === 'retake') weak.push(a.date);
+    }
+    const flashDays = {};
+    for (const [k, v] of Object.entries(obj(car.days))) if (isDay(k)) flashDays[k] = Number(obj(v).flash) || 0;
+    extra = obj(extra);
+    return {
+      __plan: true,
+      lessons: obj(les.done), tickets: obj(app.solved), labs: obj(lab.done),
+      exams, practice, weak, flashDays,
+      ticks: obj(extra.ticks), since: isDay(extra.since) ? extra.since : null,
+    };
+  }
+  /** Direct form for tests and callers: { lessons: {id:true}, tickets, labs, exams: {A: iso}, practice, weak, ticks }. */
+  function progressOf(p) {
+    p = obj(p);
+    if (p.__plan) return p;
+    if (p.app || p.exam || p.lab || p.career || isObj(p.lessons) && isObj(p.lessons.done)) return normProgress(p);
+    return { __plan: true, lessons: obj(p.lessons), tickets: obj(p.tickets), labs: obj(p.labs), exams: obj(p.exams), practice: obj(p.practice), weak: Array.isArray(p.weak) ? p.weak : [], flashDays: obj(p.flashDays), ticks: obj(p.ticks), since: p.since || null };
+  }
+
+  function isDone(item, p) {
+    p = progressOf(p);
+    if (!item) return false;
+    if (p.ticks[item.key]) return true;
+    switch (item.kind) {
+      case 'lesson': return !!p.lessons[item.id];
+      case 'scene': return !!p.lessons[item.lesson];
+      case 'ticket': return !!p.tickets[item.id];
+      case 'lab': return !!p.labs[item.id];
+      case 'exam': return !!p.exams[item.id];
+      case 'checkpoint': return (p.practice[item.id] || []).some((d) => !p.since || dayKey(new Date(d)) >= p.since);
+      case 'review':
+        if (item.set) { const t = p.exams[item.set]; return !!t && p.weak.some((d) => d > t); }
+        if (item.id === 'weak' && item.on) return p.weak.some((d) => dayKey(new Date(d)) === item.on);
+        return false;
+      case 'flash': return !!item.on && (p.flashDays[item.on] || 0) >= FLASH_DONE;
+      default: return false;
+    }
+  }
+  // Items a checkbox can tick by hand (no saved progress says when they are done).
+  const manual = (item) => item.kind === 'flash' || item.kind === 'review' || item.kind === 'scene';
+
+  function studyDates(s) {
+    const out = [];
+    const lastNight = addDays(s.exam, -1);
+    for (let k = s.start, guard = 0; k < s.exam && guard < 800; k = addDays(k, 1), guard++) {
+      if (s.days.includes(dow(k)) || k === lastNight) out.push(k);
+    }
+    return out;
+  }
+
+  /* ================= the generator ================= */
+  function build(settings, progress, cat) {
+    const s = normSettings(settings, settings && settings.today);
+    const p = progressOf(progress);
+    cat = cat || catalog();
+    const B = s.minutes;
+    const dates = studyDates(s);
+    const N = dates.length;
+    const days = Math.max(0, diff(s.start, s.exam));
+    const warnings = [];
+    if (s.exam > V11_LAST) warnings.push({ level: 'bad', code: 'v2', text: 'That date is after Feb 2, 2027. CCNA 200-301 v1.1 retires on Feb 2, and v2.0 starts Feb 3, 2027. This plan covers v1.1; book on or before Feb 2 or plan for the new blueprint.' });
+
+    // what is left
+    const units = [];
+    for (const l of cat.lessons) {
+      if (p.lessons[l.id]) continue;
+      const items = [lessonItem(l)].concat(l.scenes.map((sc) => sceneItem(sc, l)));
+      units.push({ l, items, minutes: items.reduce((m, x) => m + x.minutes, 0) });
+    }
+    const practice = cat.tickets.filter((t) => !p.tickets[t.id]).map(ticketItem)
+      .concat(cat.labs.filter((x) => !p.labs[x.id]).map(labItem))
+      .sort((a, b) => cmpObj(a.obj, b.obj) || (a.kind === b.kind ? 0 : a.kind === 'ticket' ? -1 : 1));
+    const checkpoints = DOMAINS.filter((d) => cat.lessons.some((l) => l.domain === d[1])).map(checkpointItem).filter((c) => !isDone(c, p));
+    const stretchUnits = [];
+    for (const id of cat.sets) {
+      const ex = examItem(id);
+      const rv = reviewItem(id);
+      if (!isDone(ex, p)) stretchUnits.push({ exam: ex, review: rv });
+      else if (!isDone(rv, p)) stretchUnits.push({ exam: null, review: rv });
+    }
+    const learnMin = units.reduce((m, u) => m + u.minutes, 0) + practice.reduce((m, x) => m + x.minutes, 0) + checkpoints.reduce((m, x) => m + x.minutes, 0);
+    const stretchMin = stretchUnits.reduce((m, u) => m + (u.exam ? u.exam.minutes : 0) + u.review.minutes, 0) + MIN.light;
+    const needed = learnMin + stretchMin;
+    const available = N * B;
+    const base = { settings: s, start: s.start, exam: s.exam, days, warnings };
+    if (!N) {
+      warnings.push({ level: 'bad', code: 'none', text: s.start >= s.exam ? 'The exam date has to come after the start date.' : 'No study nights fall between the start date and the exam. Add nights or move the exam.' });
+      return Object.assign(base, { nights: [], weeks: [], stretchStart: null, totals: { nights: 0, learnNights: 0, available: 0, needed, budget: B, nightLoad: 0 } });
+    }
+
+    // final review stretch: ~12% of nights (at least 4), grown so each practice exam gets a review night after it
+    const hasLearn = units.length + practice.length + checkpoints.length > 0;
+    const k = stretchUnits.length;
+    let S = Math.max(4, Math.round(N * 0.12));
+    S = Math.max(S, Math.min(2 * k + 1, Math.floor(N * 0.3)));
+    S = Math.max(S, k + 1);
+    S = Math.min(S, hasLearn && N > 1 ? N - 1 : N);
+    const L = N - S;
+    const learnDates = dates.slice(0, L);
+    const stretchDates = dates.slice(L);
+
+    // pack the learning nights: practice that is ready first, then lessons in blueprint order
+    const domainLessons = {};
+    for (const l of cat.lessons) domainLessons[l.domain] = (domainLessons[l.domain] || 0) + 1;
+    // Each night aims at the work left divided by the nights left (never much under the budget, so slack
+    // collects as buffer nights before the stretch), with a few minutes of give so lessons are not split.
+    function pack() {
+      const nights = learnDates.map(() => ({ items: [], minutes: 0, domain: null }));
+      const queue = [];
+      const waiting = practice.slice();
+      const cps = checkpoints.slice();
+      let left = learnMin;
+      // a ticket or lab is ready once no unplaced lesson teaches an objective at or before its last one
+      const release = (eligible, from) => {
+        for (let i = 0; i < waiting.length;) {
+          const x = waiting[i];
+          if (!units.some((u, j) => j >= from && cmpObj(u.l.obj, x.obj) <= 0)) { queue.push({ item: x, eligible }); waiting.splice(i, 1); } else i++;
+        }
+        for (let i = 0; i < cps.length;) {
+          const c = cps[i];
+          if (!units.some((u, j) => j >= from && u.l.domain === c.domain) && !waiting.some((x) => x.domain === c.domain)) { queue.push({ item: c, eligible }); cps.splice(i, 1); } else i++;
+        }
+      };
+      release(0, 0);
+      let li = 0;
+      for (let i = 0; i < nights.length; i++) {
+        const n = nights[i];
+        const lastNight = i === nights.length - 1;
+        const target = Math.max(left / (nights.length - i), Math.min(B, B * 0.8));
+        const fits = (m) => lastNight || !n.items.length || n.minutes + m <= target + 8;
+        const put = (x) => { n.items.push(x); n.minutes += x.minutes; left -= x.minutes; if (!n.domain) n.domain = x.domain || null; };
+        while (queue.length && queue[0].eligible <= i && fits(queue[0].item.minutes)) put(queue.shift().item);
+        while (li < units.length && fits(units[li].minutes)) {
+          const u = units[li];
+          // a new domain starts on a fresh night unless this one is still mostly empty
+          if (!lastNight && n.domain && n.domain !== u.l.domain && n.minutes >= target * 0.5 && left / (nights.length - i - 1) <= target + 8) break;
+          for (const x of u.items) put(x);
+          li++;
+          release(i + 1, li);
+        }
+        if (lastNight) while (queue.length) put(queue.shift().item);
+      }
+      return { nights };
+    }
+    const packed = L ? pack() : { nights: [] };
+
+    // flashcards fill spare minutes on learning nights; empty nights become buffer nights
+    const turn = {};
+    const learnNights = packed.nights.map((n, i) => {
+      const date = learnDates[i];
+      const items = n.items.slice();
+      let minutes = n.minutes;
+      if (!items.length) {
+        items.push(flashItem(cat, 'due', Math.min(MIN.flash, B), date));
+        if (B - MIN.flash >= 20) items.push(weakItem(date, Math.min(MIN.weak, B - MIN.flash)));
+        return { date, phase: 'buffer', domain: null, items, minutes: items.reduce((m, x) => m + x.minutes, 0) };
+      }
+      const spare = B - minutes;
+      if (spare >= MIN.flashMin && n.domain && DECKS[n.domain]) {
+        const list = DECKS[n.domain].filter((d) => !Object.keys(cat.decks).length || cat.decks[d]);
+        if (list.length) {
+          const t = (turn[n.domain] = (turn[n.domain] || 0));
+          turn[n.domain] = t + 1;
+          const f = flashItem(cat, list[t % list.length], Math.min(MIN.flash, spare), date);
+          items.push(f);
+          minutes += f.minutes;
+        }
+      }
+      return { date, phase: 'learn', domain: n.domain, items, minutes };
+    });
+
+    // the final stretch: practice exams spread evenly, a review night after each, light review last
+    const stretch = stretchDates.map((date) => ({ date, phase: 'stretch', domain: null, items: [], minutes: 0 }));
+    const final = stretch.length > 1 ? stretch[stretch.length - 1] : null;
+    const slots = final ? stretch.length - 1 : stretch.length;
+    const add = (n, x) => { n.items.push(x); n.minutes += x.minutes; };
+    stretchUnits.forEach((u, j) => {
+      const pos = Math.min(slots - 1, Math.floor((j * slots) / Math.max(1, k)));
+      const n = stretch[Math.max(0, pos)];
+      if (!n) return;
+      if (u.exam) {
+        add(n, u.exam);
+        const next = pos + 1 < slots ? stretch[pos + 1] : n; // the last night stays light
+        add(next, u.review);
+      } else add(n, u.review);
+    });
+    for (const n of stretch) {
+      if (n === final) continue;
+      if (!n.items.length) { add(n, weakItem(n.date, Math.min(MIN.weak, B))); if (B - MIN.weak >= MIN.flashMin) add(n, flashItem(cat, 'due', Math.min(MIN.flash, B - MIN.weak), n.date)); }
+    }
+    if (final) { final.phase = 'final'; add(final, flashItem(cat, 'due', MIN.flash, final.date)); add(final, lightItem(final.date)); }
+
+    const nights = learnNights.concat(stretch);
+    const load = learnNights.filter((n) => n.phase === 'learn');
+    const nightLoad = load.length ? Math.round(load.reduce((m, n) => m + n.minutes, 0) / load.length) : 0;
+    if (needed > available) {
+      warnings.push({ level: 'warn', code: 'tight', text: `This is tight: ~${hours(available)} hours for ~${hours(needed)} hours of material. Study nights will run about ${Math.max(nightLoad, B)} minutes. ${nightLoad > 2 * B ? 'That is more than most people can keep up; think about moving the exam date.' : 'Add a night a week or longer nights if you can.'}` });
+    } else if (days < 28) {
+      warnings.push({ level: 'warn', code: 'tight', text: `This is tight: under four weeks, ~${hours(available)} hours for ~${hours(needed)} hours of material. It fits on paper; there is no slack for a bad week.` });
+    } else if (needed > available * 0.9) {
+      warnings.push({ level: 'note', code: 'snug', text: `Snug fit: ~${hours(needed)} hours of material in ~${hours(available)} hours. Missing a night means doubling up later.` });
+    }
+    return Object.assign(base, {
+      nights, weeks: weeksOf(nights), stretchStart: stretchDates[0] || null,
+      totals: { nights: N, learnNights: L, available, needed, budget: B, nightLoad },
+    });
+  }
+
+  function weeksOf(nights) {
+    const out = [];
+    for (const n of nights) {
+      const ws = weekStart(n.date);
+      let w = out[out.length - 1];
+      if (!w || w.start !== ws) { w = { start: ws, end: addDays(ws, 6), nights: [] }; out.push(w); }
+      w.nights.push(n);
+    }
+    out.forEach((w, i) => { w.label = 'Week ' + (i + 1); });
+    return out;
+  }
+
+  /* ---------- pace ---------- */
+  /** Latest occurrence of each item: an item moved by a catch-up counts where it now sits. */
+  function latest(plan) {
+    const m = new Map();
+    for (const n of plan.nights || []) for (const x of n.items) m.set(x.key, { item: x, date: n.date });
+    return m;
+  }
+  const PACE_KINDS = new Set(['lesson', 'scene', 'ticket', 'lab', 'checkpoint', 'exam']);
+  function pace(plan, progress, today) {
+    const p = progressOf(progress);
+    if (!plan || !plan.nights || !plan.nights.length) return { state: 'none', n: 0, behind: 0, ahead: 0, done: 0, total: 0 };
+    let behind = 0; let ahead = 0; let done = 0; let total = 0; let dueNow = 0;
+    for (const { item, date } of latest(plan).values()) {
+      const d = isDone(item, p);
+      total++;
+      if (d) done++;
+      if (!PACE_KINDS.has(item.kind)) continue;
+      if (date < today && !d) behind++;
+      if (date > today && d) ahead++;
+      if (date <= today) dueNow++;
+    }
+    const net = ahead - behind;
+    const state = net > 0 ? 'ahead' : net < 0 ? 'behind' : 'on-track';
+    return { state, n: Math.abs(net), behind, ahead, done, total, dueNow };
+  }
+
+  /* ================= iCalendar ================= */
+  const icsText = (s) => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+  function fold(line) {
+    const enc = typeof TextEncoder === 'function' ? new TextEncoder() : null;
+    const len = (ch) => (enc ? enc.encode(ch).length : unescape(encodeURIComponent(ch)).length);
+    const out = [];
+    let cur = '';
+    let n = 0;
+    for (const ch of line) {
+      const b = len(ch);
+      const max = out.length ? 74 : 75; // continuation lines start with a space, which counts
+      if (n + b > max) { out.push(cur); cur = ''; n = 0; }
+      cur += ch;
+      n += b;
+    }
+    out.push(cur);
+    return out.map((x, i) => (i ? ' ' + x : x)).join('\r\n');
+  }
+  const icsDate = (k) => k.replace(/-/g, '');
+  const icsStamp = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  /** opts: { from: day (skip earlier nights), time: 'HH:MM' for evening events or null for all-day, stamp: Date } */
+  function ics(plan, opts) {
+    opts = obj(opts);
+    const stamp = icsStamp(opts.stamp instanceof Date ? opts.stamp : new Date());
+    const time = typeof opts.time === 'string' && /^\d{2}:\d{2}$/.test(opts.time) ? opts.time : null;
+    const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Trouble Ticket//Shift schedule//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:' + icsText('Shift schedule (CCNA 200-301)')];
+    const when = (date, minutes) => {
+      if (!time) return ['DTSTART;VALUE=DATE:' + icsDate(date), 'DTEND;VALUE=DATE:' + icsDate(addDays(date, 1)), 'TRANSP:TRANSPARENT'];
+      const [h, m] = time.split(':').map(Number);
+      const st = parse(date); st.setHours(h, m, 0, 0);
+      const en = new Date(st.getTime() + Math.max(15, minutes) * 60000);
+      const f = (d) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+      return ['DTSTART:' + f(st), 'DTEND:' + f(en)];
+    };
+    for (const n of plan.nights || []) {
+      if (opts.from && n.date < opts.from) continue;
+      if (!n.items.length) continue;
+      const first = n.items[0];
+      const more = n.items.length - 1;
+      const summary = `Shift: ${first.title}${more ? ` (+${more} more)` : ''}`;
+      const desc = n.items.map((x) => `- ${x.title} (${x.minutes} min)${x.how ? ` [${x.how}]` : ''}`).join('\n') + `\n\nAbout ${n.minutes} minutes. Open Trouble Ticket → Study plan.`;
+      L.push('BEGIN:VEVENT', 'UID:shift-' + icsDate(n.date) + '@trouble-ticket.local', 'DTSTAMP:' + stamp, ...when(n.date, n.minutes), 'SUMMARY:' + icsText(summary), 'DESCRIPTION:' + icsText(desc), 'END:VEVENT');
+    }
+    if (plan.exam) {
+      L.push('BEGIN:VEVENT', 'UID:exam-' + icsDate(plan.exam) + '@trouble-ticket.local', 'DTSTAMP:' + stamp,
+        'DTSTART;VALUE=DATE:' + icsDate(plan.exam), 'DTEND;VALUE=DATE:' + icsDate(addDays(plan.exam, 1)),
+        'SUMMARY:' + icsText('CCNA 200-301 exam day'), 'DESCRIPTION:' + icsText('Bring two forms of ID if testing at a center. Arrive early. You have done the work.'), 'END:VEVENT');
+    }
+    L.push('END:VCALENDAR');
+    return L.map(fold).join('\r\n') + '\r\n';
+  }
+
+  /** Nights finished on or before their date, from a stored plan record. Used by career.js for XP. */
+  function shiftsEarned(rec) {
+    const sh = obj(obj(rec).shifts);
+    return Object.keys(sh).filter((k) => isDay(k) && isDay(sh[k]) && sh[k] <= k).sort();
+  }
+
+  TT.plan = {
+    KEY, V11_LAST, DEFAULTS, PATTERNS, NIGHT_CHOICES, MINUTE_CHOICES, MINUTES: MIN, DECKS,
+    build, ics, fold, isDone, pace, catalog, studyDates, normSettings, normProgress, progressOf, weeksOf, shiftsEarned,
+    dayKey, addDays,
+    tonight: () => null, status: () => ({ state: 'none', n: 0 }), sync: () => false,
+  };
+
+  /* ================= browser layer ================= */
+  const doc = G.document;
+  if (!doc || !doc.querySelector) return;
+  const reduced = () => !!(G.matchMedia && G.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const readJSON = (k) => { try { return JSON.parse(G.localStorage.getItem(k)); } catch (e) { return null; } };
+  const today = () => dayKey(new Date());
+
+  function loadRec() {
+    const r = readJSON(KEY);
+    return isObj(r) && r.v === 1 ? r : null;
+  }
+  function saveRec(r) { try { G.localStorage.setItem(KEY, JSON.stringify(r)); } catch (e) { /* storage blocked: the plan lasts for this visit */ } memo = r; }
+  let memo = null;
+  const rec = () => { const r = loadRec(); return r || memo; };
+  const hasPlan = (r) => !!(r && r.settings && Array.isArray(r.nights) && r.nights.length);
+
+  function readProgress(r) {
+    const raw = {};
+    for (const [k, key] of Object.entries(SOURCES)) raw[k] = readJSON(key);
+    return normProgress(raw, { ticks: r && r.ticks, since: r && r.since });
+  }
+  const planOf = (r) => ({ settings: r.settings, exam: r.settings.exam, start: r.settings.start, nights: r.nights, weeks: weeksOf(r.nights), stretchStart: r.stretchStart, totals: r.totals, warnings: r.warnings || [] });
+
+  /** Build (or rebuild from today, keeping history) and store. */
+  function commit(settings, opts) {
+    const old = rec();
+    const t = today();
+    const p = readProgress(old);
+    const s = Object.assign({}, settings, { today: t });
+    if (opts && opts.keepPast && !(isDay(s.start) && s.start > t)) s.start = t;
+    const built = build(s, p);
+    let nights = built.nights.map((n) => ({ date: n.date, phase: n.phase, domain: n.domain, items: n.items, minutes: n.minutes }));
+    if (old && hasPlan(old) && opts && opts.keepPast) {
+      const past = old.nights.filter((n) => n.date < built.start);
+      const todayOld = old.nights.find((n) => n.date === built.start);
+      const kept = todayOld ? todayOld.items.filter((x) => isDone(x, p)) : [];
+      if (kept.length) {
+        const tn = nights.find((n) => n.date === built.start);
+        if (tn) { tn.items = kept.concat(tn.items.filter((x) => !kept.some((k) => k.key === x.key))); tn.minutes = tn.items.reduce((m, x) => m + x.minutes, 0); }
+        else past.push(todayOld);
+      }
+      nights = past.concat(nights);
+    }
+    const r = {
+      v: 1, settings: built.settings, since: (old && old.since) || t, built: t,
+      nights, stretchStart: built.stretchStart, totals: built.totals, warnings: built.warnings,
+      ticks: (old && old.ticks) || {}, shifts: (old && old.shifts) || {},
+    };
+    saveRec(r);
+    return r;
+  }
+
+  function sync() {
+    const r = rec();
+    if (!hasPlan(r)) return false;
+    const p = readProgress(r);
+    const t = today();
+    let changed = false;
+    r.shifts = obj(r.shifts);
+    for (const n of r.nights) {
+      if (n.date < t || r.shifts[n.date] || !n.items.length) continue;
+      if (n.items.every((x) => isDone(x, p))) { r.shifts[n.date] = t; changed = true; }
+    }
+    if (changed) saveRec(r);
+    return changed;
+  }
+
+  function tonight() {
+    const r = rec();
+    if (!hasPlan(r)) return null;
+    const p = readProgress(r);
+    const t = today();
+    const at = latest(planOf(r));
+    const live = (n) => n.items.filter((x) => !isDone(x, p) && at.get(x.key) && at.get(x.key).date === n.date);
+    const n = r.nights.find((x) => x.date >= t && live(x).length);
+    if (!n) return null;
+    const items = live(n);
+    const first = items[0];
+    const more = items.length - 1;
+    return { date: n.date, isToday: n.date === t, items, item: first, href: first.href, label: `${first.title}${more ? ` (+${more} more)` : ''}`, more, night: n };
+  }
+  function status() {
+    const r = rec();
+    if (!hasPlan(r)) return { state: 'none', n: 0, behind: 0, ahead: 0, done: 0, total: 0 };
+    return pace(planOf(r), readProgress(r), today());
+  }
+  Object.assign(TT.plan, { tonight, status, sync, readProgress, load: rec, commit });
+
+  /* ================= the view ================= */
+  const GLYPH = {
+    lesson: '<path d="M5 4h9a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h9"/>',
+    scene: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5v5l4.5-2.5z"/>',
+    ticket: '<path d="M4 7h16v3a2 2 0 0 0 0 4v3H4v-3a2 2 0 0 0 0-4z"/><path d="M9 7v10" stroke-dasharray="2 2"/>',
+    lab: '<rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/><path d="M12 10v4M7 7h1M7 17h1"/>',
+    flash: '<rect x="7" y="4" width="12" height="15" rx="1.5"/><path d="M5 7v12a2 2 0 0 0 2 2h9"/>',
+    checkpoint: '<path d="M6 21V4"/><path d="M6 4h11l-2 4 2 4H6"/>',
+    exam: '<rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+    review: '<path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v4h4"/>',
+  };
+  const glyph = (k) => `<svg class="pl-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${GLYPH[k] || GLYPH.lesson}</svg>`;
+  const KIND = { lesson: 'Lesson', scene: 'Scene', ticket: 'Ticket', lab: 'Lab', flash: 'Flashcards', checkpoint: 'Checkpoint', exam: 'Practice exam', review: 'Review' };
+  const PIN = '<svg class="pl-pin" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="10" r="7"/><circle cx="10" cy="8" r="2.2" class="pl-pin-hi"/></svg>';
+
+  let ticks = {};
+  const ui = { main: null, mode: null, draft: null, extra: false, icsTime: '', msg: '' };
+
+  TT.renderPlan = function renderPlan(main) {
+    ui.main = main;
+    const r = rec();
+    if (ui.mode !== 'setup' || !main.querySelector('.pl-setup')) ui.mode = hasPlan(r) ? 'view' : 'setup';
+    if (!hasPlan(r)) ui.mode = 'setup';
+    draw();
+  };
+
+  function draw() {
+    const main = ui.main;
+    if (!main) return;
+    const r = rec();
+    if (ui.mode === 'setup' || !hasPlan(r)) { drawSetup(r); return; }
+    sync();
+    drawView(rec());
+  }
+
+  /* ---------- setup / reschedule ---------- */
+  function drawSetup(r) {
+    const editing = hasPlan(r);
+    const t = today();
+    if (!ui.draft) {
+      const s = editing ? r.settings : {};
+      ui.draft = { exam: s.exam || DEFAULTS.exam, nights: s.nights || DEFAULTS.nights, minutes: s.minutes || DEFAULTS.minutes, start: t };
+    }
+    const d = ui.draft;
+    ui.main.innerHTML = `
+      <div class="pl-wall">
+        <section class="sheet pl-setup pl-paper" aria-labelledby="pl-setup-h">
+          ${PIN}${PIN.replace('pl-pin', 'pl-pin pl-pin-r')}
+          <p class="label">Harbor Point Logistics · NOC night desk · form HPL-7</p>
+          <h2 id="pl-setup-h" class="pl-h">${editing ? 'Reschedule the shifts' : 'Request a shift schedule'}</h2>
+          <p class="pl-lede">${editing ? 'Change anything below. Work you have already finished stays done; everything left gets planned again from today.' : 'Tell Kenji when the exam is and how many nights you can give it. He will pin a night-by-night schedule on the wall: lessons in blueprint order, tickets and labs right after the lessons that teach them, and the five practice exams at the end.'}</p>
+          <form class="pl-form" novalidate>
+            <div class="pl-field">
+              <label for="pl-exam">Exam date</label>
+              <input id="pl-exam" type="date" value="${esc(d.exam)}" min="${esc(t)}" required aria-describedby="pl-exam-note">
+              <p id="pl-exam-note" class="pl-note" aria-live="polite"></p>
+            </div>
+            <div class="pl-field">
+              <label for="pl-start">Start date</label>
+              <input id="pl-start" type="date" value="${esc(d.start)}" min="${esc(t)}" required>
+              <p class="pl-note">Today by default.</p>
+            </div>
+            <fieldset class="pl-field pl-chips-f">
+              <legend>Study nights per week</legend>
+              <div class="chips pl-chips">${NIGHT_CHOICES.map((n) => `<button type="button" class="chip" data-nights="${n}" aria-pressed="${d.nights === n}">${n}</button>`).join('')}</div>
+              <p class="pl-note" id="pl-days-note"></p>
+            </fieldset>
+            <fieldset class="pl-field pl-chips-f">
+              <legend>Minutes per night</legend>
+              <div class="chips pl-chips">${MINUTE_CHOICES.map((n) => `<button type="button" class="chip" data-minutes="${n}" aria-pressed="${d.minutes === n}">${n} min</button>`).join('')}</div>
+            </fieldset>
+            <div class="pl-preview" aria-live="polite"></div>
+            <div class="pl-actions">
+              <button type="submit" class="btn primary">${editing ? 'Rebuild from today' : 'Pin it to the wall'}</button>
+              ${editing ? '<button type="button" class="btn" data-act="cancel">Cancel</button><button type="button" class="btn quiet pl-danger" data-act="clear">Take the schedule down</button>' : ''}
+            </div>
+          </form>
+        </section>
+      </div>`;
+    const f = ui.main.querySelector('form');
+    const refresh = () => {
+      d.exam = f.querySelector('#pl-exam').value || d.exam;
+      d.start = f.querySelector('#pl-start').value || d.start;
+      const note = f.querySelector('#pl-exam-note');
+      note.className = 'pl-note';
+      if (d.exam > V11_LAST) { note.className = 'pl-note pl-bad'; note.innerHTML = '<b>Heads up:</b> v1.1 retires on Feb 2, 2027 and v2.0 starts Feb 3, 2027. This site and plan cover v1.1.'; } else note.textContent = `Sitting CCNA 200-301 v1.1 (last day for v1.1: Feb 2, 2027).`;
+      f.querySelector('#pl-days-note').textContent = 'Nights: ' + PATTERNS[d.nights].map((x) => DOW[x]).join(', ') + ', plus the night before the exam.';
+      const s = normSettings(Object.assign({}, d, { today: today() }));
+      const built = build(s, readProgress(r));
+      const tt = built.totals;
+      const box = f.querySelector('.pl-preview');
+      const ws = built.warnings.filter((w) => w.code !== 'v2');
+      box.innerHTML = tt.nights ? `
+        <dl class="pl-sum">
+          <div><dt>Study nights</dt><dd>${tt.nights}</dd></div>
+          <div><dt>Hours available</dt><dd>~${hours(tt.available)}</dd></div>
+          <div><dt>Hours of work left</dt><dd>~${hours(tt.needed)}</dd></div>
+          <div><dt>Final stretch from</dt><dd>${built.stretchStart ? esc(nice(built.stretchStart, { month: 'short', day: 'numeric' })) : '-'}</dd></div>
+        </dl>${ws.map((w) => `<p class="pl-warn pl-${w.level}">${esc(w.text)}</p>`).join('')}` : ws.map((w) => `<p class="pl-warn pl-bad">${esc(w.text)}</p>`).join('');
+      f.querySelector('[type=submit]').disabled = !tt.nights;
+    };
+    f.addEventListener('input', refresh);
+    f.addEventListener('change', refresh);
+    f.querySelectorAll('[data-nights]').forEach((b) => b.addEventListener('click', () => { d.nights = Number(b.dataset.nights); f.querySelectorAll('[data-nights]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); refresh(); }));
+    f.querySelectorAll('[data-minutes]').forEach((b) => b.addEventListener('click', () => { d.minutes = Number(b.dataset.minutes); f.querySelectorAll('[data-minutes]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); refresh(); }));
+    f.addEventListener('submit', (e) => {
+      e.preventDefault();
+      refresh();
+      commit(d, { keepPast: editing });
+      ui.draft = null; ui.mode = 'view'; ui.msg = editing ? 'Rescheduled. Everything left is planned again from today.' : 'Schedule posted. Tonight\'s shift is below.';
+      draw();
+      focus('.pl-hero h2, .pl-hero h3');
+    });
+    const cancel = f.querySelector('[data-act=cancel]');
+    if (cancel) cancel.addEventListener('click', () => { ui.draft = null; ui.mode = 'view'; draw(); focus('[data-act=reschedule]'); });
+    const clear = f.querySelector('[data-act=clear]');
+    if (clear) clear.addEventListener('click', () => {
+      if (clear.dataset.armed !== '1') { clear.dataset.armed = '1'; clear.textContent = 'Sure? Click again to take it down'; return; }
+      saveRec({ v: 1, shifts: obj(r && r.shifts) });
+      ui.draft = null; ui.mode = 'setup'; draw();
+    });
+    refresh();
+  }
+  function focus(sel) { const el = ui.main && ui.main.querySelector(sel); if (el) { if (!el.hasAttribute('tabindex') && !/^(A|BUTTON|INPUT)$/.test(el.tagName)) el.setAttribute('tabindex', '-1'); el.focus({ preventScroll: false }); } }
+
+  /* ---------- the schedule ---------- */
+  const KENJI = [
+    'One thing at a time. The pager can wait.',
+    'Read it, then break it in the lab. That is the order.',
+    'Coffee is fresh. Clock in.',
+    'Nobody memorizes STP on the first pass. Second pass, maybe.',
+    'Do the show commands before you touch the config. Every time.',
+  ];
+  function drawView(r) {
+    const plan = planOf(r);
+    const p = readProgress(r);
+    ticks = p.ticks;
+    const t = today();
+    const at = latest(plan);
+    const st = pace(plan, p, t);
+    const exam = plan.exam;
+    const daysLeft = diff(t, exam);
+    const nightsLeft = plan.nights.filter((n) => n.date >= t).length;
+    const pct = st.total ? Math.round((st.done / st.total) * 100) : 0;
+    const itemState = (x, date) => {
+      const d = isDone(x, p);
+      if (d) return 'done';
+      const l = at.get(x.key);
+      if (l && l.date !== date) return l.date > date ? 'moved' : 'done';
+      if (date < t) return PACE_KINDS.has(x.kind) ? 'missed' : 'skipped';
+      return 'todo';
+    };
+    const movedTo = (x) => at.get(x.key) && at.get(x.key).date;
+
+    const countdown = daysLeft > 1 ? `<b>${daysLeft}</b> nights to the exam` : daysLeft === 1 ? '<b>1</b> night to the exam: tomorrow' : daysLeft === 0 ? '<b>Exam day.</b> Good luck' : '<b>Exam date passed</b>';
+    const paceTxt = st.state === 'ahead' ? `Ahead by ${st.n} item${st.n === 1 ? '' : 's'}` : st.state === 'behind' ? `Behind by ${st.n} item${st.n === 1 ? '' : 's'}` : 'On track';
+    const paceLine = st.state === 'behind' ? `${st.behind} item${st.behind === 1 ? '' : 's'} from earlier nights still open.` : st.state === 'ahead' ? 'You have finished work planned for later nights.' : 'Everything due before tonight is done.';
+
+    ui.main.innerHTML = `
+      <div class="pl-wall">
+        ${ui.msg ? `<p class="pl-toast" role="status">${esc(ui.msg)}</p>` : ''}
+        <section class="sheet pl-paper pl-board" aria-labelledby="pl-h">
+          ${PIN}${PIN.replace('pl-pin', 'pl-pin pl-pin-r')}
+          <div class="pl-board-top">
+            <div class="pl-title">
+              <p class="label">HPL-NOC · night desk · posted ${esc(nice(r.built || t, { month: 'short', day: 'numeric' }))}</p>
+              <h2 id="pl-h" class="pl-h">Shift schedule</h2>
+              <p class="pl-sub">CCNA 200-301 v1.1 · exam ${esc(nice(exam, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }))} · ${r.settings.nights} nights a week, ${r.settings.minutes} min</p>
+            </div>
+            <div class="pl-count" role="group" aria-label="Countdown">
+              <p class="pl-count-n">${countdown}</p>
+              <p class="pl-count-sub">${nightsLeft} study night${nightsLeft === 1 ? '' : 's'} left on the schedule</p>
+            </div>
+          </div>
+          <div class="pl-gauges">
+            <div class="pl-gauge">
+              <p class="label">Overall</p>
+              <div class="pl-bar" role="progressbar" aria-label="Plan items done" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-valuetext="${st.done} of ${st.total} items done"><i style="width:${pct}%"></i></div>
+              <p class="pl-fine">${st.done} of ${st.total} items done · ${pct}%</p>
+            </div>
+            <div class="pl-gauge pl-pace pl-pace-${st.state}">
+              <p class="label">Pace</p>
+              <p class="pl-pace-v"><span class="pl-lamp" aria-hidden="true"></span>${esc(paceTxt)}</p>
+              <p class="pl-fine">${esc(paceLine)}${st.behind ? ' <button type="button" class="btn pl-catch" data-act="catchup">Catch up: reflow from today</button>' : ''}</p>
+            </div>
+            <div class="pl-tools">
+              <button type="button" class="btn" data-act="reschedule">Reschedule</button>
+              <div class="pl-export">
+                <label class="sr" for="pl-ics-time">Calendar events</label>
+                <select id="pl-ics-time" class="pl-select"><option value="">All-day events</option>${['18:00', '19:00', '20:00', '21:00', '22:00'].map((x) => `<option value="${x}" ${ui.icsTime === x ? 'selected' : ''}>Evenings at ${Number(x.slice(0, 2)) - 12} pm</option>`).join('')}</select>
+                <button type="button" class="btn" data-act="ics">Export to calendar</button>
+              </div>
+            </div>
+          </div>
+          ${(r.warnings || []).filter((w) => w.code === 'v2' || w.code === 'tight').map((w) => `<p class="pl-warn pl-${w.level}">${esc(w.text)}</p>`).join('')}
+        </section>
+        ${heroHtml(r, plan, p, t, itemState)}
+        ${weekStripHtml(plan, p, t, itemState)}
+        <section class="pl-weeks" aria-labelledby="pl-weeks-h">
+          <div class="pl-weeks-head"><h3 id="pl-weeks-h" class="pl-h3">The whole schedule</h3><p class="pl-fine">Struck through: done. Flagged: missed. Pace counts lessons, scenes, tickets, labs, checkpoints and exams.</p></div>
+          ${plan.weeks.map((w) => weekHtml(w, plan, p, t, itemState, movedTo)).join('')}
+          <div class="pl-examday"><span class="pl-stamp pl-stamp-big">Exam day</span><div><b>${esc(nice(exam, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }))}</b><p class="pl-fine">CCNA 200-301 v1.1. Eat something. Read every word of every question.</p></div></div>
+        </section>
+      </div>`;
+    ui.msg = '';
+    wire(r);
+  }
+
+  function itemHtml(x, state, date, movedTo, compact) {
+    const done = state === 'done';
+    const box = manual(x) && (!done || ticks[x.key])
+      ? `<button type="button" class="pl-box${done ? ' on' : ''}" data-tick="${esc(x.key)}" aria-pressed="${done}" aria-label="${done ? 'Done' : 'Mark done'}: ${esc(x.title)}"></button>`
+      : `<span class="pl-box${done ? ' on' : ''}" role="img" aria-label="${done ? 'Done' : 'Not done yet; ticks itself when you finish it'}"></span>`;
+    const flag = state === 'missed' ? '<span class="pl-flag">Missed</span>' : state === 'moved' ? `<span class="pl-flag pl-flag-moved">Moved to ${esc(nice(movedTo(x), { month: 'short', day: 'numeric' }))}</span>` : state === 'skipped' ? '<span class="pl-flag pl-flag-soft">Skipped</span>' : '';
+    return `<li class="pl-item pl-k-${x.kind} is-${state}">
+      ${box}
+      <a class="pl-item-a" href="${esc(x.href)}">
+        <span class="pl-tag">${glyph(x.kind)}<span>${esc(x.tag)}</span></span>
+        <span class="pl-item-t">${done ? '<span class="sr">Done: </span>' : ''}${esc(x.name)}</span>
+        ${!compact && x.how ? `<span class="pl-how">${esc(x.how)}</span>` : ''}
+      </a>
+      <span class="pl-item-m">${flag}<span class="pl-min">${x.minutes} min</span></span>
+    </li>`;
+  }
+
+  function heroHtml(r, plan, p, t, itemState) {
+    const tn = plan.nights.find((n) => n.date === t);
+    const next = plan.nights.find((n) => n.date > t && n.items.some((x) => !isDone(x, p)));
+    const rows = (n) => `<ul class="pl-items">${n.items.map((x) => itemHtml(x, itemState(x, n.date), n.date, (y) => latest(plan).get(y.key).date)).join('')}</ul>`;
+    const line = KENJI[(diff('2026-01-01', t) % KENJI.length + KENJI.length) % KENJI.length];
+    if (tn) {
+      const open = tn.items.filter((x) => itemState(x, tn.date) === 'todo');
+      const allDone = !open.length;
+      const first = open[0];
+      const kind = tn.phase === 'final' ? 'Light night' : tn.items.some((x) => x.kind === 'exam') ? 'Exam night' : tn.phase === 'buffer' ? 'Buffer night' : tn.phase === 'stretch' ? 'Final stretch' : 'Study night';
+      const shiftOk = r.shifts && r.shifts[tn.date] && r.shifts[tn.date] <= tn.date;
+      return `<section class="sheet pl-hero${allDone ? ' is-complete' : ''}" aria-labelledby="pl-hero-h">
+        <div class="pl-hero-head">
+          <div><p class="label">Tonight's shift · ${esc(kind)}</p><h3 id="pl-hero-h" class="pl-hero-h">${esc(nice(t, { weekday: 'long', month: 'long', day: 'numeric' }))}</h3></div>
+          <p class="pl-hero-min"><b>${tn.minutes}</b> min planned<br><span>${tn.items.length - open.length} of ${tn.items.length} done</span></p>
+        </div>
+        ${rows(tn)}
+        ${allDone ? `<div class="pl-complete"><span class="pl-stamp${reduced() ? '' : ' pl-stamp-anim'}">Shift complete</span><p>${shiftOk ? 'Every item done on time. +40 XP on the shift record.' : 'Every item done.'} ${next ? `Next shift: ${esc(nice(next.date))}.` : ''}</p>${next ? '<button type="button" class="btn" data-act="extra">Pick up extra work</button>' : ''}</div>` : `<div class="pl-hero-foot"><a class="btn primary pl-clock" href="${esc(first.href)}">Clock in: ${esc(first.tag)}</a><p class="pl-kenji">KENJI: ${esc(line)}</p></div>`}
+        ${ui.extra && next ? extraHtml(next, plan, p, itemState) : ''}
+      </section>`;
+    }
+    return `<section class="sheet pl-hero pl-off" aria-labelledby="pl-hero-h">
+      <div class="pl-hero-head">
+        <div><p class="label">Tonight's shift</p><h3 id="pl-hero-h" class="pl-hero-h">Night off</h3></div>
+        <p class="pl-hero-min">${esc(nice(t, { weekday: 'long', month: 'long', day: 'numeric' }))}</p>
+      </div>
+      <p class="pl-off-p">Nothing on the schedule tonight. The NOC is covered. ${next ? `Next shift is <b>${esc(nice(next.date, { weekday: 'long', month: 'short', day: 'numeric' }))}</b>: ${next.items.length} item${next.items.length === 1 ? '' : 's'}, about ${next.minutes} minutes.` : ''}</p>
+      ${next ? `<div class="pl-hero-foot"><button type="button" class="btn primary" data-act="extra" aria-expanded="${ui.extra}">${ui.extra ? 'Hide the extra work' : 'Pick up extra work'}</button><p class="pl-kenji">KENJI: Rest counts too. But I won't stop you.</p></div>` : ''}
+      ${ui.extra && next ? extraHtml(next, plan, p, itemState) : ''}
+    </section>`;
+  }
+  function extraHtml(n, plan, p, itemState) {
+    return `<div class="pl-extra"><p class="label">Extra work from ${esc(nice(n.date))}</p><ul class="pl-items">${n.items.map((x) => itemHtml(x, itemState(x, n.date), n.date, (y) => latest(plan).get(y.key).date)).join('')}</ul><p class="pl-fine">Anything you finish early counts toward your pace.</p></div>`;
+  }
+
+  function weekStripHtml(plan, p, t, itemState) {
+    const ws = weekStart(t);
+    const byDate = Object.fromEntries(plan.nights.map((n) => [n.date, n]));
+    const cells = [];
+    for (let i = 0; i < 7; i++) {
+      const d = addDays(ws, i);
+      const n = byDate[d];
+      const isExam = d === plan.exam;
+      let cls = 'pl-day';
+      let status = 'Off';
+      let bar = '';
+      let sr = 'no shift';
+      if (isExam) { cls += ' is-exam'; status = 'EXAM'; sr = 'exam day'; }
+      else if (n && n.items.length) {
+        const states = n.items.map((x) => itemState(x, d));
+        const done = states.filter((s) => s === 'done' || s === 'moved').length;
+        const missed = states.filter((s) => s === 'missed').length;
+        cls += done === n.items.length ? ' is-done' : missed ? ' is-missed' : ' is-on';
+        if (n.items.some((x) => x.kind === 'exam')) cls += ' has-exam';
+        status = done === n.items.length ? 'Done' : missed ? `${missed} missed` : `${n.minutes} min`;
+        bar = `<span class="pl-day-bar" aria-hidden="true"><i style="width:${Math.round((done / n.items.length) * 100)}%"></i></span>`;
+        sr = `${n.items.length} items, ${done} done${missed ? `, ${missed} missed` : ''}`;
+      } else cls += ' is-off';
+      if (d === t) cls += ' is-today';
+      const inner = `<span class="pl-day-w">${DOW[i]}</span><span class="pl-day-d">${parse(d).getDate()}</span><span class="pl-day-s">${esc(status)}</span>${bar}<span class="sr">${esc(nice(d, { weekday: 'long', month: 'long', day: 'numeric' }))}${d === t ? ' (today)' : ''}: ${esc(sr)}</span>`;
+      cells.push(`<li class="${cls}">${n ? `<button type="button" class="pl-day-btn" data-goto="${d}">${inner}</button>` : `<div class="pl-day-btn">${inner}</div>`}</li>`);
+    }
+    return `<section class="pl-week-strip" aria-labelledby="pl-strip-h"><h3 id="pl-strip-h" class="pl-h3">This week</h3><ol class="pl-strip">${cells.join('')}</ol></section>`;
+  }
+
+  function weekHtml(w, plan, p, t, itemState, movedTo) {
+    const cur = t >= w.start && t <= w.end;
+    const all = w.nights.flatMap((n) => n.items.map((x) => itemState(x, n.date)));
+    const done = all.filter((s) => s === 'done' || s === 'moved').length;
+    const missed = all.filter((s) => s === 'missed').length;
+    const past = w.end < t;
+    const exams = w.nights.flatMap((n) => n.items.filter((x) => x.kind === 'exam'));
+    const phase = DOMAINS.filter((d) => w.nights.some((n) => n.domain === d[1])).map((d) => d[0]).concat(w.nights.some((n) => n.phase === 'final' || n.phase === 'stretch') ? ['Final stretch'] : []).join(' · ');
+    return `<details class="pl-week${cur ? ' is-current' : ''}${past ? ' is-past' : ''}" ${cur || missed || (!past && !plan.weeks.some((x) => t >= x.start && t <= x.end) && w === plan.weeks.find((x) => x.end >= t)) ? 'open' : ''} data-week="${w.start}">
+      <summary>
+        <span class="pl-wk-l"><b>${esc(w.label)}</b><span>${esc(nice(w.start, { month: 'short', day: 'numeric' }))} – ${esc(nice(w.end, { month: 'short', day: 'numeric' }))}</span></span>
+        <span class="pl-wk-m">${phase ? `<span class="pl-wk-phase">${esc(phase)}</span>` : ''}${cur ? '<span class="pl-wk-now">This week</span>' : ''}${exams.length ? `<span class="pl-stamp pl-stamp-sm">${exams.map((x) => 'Exam ' + esc(x.id)).join(' · ')}</span>` : ''}${missed ? `<span class="pl-flag">${missed} missed</span>` : ''}</span>
+        <span class="pl-wk-r">${done}/${all.length}<span class="sr"> items done</span></span>
+      </summary>
+      <ol class="pl-nights">
+        ${w.nights.map((n) => {
+          const states = n.items.map((x) => itemState(x, n.date));
+          const ok = states.every((s) => s === 'done' || s === 'moved');
+          const ex = n.items.find((x) => x.kind === 'exam');
+          return `<li class="pl-night${n.date === t ? ' is-today' : ''}${ok ? ' is-done' : ''}" id="pl-n-${n.date}">
+            <div class="pl-night-d"><b>${esc(nice(n.date, { weekday: 'short' }))}</b><span>${esc(nice(n.date, { month: 'short', day: 'numeric' }))}</span>${n.date === t ? '<em>Tonight</em>' : ''}${n.phase === 'final' ? '<em>Light</em>' : n.phase === 'buffer' ? '<em>Buffer</em>' : ''}</div>
+            <ul class="pl-items pl-items-c">${n.items.map((x, i) => itemHtml(x, states[i], n.date, movedTo, true)).join('')}</ul>
+            <div class="pl-night-r">${ex ? `<span class="pl-stamp pl-stamp-sm">Exam ${esc(ex.id)}</span>` : ''}${ok && n.items.length ? '<span class="pl-ok">✓ Done</span>' : ''}<span class="pl-min">${n.minutes} min</span></div>
+          </li>`;
+        }).join('')}
+      </ol>
+    </details>`;
+  }
+
+  function wire(r) {
+    const m = ui.main;
+    const on = (act, fn) => m.querySelectorAll(`[data-act="${act}"]`).forEach((b) => b.addEventListener('click', fn));
+    on('reschedule', () => { ui.draft = null; ui.mode = 'setup'; draw(); focus('#pl-setup-h'); });
+    on('catchup', () => { commit(r.settings, { keepPast: true }); ui.msg = 'Caught up. Everything still open is planned again from today.'; draw(); focus('.pl-toast'); });
+    on('extra', () => { ui.extra = !ui.extra; draw(); if (ui.extra) focus('.pl-extra .label'); else focus('[data-act=extra]'); });
+    on('ics', () => {
+      const sel = m.querySelector('#pl-ics-time');
+      ui.icsTime = sel ? sel.value : '';
+      const text = ics(planOf(r), { from: today(), time: ui.icsTime || null });
+      const blob = new Blob([text], { type: 'text/calendar;charset=utf-8' });
+      const a = doc.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'harbor-point-shift-schedule.ics';
+      doc.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+    });
+    m.querySelectorAll('[data-tick]').forEach((b) => b.addEventListener('click', () => {
+      const cur = rec();
+      cur.ticks = obj(cur.ticks);
+      if (cur.ticks[b.dataset.tick]) delete cur.ticks[b.dataset.tick]; else cur.ticks[b.dataset.tick] = today();
+      saveRec(cur);
+      const key = b.dataset.tick;
+      draw();
+      const again = m.querySelector(`[data-tick="${G.CSS && G.CSS.escape ? G.CSS.escape(key) : key}"]`);
+      if (again) again.focus();
+    }));
+    m.querySelectorAll('[data-goto]').forEach((b) => b.addEventListener('click', () => {
+      const row = m.querySelector('#pl-n-' + b.dataset.goto);
+      if (!row) return;
+      const det = row.closest('details');
+      if (det) det.open = true;
+      row.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
+      row.classList.remove('pl-flash'); void row.offsetWidth; if (!reduced()) row.classList.add('pl-flash');
+      row.setAttribute('tabindex', '-1'); row.focus({ preventScroll: true });
+    }));
+  }
+
+  // Keep the shift log current while the app is open, even off the #plan page.
+  if (G.addEventListener) {
+    G.addEventListener('hashchange', () => { ui.extra = false; try { sync(); } catch (e) { /* ignore */ } });
+    G.addEventListener('storage', (e) => { if (e.key === KEY) memo = null; });
+  }
+})(globalThis);
+
 /* ---- app.js ---- */
 /* Trouble Ticket — user interface.
- * Views: #tickets (and #t01..#t06), #drill, #guide, #quiz, #progress
+ * Views: #home (the default), #tickets (and #t01..#t23), #drill, #guide, #quiz, #progress, #map, #plan,
+ * plus the module views (#learn, #lab, #exam, #flash, #hardware). TT.rooms.parse (home.js) maps a hash
+ * to its view, and to the room and sub-tab that light up in the header.
  */
 (function (G) {
   'use strict';
@@ -29931,25 +32076,112 @@ Content-Type: application/json
   };
   const module = (fnName, name, what) => (arg) => (typeof TT[fnName] === 'function' ? TT[fnName]($('#main'), arg || {}) : soon(name, what)());
   const views = {
-    learn: module('renderLessons', 'Learn', 'The lesson library'),
+    home: () => (typeof TT.renderHome === 'function' ? TT.renderHome($('#main')) : renderTickets()),
+    learn: (arg) => {
+      module('renderLessons', 'Learn', 'The lesson library')(arg);
+      // #scenes: the lesson index, scrolled to its "Watch it happen" gallery
+      if (arg && arg.gallery) {
+        const gal = $('#main .sc-gallery');
+        if (gal) { gal.style.scrollMarginTop = '12px'; gal.scrollIntoView({ block: 'start' }); const h = $('h3', gal); if (h) { h.tabIndex = -1; h.style.outline = 'none'; h.focus({ preventScroll: true }); } }
+      }
+    },
     lab: module('renderSandbox', 'Lab', 'The network lab sandbox'),
     exam: module('renderExam', 'Mock exam', 'The mock exam'),
     flash: module('renderFlashcards', 'Flashcards', 'The flashcard trainer'),
-    tickets: renderTickets, map: renderMap, drill: renderDrill, hardware: (tab) => TT.renderHardware($('#main'), tab), guide: renderGuide, quiz: renderQuiz, progress: renderProgress };
+    plan: () => (typeof TT.renderPlan === 'function' ? TT.renderPlan($('#main')) : renderPlanSoon()),
+    tickets: renderTickets, map: renderMap, drill: renderDrill, hardware: (tab) => TT.renderHardware($('#main'), tab), guide: () => renderGuide($('#main'), { page: true }), quiz: renderQuiz, progress: renderProgress };
+  function renderPlanSoon() {
+    $('#main').innerHTML = `<div class="sheet" style="max-width:640px"><p class="label">Shift Record · Study plan</p><h2 style="margin:6px 0">Kenji is still writing the rota</h2><p>The study plan will turn the exam date you pick into one short assignment a night. It is not on the board yet.</p><p>Until then, <a href="#progress">Progress</a> shows the next lesson or ticket to work on.</p></div>`;
+  }
+
+  /* ---------------- rooms navigation (the rooms and their views come from TT.rooms, home.js) ---------------- */
+  const ROOMS = (TT.rooms && TT.rooms.list) || [];
+  function buildNav() {
+    const nav = $('nav.rooms');
+    if (!nav || !ROOMS.length || nav.dataset.built) return;
+    nav.dataset.built = '1';
+    nav.innerHTML = `<ul class="rooms-row">${ROOMS.map((r) => `<li><a class="room" href="${r.subs[0].href}" data-room="${r.id}">${TT.rooms.icon(r.id)}<span class="room-l">${esc(r.name)}</span><span class="room-s" aria-hidden="true">${esc(r.short)}</span></a></li>`).join('')}</ul>`;
+    // phones show the short label; keep the full room name as the accessible name
+    $$('a.room', nav).forEach((a) => a.setAttribute('aria-label', ROOMS.find((r) => r.id === a.dataset.room).name));
+    for (const row of [nav, $('nav.subtabs')]) if (row) row.addEventListener('keydown', arrowKeys);
+    const fm = $('#fm-btn');
+    if (fm) fm.addEventListener('click', (e) => {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const v = TT.rooms.parse(G.location.hash).view;
+      if (v === 'guide' || typeof HTMLDialogElement === 'undefined') return; // already on the Field Manual page
+      e.preventDefault();
+      openManual();
+    });
+  }
+  // Left and Right move between the links of one row, Home and End jump to its ends.
+  function arrowKeys(e) {
+    const links = $$('a', e.currentTarget);
+    const i = links.indexOf(doc.activeElement);
+    if (i < 0) return;
+    const to = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: links.length - 1 }[e.key];
+    if (to === undefined) return;
+    e.preventDefault();
+    links[(to + links.length) % links.length].focus();
+  }
+  function markNav(p) {
+    $$('nav.rooms a.room').forEach((a) => { if (a.dataset.room === p.room) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current'); });
+    const sub = $('nav.subtabs');
+    const r = ROOMS.find((x) => x.id === p.room);
+    if (sub) {
+      if (!r) { sub.hidden = true; sub.innerHTML = ''; sub.removeAttribute('data-room'); }
+      else {
+        if (sub.dataset.room !== r.id) {
+          sub.dataset.room = r.id;
+          sub.setAttribute('aria-label', r.name + ' views');
+          sub.innerHTML = `<span class="sub-room" aria-hidden="true">${esc(r.name)}</span><ul>${r.subs.map((s) => `<li><a href="${s.href}" data-sub="${s.id}">${esc(s.label)}</a></li>`).join('')}</ul>`;
+        }
+        sub.hidden = false;
+        $$('a', sub).forEach((a) => { if (a.dataset.sub === p.sub) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+      }
+    }
+    const fm = $('#fm-btn');
+    if (fm) { if (p.sub === 'guide') fm.setAttribute('aria-current', 'page'); else fm.removeAttribute('aria-current'); }
+    doc.body.dataset.view = p.view;
+  }
+
+  /* ---------------- the Field Manual drawer ---------------- */
+  let drawer = null;
+  function openManual() {
+    if (!drawer) {
+      drawer = doc.createElement('dialog');
+      drawer.className = 'fm-drawer';
+      drawer.setAttribute('aria-labelledby', 'fm-h');
+      drawer.innerHTML = `<div class="fm-panel">
+          <div class="fm-head">${TT.rooms.icon('manual', 'fm-ico')}<h2 id="fm-h">Field Manual</h2>
+            <a class="btn quiet fm-page" href="#guide">Open as a page</a>
+            <button type="button" class="fm-close" aria-label="Close the Field Manual"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
+          <div class="fm-body"></div></div>`;
+      doc.body.appendChild(drawer);
+      $('.fm-close', drawer).addEventListener('click', () => drawer.close());
+      $('.fm-page', drawer).addEventListener('click', () => drawer.close());
+      // a click on the dimmed backdrop (the dialog box itself, outside the panel) closes it
+      drawer.addEventListener('click', (e) => { if (e.target === drawer) drawer.close(); });
+      // Escape always closes (a search box would otherwise spend the first press clearing itself)
+      drawer.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); drawer.close(); } });
+    }
+    guideState.only = null;
+    renderGuide($('.fm-body', drawer));
+    drawer.showModal();
+    const s = $('.search', drawer);
+    if (s) s.focus();
+  }
+
   function route() {
-    let h = (G.location.hash || '').replace('#', '');
-    let ticketId = null;
-    if (TT.tickets.byId[h]) { ticketId = h; h = 'tickets'; }
-    else if (h.startsWith('card-')) { guideState = { domain: 'all', q: '', only: h.slice(5) }; h = 'guide'; }
-    else if (h.startsWith('hw-')) { ticketId = h.slice(3); h = 'hardware'; }
-    else if (h.startsWith('scene-')) { ticketId = { scene: h.slice(6) }; h = 'learn'; }
-    else if (h.startsWith('learn-')) { ticketId = { id: h.slice(6) }; h = 'learn'; }
-    else if (h.startsWith('lab-')) { ticketId = { project: h.slice(4) }; h = 'lab'; }
-    else if (h.startsWith('flash-')) { ticketId = { deck: h.slice(6) }; h = 'flash'; }
-    else if (h === 'guide' && guideState.only) guideState.only = null;
-    if (!views[h]) h = 'tickets';
-    $$('nav.tabs a').forEach((a) => a.setAttribute('aria-current', a.dataset.view === h ? 'page' : 'false'));
-    views[h](ticketId);
+    const P = TT.rooms ? TT.rooms.parse(G.location.hash) : { view: 'tickets', arg: null };
+    // the front door has a name of its own, so the default (empty) hash reads as #home
+    if (!G.location.hash && P.view === 'home' && G.history && G.history.replaceState) {
+      try { G.history.replaceState(null, '', '#home'); } catch (e) { /* file:// in some browsers: fine without it */ }
+    }
+    if (drawer && drawer.open) drawer.close();
+    if (P.view === 'guide') guideState = P.arg && P.arg.card ? { domain: 'all', q: '', only: P.arg.card } : Object.assign(guideState, { only: null });
+    const view = views[P.view] ? P.view : 'home';
+    markNav(P);
+    views[view](P.arg);
   }
 
   /* ======================================================================
@@ -30545,37 +32777,43 @@ Content-Type: application/json
     $$('[data-mv]').forEach((b) => b.addEventListener('click', () => { store.mapView = b.dataset.mv; save(); renderMap(); }));
   }
 
-  function renderGuide() {
-    $('#main').innerHTML = `
+  /* The Field Manual draws into any container: the #guide page, or the header's slide-over drawer.
+   * Every query is scoped to that container, so the two never reach into each other. */
+  function renderGuide(root, opt) {
+    root = root || $('#main');
+    const page = !!(opt && opt.page);
+    const sid = page ? 'gsearch' : 'fm-gsearch';
+    root.innerHTML = `
+      ${page ? `<div class="fm-pagehead">${TT.rooms ? TT.rooms.icon('manual', 'fm-ico') : ''}<div><p class="label">Field Manual</p><h2>Protocol cards, exam traps and port numbers</h2></div></div>` : ''}
       <div class="guide-top">
         <div class="chips" role="group" aria-label="Exam domain">
           <button class="chip" type="button" data-d="all" aria-pressed="${guideState.domain === 'all'}">All topics</button>
           ${TT.domains.map((d) => `<button class="chip" type="button" data-d="${d.id}" aria-pressed="${guideState.domain === d.id}">${esc(d.name)}</button>`).join('')}
         </div>
-        <label class="sr" for="gsearch">Search the guide</label>
-        <input class="search" id="gsearch" type="search" placeholder="Search: ospf, 161, dhcp..." value="${esc(guideState.q)}">
+        <label class="sr" for="${sid}">Search the Field Manual</label>
+        <input class="search" id="${sid}" type="search" placeholder="Search: ospf, 161, dhcp..." value="${esc(guideState.q)}">
       </div>
       <details class="portbox"><summary>Port numbers to memorize (${TT.ports.length})</summary>
         <table class="ports"><thead><tr><th>Protocol</th><th>Transport</th><th>Port</th></tr></thead><tbody>
         ${TT.ports.map(([n, tr, p]) => `<tr><td>${n}</td><td>${tr}</td><td>${p}</td></tr>`).join('')}
         </tbody></table></details>
-      <div class="cards" id="cards"></div>`;
-    $$('.chip').forEach((c) => c.addEventListener('click', () => { guideState.domain = c.dataset.d; renderGuide(); }));
-    $('#gsearch').addEventListener('input', (e) => { guideState.q = e.target.value; drawCards(); });
-    drawCards();
+      <div class="cards"${page ? ' id="cards"' : ''}></div>`;
+    $$('.chip[data-d]', root).forEach((c) => c.addEventListener('click', () => { guideState.domain = c.dataset.d; renderGuide(root, opt); const b = $(`.chip[data-d="${c.dataset.d}"]`, root); if (b) b.focus(); }));
+    $('.search', root).addEventListener('input', (e) => { guideState.q = e.target.value; drawCards(root); });
+    drawCards(root);
   }
-  function drawCards() {
+  function drawCards(root) {
     const q = guideState.q.trim().toLowerCase();
     if (guideState.only) {
       const c1 = TT.cards.filter((c) => c.id === guideState.only);
-      if (c1.length) { renderCardList(c1); $('#cards').insertAdjacentHTML('afterbegin', '<p class="mapnote" style="grid-column:1/-1">Showing one card. <a href="#guide">See all cards</a></p>'); return; }
+      if (c1.length) { renderCardList(root, c1); $('.cards', root).insertAdjacentHTML('afterbegin', '<p class="mapnote" style="grid-column:1/-1">Showing one card. <a href="#guide">See all cards</a></p>'); return; }
     }
     const list = TT.cards.filter((c) => (guideState.domain === 'all' || c.domain === guideState.domain) && (!q || [c.name, c.summary, c.ports, c.trap, ...c.facts].join(' ').toLowerCase().includes(q)));
-    renderCardList(list);
+    renderCardList(root, list);
   }
-  function renderCardList(list) {
+  function renderCardList(root, list) {
     const dn = Object.fromEntries(TT.domains.map((d) => [d.id, d.name]));
-    $('#cards').innerHTML = list.length
+    $('.cards', root).innerHTML = list.length
       ? list.map((c) => `
         <article class="card">
           <h3>${esc(c.name)}</h3>
@@ -30586,7 +32824,7 @@ Content-Type: application/json
           <div><button class="btn" type="button" data-quiz="${c.id}">Quiz me on this (${c.q.length})</button></div>
         </article>`).join('')
       : '<p>No cards match that search.</p>';
-    $$('[data-quiz]').forEach((b) => b.addEventListener('click', () => { startQuiz({ card: b.dataset.quiz }); G.location.hash = 'quiz'; }));
+    $$('[data-quiz]', root).forEach((b) => b.addEventListener('click', () => { startQuiz({ card: b.dataset.quiz }); G.location.hash = 'quiz'; }));
   }
 
   /* ======================================================================
@@ -30760,6 +32998,7 @@ Content-Type: application/json
 
   /* ---------------- boot ---------------- */
   G.addEventListener('hashchange', () => { doc.onkeydown = null; route(); });
+  buildNav();
   route();
 })(window);
 
@@ -30775,6 +33014,7 @@ Content-Type: application/json
  *   trouble-ticket-flash-v1    { cards: { id: { box, due, seen, lapses } } }                        (flash-ui.js)
  *   trouble-ticket-sandbox-v1  { done: { projectId: 'YYYY-MM-DD' }, ... }                           (sandbox.js)
  *   trouble-ticket-wlc-v1      { done: { taskId: true }, ... }                                       (wlc.js)
+ *   trouble-ticket-plan-v1     { shifts: { nightDate: 'YYYY-MM-DD finished' }, ... }                 (plan.js)
  * Owns: trouble-ticket-career-v1 { v, seen, flashBase, flashLast, days: { 'YYYY-MM-DD': { xp, flash } } }
  */
 (function (G) {
@@ -30789,13 +33029,14 @@ Content-Type: application/json
     flash: 'trouble-ticket-flash-v1',
     lab: 'trouble-ticket-sandbox-v1',
     wlc: 'trouble-ticket-wlc-v1',
+    plan: 'trouble-ticket-plan-v1',
   };
 
   /* ================= rules (pure data) ================= */
   const W = {
     lesson: 50, check: 5, ticket: 100, ticketP1: 150, lab: 120, wlc: 40,
     examFull: 30, examFullCap: 20, examPractice: 10, examPracticeCap: 30, examPass: 150, PASS: 825,
-    flashDaily: 60, flashBaseCap: 300, drill: 5, drillCap: 30, quiz: 2,
+    flashDaily: 60, flashBaseCap: 300, drill: 5, drillCap: 30, quiz: 2, shift: 40,
   };
   const SET_IDS = ['A', 'B', 'C', 'D', 'E'];
 
@@ -30909,7 +33150,14 @@ Content-Type: application/json
       wlcDone: obj(obj(raw.wlc).done),
       days: obj(car.days),
       flashBase: num(car.flashBase),
+      shifts: shiftCount(raw.plan),
     };
+  }
+
+  /** Study-plan nights finished on or before their date (plan.js records them in its own store). */
+  function shiftCount(plan) {
+    const sh = obj(obj(plan).shifts);
+    return Object.keys(sh).filter((k) => isDayKey(k) && isDayKey(sh[k]) && sh[k] <= k).length;
   }
 
   function streaks(days, today) {
@@ -30975,6 +33223,7 @@ Content-Type: application/json
       flash: flashXp,
       drill: Math.min(drillBest, W.drillCap) * W.drill,
       quiz: Math.round(quizBest) * W.quiz,
+      shifts: Math.max(0, num(s.shifts)) * W.shift,
     };
     const xp = Object.values(breakdown).reduce((a, b) => a + b, 0);
     const st = streaks(days, s.today);
@@ -30983,7 +33232,7 @@ Content-Type: application/json
       lessons: lDone.length, lessonsTotal: lessons.length, access: access.filter((l) => done[l.id]).length, accessTotal: access.length,
       labs, labsTotal: projects.length, wlc, wlcTotal: wlcTasks.length,
       attempts: attempts.length, passes: passKeys.size, setPasses, bestExam: best,
-      flashSeen: Math.max(0, num(s.flashSeen)), drillBest, quizBest, streak: st.current, longest: st.longest,
+      flashSeen: Math.max(0, num(s.flashSeen)), shifts: Math.max(0, num(s.shifts)), drillBest, quizBest, streak: st.current, longest: st.longest,
     };
 
     let rankIndex = 0;
@@ -31038,6 +33287,8 @@ Content-Type: application/json
       const pass = last && last.mode === 'full' && last.score >= W.PASS;
       out.push({ kind: 'exam', tag: 'EXAM', text: last ? `${last.mode === 'full' ? (last.set ? 'Practice exam ' + last.set : 'Mock exam') : 'Practice set'} scored ${last.score}${pass ? ' · PASS' : ''}` : 'Mock exam logged', xp: examGain });
     }
+    const shiftGain = num(res.breakdown.shifts) - num(prevB.shifts);
+    if (shiftGain > 0) out.push({ kind: 'shift', tag: 'SHIFT', text: shiftGain > W.shift ? `${Math.round(shiftGain / W.shift)} shifts complete` : 'Shift complete: every item on tonight\'s list', xp: shiftGain, kenji: true });
     const minor = [['flash', 'FLASH', 'Flashcard reviews'], ['drill', 'DRILL', 'New subnet drill best'], ['quiz', 'QUIZ', 'New quick quiz best']];
     for (const [k, tag, text] of minor) {
       const g = res.breakdown[k] - num(prevB[k]);
@@ -31070,14 +33321,26 @@ Content-Type: application/json
     return days;
   }
 
-  function nextTask(state, cat, where) {
+  /** tonight: TT.plan.tonight() when a study plan exists; it wins over the default pick. */
+  function nextTask(state, cat, where, tonight) {
     cat = cat || catalog();
+    if (tonight && tonight.item && tonight.href) {
+      const it = tonight.item;
+      const when = tonight.isToday ? 'Tonight\'s shift' : `Next shift ${shortDay(tonight.date)}`;
+      const go = it.kind === 'ticket' ? `Open ${it.tag}` : it.kind === 'lesson' ? `Open ${it.tag.toLowerCase()}` : 'Clock in';
+      return { kind: 'plan', id: it.key || it.id, href: tonight.href, label: it.tag, title: it.title, go, line: `${when}: ${tonight.label}` };
+    }
     const t = cat.tickets.find((x) => !obj(state.solved)[x.id]);
     const l = cat.lessons.find((x) => !obj(state.lessonsDone)[x.id]);
     if (where === 'learn' && l) return { kind: 'lesson', id: l.id, href: '#learn-' + l.id, label: l.obj, title: l.title, line: `Kenji wants ${l.obj} read before the 03:00 walk-through: ${l.title}` };
     if (t) return { kind: 'ticket', id: t.id, href: '#' + t.id, label: t.number, title: t.title, line: PAGER_LINES[t.id] || t.title };
     if (l) return { kind: 'lesson', id: l.id, href: '#learn-' + l.id, label: l.obj, title: l.title, line: `Queue is clear. Read ${l.obj} while it is quiet` };
     return { kind: 'exam', id: 'exam', href: '#exam', label: 'mock exam', title: 'Full mock exam', line: 'Queue is clear and the binder is done. Take a full mock exam' };
+  }
+
+  function shortDay(k) {
+    const [y, m, d] = String(k).split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   }
 
   function pagerTime(id) {
@@ -31118,6 +33381,7 @@ Content-Type: application/json
   }
 
   function tick(opts) {
+    try { if (TT.plan && typeof TT.plan.sync === 'function') TT.plan.sync(); } catch (e) { /* the plan is optional */ }
     const raws = readAll();
     const today = dayKey(new Date());
     const sig = Object.values(raws).concat(today);
@@ -31441,7 +33705,7 @@ Content-Type: application/json
           </div>
           <div class="cr-xp">
             <p class="label">Where the XP came from</p>
-            <ul class="cr-break">${[['Tickets', 'tickets'], ['Lessons', 'lessons'], ['Lab projects', 'labs'], ['Mock exams', 'exams'], ['Flashcards', 'flash'], ['Wireless lab', 'wlc'], ['Subnet drill', 'drill'], ['Quick quiz', 'quiz']].map(([n, k]) => `<li><span>${n}</span><b>${fmt(r.breakdown[k])}</b></li>`).join('')}</ul>
+            <ul class="cr-break">${[['Tickets', 'tickets'], ['Lessons', 'lessons'], ['Lab projects', 'labs'], ['Mock exams', 'exams'], ['Flashcards', 'flash'], ['Wireless lab', 'wlc'], ['Subnet drill', 'drill'], ['Quick quiz', 'quiz'], ['Study plan shifts', 'shifts']].map(([n, k]) => `<li><span>${n}</span><b>${fmt(r.breakdown[k])}</b></li>`).join('')}</ul>
           </div>
         </div>
         <p class="label cr-badge-label">Badges · ${r.badges.length} of ${BADGES.length}</p>
@@ -31449,15 +33713,16 @@ Content-Type: application/json
           ${BADGES.map((b) => { const on = r.badges.includes(b.id); return `<li class="cr-badge${on ? ' on' : ''}"><span class="cr-badge-medal" aria-hidden="true">${glyph(b.icon)}</span><span class="cr-badge-txt"><b>${esc(b.name)}</b><small>${on ? 'Earned' : 'Locked'} · ${esc(b.hint)}</small></span></li>`; }).join('')}
         </ul>
         <details class="cr-how"><summary>How XP works</summary>
-          <p>XP is worked out from your saved progress every time, so reloading never adds any. Lesson passed ${W.lesson} (plus ${W.check} per check question right), ticket resolved ${W.ticket} (P1 ${W.ticketP1}), guided lab project ${W.lab}, wireless controller task ${W.wlc}, full mock exam ${W.examFull} per attempt (first ${W.examFullCap}), domain practice set ${W.examPractice}, and ${W.examPass} for the first 825+ on each practice exam. Flashcards give 1 per review, up to ${W.flashDaily} a day. The subnet drill gives ${W.drill} per answer in your best streak, the quick quiz ${W.quiz} per percent of your best score. The top two ranks also need passing mock exam scores.</p>
+          <p>XP is worked out from your saved progress every time, so reloading never adds any. Lesson passed ${W.lesson} (plus ${W.check} per check question right), ticket resolved ${W.ticket} (P1 ${W.ticketP1}), guided lab project ${W.lab}, wireless controller task ${W.wlc}, full mock exam ${W.examFull} per attempt (first ${W.examFullCap}), domain practice set ${W.examPractice}, and ${W.examPass} for the first 825+ on each practice exam. Flashcards give 1 per review, up to ${W.flashDaily} a day. The subnet drill gives ${W.drill} per answer in your best streak, the quick quiz ${W.quiz} per percent of your best score. Finishing every item of a study-plan night on or before its date adds ${W.shift}. The top two ranks also need passing mock exam scores.</p>
         </details>
       </section>`;
   }
-  const incomingSig = (where) => { const n = nextTask(state, catalog(), where); return n.href + '|' + n.line; };
+  const planTonight = () => { try { return TT.plan && typeof TT.plan.tonight === 'function' ? TT.plan.tonight() : null; } catch (e) { return null; } };
+  const incomingSig = (where) => { const n = nextTask(state, catalog(), where, planTonight()); return n.href + '|' + n.line; };
   function incomingHtml(where) {
-    const n = nextTask(state, catalog(), where);
+    const n = nextTask(state, catalog(), where, planTonight());
     const time = pagerTime(n.id);
-    const label = n.kind === 'ticket' ? `Open ${n.label}` : n.kind === 'lesson' ? `Open lesson ${n.label}` : 'Open the mock exam';
+    const label = n.go ? n.go : n.kind === 'ticket' ? `Open ${n.label}` : n.kind === 'lesson' ? `Open lesson ${n.label}` : 'Open the mock exam';
     return `<a class="cr-incoming" data-sig="${esc(n.href + '|' + n.line)}" href="${esc(n.href)}" aria-label="Incoming page at ${time}: ${esc(n.line)}. ${esc(label)}."><span class="cr-dot" aria-hidden="true"></span><span class="cr-in-tag" aria-hidden="true">PAGE ${time}</span><span class="cr-in-msg" aria-hidden="true">${esc(n.line)}</span><span class="cr-in-go" aria-hidden="true">${esc(label)} <span class="cr-in-arrow">→</span></span></a>`;
   }
 

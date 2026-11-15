@@ -8,6 +8,8 @@ A free CCNA 200-301 study site that runs in the browser. You play the night-shif
 
 ## What's in it
 
+The site opens on a night-shift front door: the Harbor Point NOC at 2 a.m., with one **Clock in** button that takes you to tonight's work. The content is organized as five rooms in the building: the **Training Room** (lessons and animated scenes), the **NOC Floor** (tickets, lab bench, hardware cage), the **Drill Room** (flashcards, subnetting, quick quiz), the **Certification Desk** (mock exams) and the **Shift Record** (progress, study plan, course map). The **Field Manual** opens from any page.
+
 | Section | What you do |
 | --- | --- |
 | **Learn** | 53 lessons, one per objective of the CCNA v1.1 exam blueprint. Each opens with a Harbor Point case file and has diagrams, the senior tech's notes, exam traps, "try it" blocks that run in the simulator, and a 3-question check (159 questions in all) |
@@ -21,6 +23,7 @@ A free CCNA 200-301 study site that runs in the browser. You play the night-shif
 | **Subnet drill** | Timed IPv4 subnetting practice plus IPv6 modified EUI-64 practice |
 | **Hardware lab** | Pick the right cable, find ports on clickable switch and router panels, learn the device families, and configure WLANs in a wireless controller GUI (exam topics 2.9 and 5.10) |
 | **Progress** | A study dashboard: what to do next, lessons and tickets done, flashcards due, and exam readiness by domain |
+| **Study plan** | Enter your exam date and how many nights a week you can study. It builds a night-by-night schedule: lessons in blueprint order with their scenes, then the tickets, labs and flashcards that practice them, a checkpoint per domain, and practice exams A to E in a final review stretch. It ticks items off as you finish them, shows whether you're ahead or behind, reflows from today when you fall behind, and exports to your calendar (.ics) |
 | **Career mode** | Earn XP for everything you finish and rise from Night Shift Intern to CCNA-ready. Pager alerts, badges, a promotion stamp, and a shift record with your streak |
 
 ### The tickets
@@ -90,7 +93,7 @@ You can also open `dist/index.html` directly in a browser.
 
 ## Tests
 
-`npm test` runs 966 tests with Node's built-in test runner. They check that:
+`npm test` runs 995 tests with Node's built-in test runner. They check that:
 
 1. every ticket starts broken and typing its reference solution into the CLI makes every objective pass, and realistic wrong fixes fail the way they would on real equipment (for example `switchport trunk allowed vlan 20` without `add`, bouncing an err-disabled port before clearing the old sticky MAC, or changing OSPF priority without clearing the process);
 2. every lab project fails at the start and passes after its solution;
@@ -150,6 +153,8 @@ Hosting a single static page like this should cost little or nothing at low traf
 │   ├── scenes-2.js       animated scenes, domains 3-6
 │   ├── career.js         XP, ranks, badges and pager alerts
 │   ├── theme.js          night/light theme toggle
+│   ├── home.js           front door, rooms navigation
+│   ├── plan.js           study plan (shift schedule)
 │   ├── questions-1.js    mock exam questions, domains 1-2
 │   ├── questions-2.js    mock exam questions, domains 3-6
 │   ├── exam-ui.js        mock exam
@@ -178,6 +183,6 @@ Hosting a single static page like this should cost little or nothing at low traf
 
 ## Credits and disclaimer
 
-Built by Ty Mackall while studying for the CCNA. Lessons are linked from [Jeremy's IT Lab](https://www.youtube.com/@JeremysITLab) free CCNA course; this project is not affiliated with Cisco or Jeremy's IT Lab. CCNA, Catalyst and IOS are trademarks of Cisco Systems. Harbor Point Logistics and every network in the game are fictional. All lessons, questions and flashcards are original; none are copied from any course, book or practice exam. Cisco does not publish an official passing score. All lessons, questions and flashcards are original; none are copied from any course, book or practice exam. Cisco does not publish an official passing score. All lessons, questions and flashcards are original; none are copied from any course, book or practice exam. Cisco does not publish an official passing score. All lessons, questions and flashcards are original; none are copied from any course, book or practice exam. Cisco does not publish an official passing score.
+Built by Ty Mackall while studying for the CCNA. Lessons are linked from [Jeremy's IT Lab](https://www.youtube.com/@JeremysITLab) free CCNA course; this project is not affiliated with Cisco or Jeremy's IT Lab. CCNA, Catalyst and IOS are trademarks of Cisco Systems. Harbor Point Logistics and every network in the game are fictional. All lessons, questions and flashcards are original; none are copied from any course, book or practice exam. Cisco does not publish an official passing score. All lessons, questions and flashcards are original; none are copied from any course, book or practice exam. Cisco does not publish an official passing score. All lessons, questions and flashcards are original; none are copied from any course, book or practice exam. Cisco does not publish an official passing score. All lessons, questions and flashcards are original; none are copied from any course, book or practice exam. Cisco does not publish an official passing score. All lessons, questions and flashcards are original; none are copied from any course, book or practice exam. Cisco does not publish an official passing score.
 
 Licensed under the MIT License.

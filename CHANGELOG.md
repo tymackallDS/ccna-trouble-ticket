@@ -2,6 +2,16 @@
 
 All notable changes to Trouble Ticket. Dates are release dates.
 
+## [2.3.0] - 2026-11-15
+
+### Added
+- **Front door:** a landing page with a hand-drawn night-shift scene (the NOC desk, server rack, and the Inner Harbor through the window) and one **Clock in** button that opens tonight's work. Returning visitors are welcomed back by rank.
+- **Study plan ("Shift schedule"):** builds a night-by-night plan to your exam date, with automatic progress, a pace indicator, catch-up reflow, calendar export, and a +40 XP bonus for each shift finished on time.
+
+### Changed
+- **Navigation:** 11 tabs are now five rooms (Training Room, NOC Floor, Drill Room, Certification Desk, Shift Record), each with its own sub-tabs.
+- **Field Manual:** the field guide opens in a slide-over drawer from any page.
+
 ## [2.2.0] - 2026-11-15
 
 ### Added
