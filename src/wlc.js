@@ -1,4 +1,4 @@
-/* Trouble Ticket — Wireless LAN controller GUI lab.
+/* Harbor Point Night Shift — Wireless LAN controller GUI lab.
  * A generic controller web interface laid out like the one the CCNA exam shows in its screenshots
  * (exam topics 2.9 and 5.10). The learner creates WLANs, picks the dynamic interface,
  * sets WPA2-PSK or 802.1X, the QoS profile and advanced options, then checks the task.

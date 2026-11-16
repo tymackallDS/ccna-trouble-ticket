@@ -1,4 +1,4 @@
-/* Trouble Ticket — career layer (career.js): rank chip, pager toasts, promotion notice, shift record, incoming pages.
+/* Harbor Point Night Shift — career layer (career.js): rank chip, pager toasts, promotion notice, shift record, incoming pages.
  * Pager surfaces use the terminal palette (--term*) in both themes: they read as a device, not as paper. */
 
 .cr-kicker { margin: 0; font: 600 11px/1.3 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }

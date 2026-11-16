@@ -1,10 +1,10 @@
-# Trouble Ticket
+# Harbor Point Night Shift
 
 A free CCNA 200-301 study site that runs in the browser. You play the night-shift network tech at a fictional Baltimore logistics company: read the lessons, fix broken networks by typing real Cisco IOS commands into a simulated CLI, build your own labs, drill flashcards, and sit timed mock exams.
 
 **Live site:** [d1p1eji0s2dseq.cloudfront.net](https://d1p1eji0s2dseq.cloudfront.net)
 
-![Trouble Ticket screenshot](docs/screenshot.png)
+![Harbor Point Night Shift screenshot](docs/screenshot.png)
 
 ## What's in it
 

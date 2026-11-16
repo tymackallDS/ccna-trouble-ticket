@@ -1,6 +1,11 @@
 # Changelog
 
-All notable changes to Trouble Ticket. Dates are release dates.
+All notable changes to Harbor Point Night Shift. Dates are release dates.
+
+## [2.5.0] - 2026-11-15
+
+### Changed
+- **Renamed to Harbor Point Night Shift** (formerly Trouble Ticket) across the site, header, landing page, README and calendar export. In-game tickets are still called trouble tickets. The repository keeps its name, `ccna-trouble-ticket`, and saved progress carries over unchanged.
 
 ## [2.4.0] - 2026-11-15
 

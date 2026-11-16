@@ -1,4 +1,4 @@
-/* Trouble Ticket — Lab Sandbox (sandbox.js). Every class starts with sb-. */
+/* Harbor Point Night Shift — Lab Sandbox (sandbox.js). Every class starts with sb-. */
 .sb { display: grid; gap: 12px; }
 .sb-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 10px; }
 .sb-head .label { margin: 0; }

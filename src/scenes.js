@@ -1,4 +1,4 @@
-/* Trouble Ticket — "Watch it happen" concept scene player (prefix sc-).
+/* Harbor Point Night Shift — "Watch it happen" concept scene player (prefix sc-).
  *
  * TT.renderScene(el, scene, opts?)  draws an animated scene into el and returns a controller
  *                                   { play, pause, go(i), restart, destroy }.

@@ -1,4 +1,4 @@
-/* Trouble Ticket — user interface.
+/* Harbor Point Night Shift — user interface.
  * Views: #home (the default), #tickets (and #t01..#t23), #drill, #guide, #quiz, #progress, #map, #plan,
  * plus the module views (#learn, #lab, #exam, #flash, #hardware). TT.rooms.parse (home.js) maps a hash
  * to its view, and to the room and sub-tab that light up in the header.

@@ -1,4 +1,4 @@
-/* Trouble Ticket — "Watch it happen" scenes for domains 1.0 and 2.0.
+/* Harbor Point Night Shift — "Watch it happen" scenes for domains 1.0 and 2.0.
  * Format: /home/claude/scene_format.md; player: scenes.js (TT.renderScene). Values follow CCNA 200-301 v1.1 and IOS defaults.
  */
 (function (G) {

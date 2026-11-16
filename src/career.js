@@ -1,4 +1,4 @@
-/* Trouble Ticket — the career layer: XP, ranks, badges, pager toasts and the shift record.
+/* Harbor Point Night Shift — the career layer: XP, ranks, badges, pager toasts and the shift record.
  * An observer: it never writes another module's storage. It reads saved progress, derives XP with a
  * pure function (TT.career.compute), and diffs against the last state it saw to raise pager toasts.
  *

@@ -1,4 +1,4 @@
-/* Trouble Ticket: theme switch.
+/* Harbor Point Night Shift: theme switch.
  * The night shift (dark) is the default. Light is opt-in and remembered in localStorage.
  * Sets <html data-theme="dark|light"> as soon as this runs and injects a toggle button into the masthead.
  * For a flash-free first paint, index.html's <head> can carry the tiny snippet in TT.theme.headSnippet.

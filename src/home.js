@@ -1,4 +1,4 @@
-/* Trouble Ticket: the front door (#home) and the "rooms" model the navigation is built from.
+/* Harbor Point Night Shift: the front door (#home) and the "rooms" model the navigation is built from.
  *
  *   TT.rooms.list          the five rooms, each with its sub-tabs (views)
  *   TT.rooms.parse(hash)   pure: any hash -> { view, arg, room, sub }. app.js routes with it.
@@ -567,7 +567,7 @@
           <div class="hm-art">${heroSvg()}</div>
           <div class="hm-copy">
             <p class="hm-kicker"><span class="live-dot" aria-hidden="true"></span><span>02:07 · Harbor Point Logistics<span class="hm-k2"> · Baltimore NOC</span></span></p>
-            <h1 class="hm-title" id="hm-title">Trouble <span>Ticket</span></h1>
+            <h1 class="hm-title" id="hm-title">Harbor Point <span>Night Shift</span></h1>
             <p class="hm-pitch">Work the night shift at Harbor Point. Fix real networks in a simulated Cisco CLI. Pass the CCNA.</p>
             <div class="hm-back" id="hm-back">${welcomeHtml(raw)}</div>
             <div class="hm-actions">

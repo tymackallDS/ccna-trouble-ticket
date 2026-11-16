@@ -1,4 +1,4 @@
-/* Trouble Ticket: Flashcards UI.
+/* Harbor Point Night Shift: Flashcards UI.
  * TT.renderFlashcards(mainEl, opts) draws the deck picker, study view and session summary.
  * opts.deck (optional): a deck id from TT.flashDecks, or 'due' for every due card. A plain string works too.
  * Scheduler: Leitner boxes 0-5. Again resets to box 0 and comes back in the same session.

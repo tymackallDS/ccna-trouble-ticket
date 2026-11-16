@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Trouble Ticket</title>
+<title>Harbor Point Night Shift: CCNA study game</title>
 <meta name="description" content="Work the night shift at Harbor Point Logistics: fix real networks in a simulated Cisco CLI and study for the CCNA 200-301 with lessons, animated scenes, drills and mock exams.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,7 +11,7 @@
 <script>try{var t=localStorage.getItem('trouble-ticket-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark')}catch(e){document.documentElement.setAttribute('data-theme','dark')}</script>
 <style>
 /* ---- styles.css ---- */
-/* Trouble Ticket — styles
+/* Harbor Point Night Shift — styles
  * Layout idea: a NOC trouble-ticket on blueprint grid paper. The default theme is the night shift:
  * a network operations center at 2 a.m. (deep navy and charcoal, amber and green status lights,
  * red for alerts and the RESOLVED stamp). Light ("day shift") is opt-in with <html data-theme="light">.
@@ -130,9 +130,10 @@ h1, h2, h3 { text-wrap: balance; margin: 0; }
 .wordmark {
   font-family: var(--display);
   font-weight: 800;
-  font-size: clamp(34px, 5vw, 50px);
+  font-size: clamp(24px, 2.7vw, 36px);
   letter-spacing: 0.02em;
   line-height: 0.9;
+  white-space: nowrap;
   text-transform: uppercase;
   color: var(--ink);
   text-decoration: none;
@@ -293,7 +294,8 @@ nav.subtabs a:focus-visible { outline: 2px solid var(--accent); outline-offset: 
 /* phones: five rooms in one row, icon over a short label; the views sit beneath */
 @media (max-width: 600px) {
   .mast { padding: 14px 14px 0; gap: 10px; }
-  .wordmark { font-size: 27px; white-space: nowrap; }
+  .wordmark { font-size: 25px; line-height: 0.95; }
+  .wordmark span { display: block; }
   .tagline { font-size: 12.5px; }
   .fm-btn { position: absolute; top: 14px; right: 62px; width: 40px; height: 40px; min-height: 0; padding: 0; justify-content: center; margin: 0; }
   .fm-btn-l { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -772,7 +774,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
 }
 
 /* ---- lessons.css ---- */
-/* Trouble Ticket — Lessons module (prefix ls-). Uses the variables from styles.css, so dark mode comes free. */
+/* Harbor Point Night Shift — Lessons module (prefix ls-). Uses the variables from styles.css, so dark mode comes free. */
 
 /* ---------- index ---------- */
 .ls-index { display: grid; gap: 14px; }
@@ -996,7 +998,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
 @media (prefers-reduced-motion: reduce) { .ls-row, .ls-row .ls-ttl, .ls-tabs button, .ls-opt, .ls-rel { transition: none; } }
 
 /* ---- exam.css ---- */
-/* Trouble Ticket — Mock Exam module (prefix ex-). Uses the shared variables from styles.css. */
+/* Harbor Point Night Shift — Mock Exam module (prefix ex-). Uses the shared variables from styles.css. */
 .ex-wrap { display: grid; gap: 16px; min-width: 0; }
 .ex-wrap > * { min-width: 0; }
 .ex-title { font-family: var(--display); font-weight: 800; font-size: clamp(30px, 4vw, 42px); text-transform: uppercase; letter-spacing: 0.01em; line-height: 1; }
@@ -1214,7 +1216,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
 @media (prefers-reduced-motion: reduce) { .ex-opt, .ex-cell, .ex-oi, .ex-mv button { transition: none; } }
 
 /* ---- flash.css ---- */
-/* Trouble Ticket: Flashcards (prefix fc-) */
+/* Harbor Point Night Shift: Flashcards (prefix fc-) */
 .fc-root { min-width: 0; }
 .fc-root kbd { font: 11px var(--mono); border: 1px solid currentColor; border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; opacity: 0.75; }
 .fc-head { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: flex-end; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px dashed var(--line); }
@@ -1374,7 +1376,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
 @media (prefers-reduced-motion: reduce) { .fc-deck, .fc-due-all, .fc-rate, .fc-link { transition: none; } }
 
 /* ---- sandbox.css ---- */
-/* Trouble Ticket — Lab Sandbox (sandbox.js). Every class starts with sb-. */
+/* Harbor Point Night Shift — Lab Sandbox (sandbox.js). Every class starts with sb-. */
 .sb { display: grid; gap: 12px; }
 .sb-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 10px; }
 .sb-head .label { margin: 0; }
@@ -1603,7 +1605,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
 @media (prefers-reduced-motion: reduce) { .sb-pal, .sb-plist a, .sb-dtabs button, .sb-pop-list button { transition: none; } }
 
 /* ---- scenes.css ---- */
-/* Trouble Ticket — "Watch it happen" scene player (prefix sc-). Theme-aware: only styles.css variables. */
+/* Harbor Point Night Shift — "Watch it happen" scene player (prefix sc-). Theme-aware: only styles.css variables. */
 
 .sc-player, .sc-svg {
   --sc-dev: var(--accent);
@@ -1910,7 +1912,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
 .sc-view .sc-player { max-width: 940px; margin: 0 auto; }
 
 /* ---- career.css ---- */
-/* Trouble Ticket — career layer (career.js): rank chip, pager toasts, promotion notice, shift record, incoming pages.
+/* Harbor Point Night Shift — career layer (career.js): rank chip, pager toasts, promotion notice, shift record, incoming pages.
  * Pager surfaces use the terminal palette (--term*) in both themes: they read as a device, not as paper. */
 
 .cr-kicker { margin: 0; font: 600 11px/1.3 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
@@ -2147,7 +2149,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
 @media (max-width: 600px) { .cr-stack > .cr-toast:nth-last-child(n+3) { display: none; } }
 
 /* ---- labfx.css ---- */
-/* Trouble Ticket — living network diagrams (labfx in sandbox.js, used by the ticket topology and the lab canvas).
+/* Harbor Point Night Shift — living network diagrams (labfx in sandbox.js, used by the ticket topology and the lab canvas).
  * Every class starts with lfx-, plus a few rules that pin the diagram fonts the layout measures with. */
 
 /* fonts the label layout measures (keep in step with F_* in app.js and LF_* in sandbox.js) */
@@ -2228,7 +2230,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
 }
 
 /* ---- home.css ---- */
-/* Trouble Ticket: the front door (#home).
+/* Harbor Point Night Shift: the front door (#home).
  * The hero is a window into the 2 a.m. NOC, so it stays a night scene in both themes; its text uses
  * fixed light-on-dark colors that are checked against the art. Everything below the hero reads the
  * theme variables. */
@@ -2275,8 +2277,9 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
   margin: 0;
   font-family: var(--display);
   font-weight: 800;
-  font-size: clamp(54px, 7.4vw, 104px);
-  line-height: 0.86;
+  font-size: clamp(42px, 4.3vw, 66px);
+  line-height: 0.9;
+  white-space: nowrap;
   letter-spacing: 0.015em;
   text-transform: uppercase;
   color: #f1f5f9;
@@ -2380,7 +2383,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
   .hm-copy { width: auto; height: auto; padding: 18px 18px 22px; gap: 12px; border-top: 1px solid #1a2436; }
   .hm-k2 { display: none; }
   .hm-shift-h { font-size: 26px; line-height: 1.05; }
-  .hm-title { font-size: clamp(52px, 16vw, 76px); }
+  .hm-title { font-size: clamp(38px, 11.5vw, 58px); }
   .hm-pager { max-width: none; }
   .hm-rooms { grid-template-columns: 1fr; gap: 10px; }
   .hm-room { grid-template-columns: 42px 1fr auto; grid-template-rows: auto auto; gap: 2px 14px; padding: 14px; align-items: center; }
@@ -2464,7 +2467,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 20px 30px; color: var(--m
 .hm-back:has(.hm-pager) ~ .hm-actions .hm-cta-why { display: none; }
 
 /* ---- plan.css ---- */
-/* Trouble Ticket — study plan (plan.js): the "Shift schedule" pinned to the NOC wall.
+/* Harbor Point Night Shift — study plan (plan.js): the "Shift schedule" pinned to the NOC wall.
  * Paper sheets with push pins, a work-order card for tonight, a 7-day strip and collapsible weeks. */
 
 .pl-wall { max-width: 1080px; margin: 0 auto; display: grid; gap: 18px; }
@@ -2782,7 +2785,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
 <body>
 <header class="mast">
   <div class="brand">
-    <a class="wordmark" href="#home" aria-label="Trouble Ticket: home">Trouble <span>Ticket</span></a>
+    <a class="wordmark" href="#home" aria-label="Harbor Point Night Shift: home">Harbor Point <span>Night Shift</span></a>
     <div class="tagline">A CCNA casebook · night shift at Harbor Point Logistics</div>
   </div>
   <a class="fm-btn" id="fm-btn" href="#guide"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 7 4.6 3.5 5v13c3.5-.4 6.5 0 8.5 1.5 2-1.5 5-1.9 8.5-1.5V5C17 4.6 14 5 12 6.5z"/><path d="M12 6.5v13"/></svg><span class="fm-btn-l">Field Manual</span></a>
@@ -2793,7 +2796,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
 <footer>Built by Ty Mackall as CCNA practice. Harbor Point Logistics is fictional. Not affiliated with Cisco or Jeremy's IT Lab; CCNA is a Cisco trademark. Video links open YouTube searches for the matching lesson.</footer>
 <script>
 /* ---- engine.js ---- */
-/* Trouble Ticket — network model + simulated Cisco IOS CLI.
+/* Harbor Point Night Shift — network model + simulated Cisco IOS CLI.
  * Works in the browser (inlined by build.mjs) and in Node (tests import it).
  * Everything hangs off globalThis.TT so the build can concatenate plain scripts.
  */
@@ -6304,7 +6307,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
 })(typeof globalThis !== 'undefined' ? globalThis : window);
 
 /* ---- scenarios.js ---- */
-/* Trouble Ticket — the six tickets.
+/* Harbor Point Night Shift — the six tickets.
  * Each ticket: story, topology (for the diagram), a starting world with faults,
  * objectives checked live against the network model, hints, and a debrief.
  */
@@ -8143,7 +8146,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
 })(typeof globalThis !== 'undefined' ? globalThis : window);
 
 /* ---- guide.js ---- */
-/* Trouble Ticket — Protocol Field Guide and quiz bank.
+/* Harbor Point Night Shift — Protocol Field Guide and quiz bank.
  * Organized by the six CCNA 200-301 exam domains. Each card carries one or more
  * multiple-choice questions; the quiz draws from all of them.
  */
@@ -9043,7 +9046,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
 })(typeof globalThis !== 'undefined' ? globalThis : window);
 
 /* ---- course.js ---- */
-/* Trouble Ticket — course map.
+/* Harbor Point Night Shift — course map.
  * Lines up every day of Jeremy's IT Lab free CCNA 200-301 course with the
  * tickets, field-guide cards and labs in this app. Titles are day names only;
  * the videos themselves live on YouTube.
@@ -9179,7 +9182,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
 })(globalThis);
 
 /* ---- hardware.js ---- */
-/* Trouble Ticket — Hardware lab.
+/* Harbor Point Night Shift — Hardware lab.
  * Three activities: Cable it (pick the right cable), Port ID (clickable front panels),
  * and Know your gear (device family cards). The drawings are generic, not any vendor's artwork.
  */
@@ -9437,7 +9440,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
 })(typeof globalThis !== 'undefined' ? globalThis : window);
 
 /* ---- wlc.js ---- */
-/* Trouble Ticket — Wireless LAN controller GUI lab.
+/* Harbor Point Night Shift — Wireless LAN controller GUI lab.
  * A generic controller web interface laid out like the one the CCNA exam shows in its screenshots
  * (exam topics 2.9 and 5.10). The learner creates WLANs, picks the dynamic interface,
  * sets WPA2-PSK or 802.1X, the QoS profile and advanced options, then checks the task.
@@ -9742,7 +9745,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
 })(typeof globalThis !== 'undefined' ? globalThis : window);
 
 /* ---- scenes.js ---- */
-/* Trouble Ticket — "Watch it happen" concept scene player (prefix sc-).
+/* Harbor Point Night Shift — "Watch it happen" concept scene player (prefix sc-).
  *
  * TT.renderScene(el, scene, opts?)  draws an animated scene into el and returns a controller
  *                                   { play, pause, go(i), restart, destroy }.
@@ -10860,7 +10863,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
 })(typeof globalThis !== 'undefined' ? globalThis : window);
 
 /* ---- scenes-1.js ---- */
-/* Trouble Ticket — "Watch it happen" scenes for domains 1.0 and 2.0.
+/* Harbor Point Night Shift — "Watch it happen" scenes for domains 1.0 and 2.0.
  * Format: /home/claude/scene_format.md; player: scenes.js (TT.renderScene). Values follow CCNA 200-301 v1.1 and IOS defaults.
  */
 (function (G) {
@@ -11829,7 +11832,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
 })(typeof globalThis !== 'undefined' ? globalThis : window);
 
 /* ---- scenes-2.js ---- */
-/* Trouble Ticket: "Watch it happen" concept scenes, part 2.
+/* Harbor Point Night Shift: "Watch it happen" concept scenes, part 2.
  * Exam domains 3.0 IP Connectivity, 4.0 IP Services, 5.0 Security Fundamentals,
  * 6.0 Automation and Programmability. Format: see the scene player in src/scenes.js.
  * All text is original. Addresses use RFC 1918 space inside Harbor Point and the
@@ -13758,7 +13761,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
 })(typeof globalThis !== 'undefined' ? globalThis : window);
 
 /* ---- lessons-1.js ---- */
-/* Trouble Ticket — lessons, part 1: exam domains 1.0 Network Fundamentals and 2.0 Network Access
+/* Harbor Point Night Shift — lessons, part 1: exam domains 1.0 Network Fundamentals and 2.0 Network Access
  * (CCNA 200-301 v1.1 objectives 1.1-1.13 and 2.1-2.9). All text is original.
  *
  * LESSON DATA FORMAT (shared with src/lessons-2.js; rendered by src/lessons-ui.js)
@@ -17016,7 +17019,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
 })(globalThis);
 
 /* ---- lessons-2.js ---- */
-/* Trouble Ticket — lessons, part 2.
+/* Harbor Point Night Shift — lessons, part 2.
  * Exam domains 3.0 IP Connectivity, 4.0 IP Services, 5.0 Security Fundamentals,
  * 6.0 Automation and Programmability (CCNA 200-301 v1.1 objectives 3.1-6.7).
  * All text is original. Lesson format is shared with src/lessons-1.js.
@@ -19979,7 +19982,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
 })(globalThis);
 
 /* ---- lessons-ui.js ---- */
-/* Trouble Ticket — Lessons (the teaching binder).
+/* Harbor Point Night Shift — Lessons (the teaching binder).
  * TT.renderLessons(main, opts): index view, or one lesson when opts.id is set.
  * Lesson data lives in lessons-1.js (domains 1-2) and lessons-2.js (domains 3-6); see the format note in lessons-1.js.
  * Progress: localStorage 'trouble-ticket-lessons-v1' = { done: { id: true }, scores: { id: n } }.
@@ -20566,7 +20569,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
 })(globalThis);
 
 /* ---- questions-1.js ---- */
-/* Trouble Ticket — mock exam question bank, part 1: domains 1.0 Network Fundamentals and 2.0 Network Access.
+/* Harbor Point Night Shift — mock exam question bank, part 1: domains 1.0 Network Fundamentals and 2.0 Network Access.
  * All questions are original. Part 2 (domains 3.0-6.0) lives in questions-2.js and uses the same format.
  *
  * Question format:
@@ -22592,7 +22595,7 @@ button.pl-day-btn:hover { border-color: var(--accent); }
 })(globalThis);
 
 /* ---- questions-2.js ---- */
-/* Trouble Ticket: mock-exam question bank, part 2.
+/* Harbor Point Night Shift: mock-exam question bank, part 2.
  * Domains 3.0 IP Connectivity, 4.0 IP Services, 5.0 Security Fundamentals,
  * 6.0 Automation and Programmability (CCNA 200-301 v1.1).
  * All questions are original. Sim questions carry a starting world for the
@@ -25857,7 +25860,7 @@ Content-Type: application/json
 })(globalThis);
 
 /* ---- exam-ui.js ---- */
-/* Trouble Ticket — Mock Exam module.
+/* Harbor Point Night Shift — Mock Exam module.
  * TT.renderExam(mainEl, opts) draws the exam start screen, a running exam or practice set, results, or study mode.
  * Route: #exam. Reads TT.questions (questions-1.js, questions-2.js) and TT.simChecks.
  * History lives in localStorage under 'trouble-ticket-exam-v1': { attempts: [...], missed: [ids] }.
@@ -26624,7 +26627,7 @@ Content-Type: application/json
 })(globalThis);
 
 /* ---- flashcards.js ---- */
-/* Trouble Ticket: Flashcards data.
+/* Harbor Point Night Shift: Flashcards data.
  * 1015 original cards for CCNA 200-301 v1.1, tagged by deck, exam domain and objective.
  * Card: { id, deck, domain, obj, front, back, extra?, rev?, accept? }
  *   rev: true    the front is a command or number and the back explains it (not used for typed answers)
@@ -27669,7 +27672,7 @@ Content-Type: application/json
 })(globalThis);
 
 /* ---- flash-ui.js ---- */
-/* Trouble Ticket: Flashcards UI.
+/* Harbor Point Night Shift: Flashcards UI.
  * TT.renderFlashcards(mainEl, opts) draws the deck picker, study view and session summary.
  * opts.deck (optional): a deck id from TT.flashDecks, or 'due' for every due card. A plain string works too.
  * Scheduler: Leitner boxes 0-5. Again resets to box 0 and comes back in the same session.
@@ -28085,7 +28088,7 @@ Content-Type: application/json
 })(globalThis);
 
 /* ---- sandbox.js ---- */
-/* Trouble Ticket — Lab Sandbox.
+/* Harbor Point Night Shift — Lab Sandbox.
  * A Packet Tracer-style builder on top of the simulator in engine.js: drop devices on a canvas,
  * cable them, configure them through the shared CLI, and work through guided projects (projects.js).
  *
@@ -28475,7 +28478,7 @@ Content-Type: application/json
   /** Validate a saved or imported lab. Returns an error string, or null when it is usable. */
   function validateState(o) {
     if (!o || typeof o !== 'object' || Array.isArray(o)) return 'That is not a lab file.';
-    if (o.format !== FORMAT) return 'That file is not a Trouble Ticket lab export.';
+    if (o.format !== FORMAT) return 'That file is not a Harbor Point Night Shift lab export.';
     if (o.v !== 1) return 'That lab file was made by a newer version.';
     if (!o.devices || typeof o.devices !== 'object' || Array.isArray(o.devices)) return 'The lab file has no device list.';
     const ids = Object.keys(o.devices);
@@ -30161,7 +30164,7 @@ Content-Type: application/json
 })(typeof globalThis !== 'undefined' ? globalThis : window);
 
 /* ---- projects.js ---- */
-/* Trouble Ticket — guided lab projects for the Lab Sandbox (sandbox.js).
+/* Harbor Point Night Shift — guided lab projects for the Lab Sandbox (sandbox.js).
  * Each project: a Harbor Point story, steps, a starting canvas (devices may be partly built or
  * not cabled at all), live checks against the world, hints, and one reference solution.
  * Solutions are { deviceId: [commands] } or an ordered list of [deviceId, commands]; the pseudo
@@ -30924,7 +30927,7 @@ Content-Type: application/json
 })(typeof globalThis !== 'undefined' ? globalThis : window);
 
 /* ---- home.js ---- */
-/* Trouble Ticket: the front door (#home) and the "rooms" model the navigation is built from.
+/* Harbor Point Night Shift: the front door (#home) and the "rooms" model the navigation is built from.
  *
  *   TT.rooms.list          the five rooms, each with its sub-tabs (views)
  *   TT.rooms.parse(hash)   pure: any hash -> { view, arg, room, sub }. app.js routes with it.
@@ -31493,7 +31496,7 @@ Content-Type: application/json
           <div class="hm-art">${heroSvg()}</div>
           <div class="hm-copy">
             <p class="hm-kicker"><span class="live-dot" aria-hidden="true"></span><span>02:07 · Harbor Point Logistics<span class="hm-k2"> · Baltimore NOC</span></span></p>
-            <h1 class="hm-title" id="hm-title">Trouble <span>Ticket</span></h1>
+            <h1 class="hm-title" id="hm-title">Harbor Point <span>Night Shift</span></h1>
             <p class="hm-pitch">Work the night shift at Harbor Point. Fix real networks in a simulated Cisco CLI. Pass the CCNA.</p>
             <div class="hm-back" id="hm-back">${welcomeHtml(raw)}</div>
             <div class="hm-actions">
@@ -31543,7 +31546,7 @@ Content-Type: application/json
 })(globalThis);
 
 /* ---- plan.js ---- */
-/* Trouble Ticket — the study plan ("Shift schedule").
+/* Harbor Point Night Shift — the study plan ("Shift schedule").
  * A night-by-night plan from a start date to exam day, built from what is still left to do.
  *
  * Pure parts (tested in tests/plan.test.mjs):
@@ -31975,7 +31978,7 @@ Content-Type: application/json
     opts = obj(opts);
     const stamp = icsStamp(opts.stamp instanceof Date ? opts.stamp : new Date());
     const time = typeof opts.time === 'string' && /^\d{2}:\d{2}$/.test(opts.time) ? opts.time : null;
-    const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Trouble Ticket//Shift schedule//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:' + icsText('Shift schedule (CCNA 200-301)')];
+    const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Harbor Point Night Shift//Shift schedule//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:' + icsText('Shift schedule (CCNA 200-301)')];
     const when = (date, minutes) => {
       if (!time) return ['DTSTART;VALUE=DATE:' + icsDate(date), 'DTEND;VALUE=DATE:' + icsDate(addDays(date, 1)), 'TRANSP:TRANSPARENT'];
       const [h, m] = time.split(':').map(Number);
@@ -31990,7 +31993,7 @@ Content-Type: application/json
       const first = n.items[0];
       const more = n.items.length - 1;
       const summary = `Shift: ${first.title}${more ? ` (+${more} more)` : ''}`;
-      const desc = n.items.map((x) => `- ${x.title} (${x.minutes} min)${x.how ? ` [${x.how}]` : ''}`).join('\n') + `\n\nAbout ${n.minutes} minutes. Open Trouble Ticket → Study plan.`;
+      const desc = n.items.map((x) => `- ${x.title} (${x.minutes} min)${x.how ? ` [${x.how}]` : ''}`).join('\n') + `\n\nAbout ${n.minutes} minutes. Open Harbor Point Night Shift → Study plan.`;
       L.push('BEGIN:VEVENT', 'UID:shift-' + icsDate(n.date) + '@trouble-ticket.local', 'DTSTAMP:' + stamp, ...when(n.date, n.minutes), 'SUMMARY:' + icsText(summary), 'DESCRIPTION:' + icsText(desc), 'END:VEVENT');
     }
     if (plan.exam) {
@@ -32469,7 +32472,7 @@ Content-Type: application/json
 })(globalThis);
 
 /* ---- app.js ---- */
-/* Trouble Ticket — user interface.
+/* Harbor Point Night Shift — user interface.
  * Views: #home (the default), #tickets (and #t01..#t23), #drill, #guide, #quiz, #progress, #map, #plan,
  * plus the module views (#learn, #lab, #exam, #flash, #hardware). TT.rooms.parse (home.js) maps a hash
  * to its view, and to the room and sub-tab that light up in the header.
@@ -33469,7 +33472,7 @@ Content-Type: application/json
 })(window);
 
 /* ---- career.js ---- */
-/* Trouble Ticket — the career layer: XP, ranks, badges, pager toasts and the shift record.
+/* Harbor Point Night Shift — the career layer: XP, ranks, badges, pager toasts and the shift record.
  * An observer: it never writes another module's storage. It reads saved progress, derives XP with a
  * pure function (TT.career.compute), and diffs against the last state it saw to raise pager toasts.
  *
@@ -34221,7 +34224,7 @@ Content-Type: application/json
 })(globalThis);
 
 /* ---- theme.js ---- */
-/* Trouble Ticket: theme switch.
+/* Harbor Point Night Shift: theme switch.
  * The night shift (dark) is the default. Light is opt-in and remembered in localStorage.
  * Sets <html data-theme="dark|light"> as soon as this runs and injects a toggle button into the masthead.
  * For a flash-free first paint, index.html's <head> can carry the tiny snippet in TT.theme.headSnippet.
@@ -34327,7 +34330,7 @@ Content-Type: application/json
 })(globalThis);
 
 /* ---- audio.js ---- */
-/* Trouble Ticket: optional sound. A generative "night shift" ambience and a few quiet effects.
+/* Harbor Point Night Shift: optional sound. A generative "night shift" ambience and a few quiet effects.
  *
  * Off by default. Nothing is created or played until the learner turns sound on from the speaker
  * button in the masthead. Everything is synthesized live with the Web Audio API: no audio files,

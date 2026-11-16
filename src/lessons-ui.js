@@ -1,4 +1,4 @@
-/* Trouble Ticket — Lessons (the teaching binder).
+/* Harbor Point Night Shift — Lessons (the teaching binder).
  * TT.renderLessons(main, opts): index view, or one lesson when opts.id is set.
  * Lesson data lives in lessons-1.js (domains 1-2) and lessons-2.js (domains 3-6); see the format note in lessons-1.js.
  * Progress: localStorage 'trouble-ticket-lessons-v1' = { done: { id: true }, scores: { id: n } }.

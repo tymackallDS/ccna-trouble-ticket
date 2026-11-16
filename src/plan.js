@@ -1,4 +1,4 @@
-/* Trouble Ticket — the study plan ("Shift schedule").
+/* Harbor Point Night Shift — the study plan ("Shift schedule").
  * A night-by-night plan from a start date to exam day, built from what is still left to do.
  *
  * Pure parts (tested in tests/plan.test.mjs):
@@ -430,7 +430,7 @@
     opts = obj(opts);
     const stamp = icsStamp(opts.stamp instanceof Date ? opts.stamp : new Date());
     const time = typeof opts.time === 'string' && /^\d{2}:\d{2}$/.test(opts.time) ? opts.time : null;
-    const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Trouble Ticket//Shift schedule//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:' + icsText('Shift schedule (CCNA 200-301)')];
+    const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Harbor Point Night Shift//Shift schedule//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:' + icsText('Shift schedule (CCNA 200-301)')];
     const when = (date, minutes) => {
       if (!time) return ['DTSTART;VALUE=DATE:' + icsDate(date), 'DTEND;VALUE=DATE:' + icsDate(addDays(date, 1)), 'TRANSP:TRANSPARENT'];
       const [h, m] = time.split(':').map(Number);
@@ -445,7 +445,7 @@
       const first = n.items[0];
       const more = n.items.length - 1;
       const summary = `Shift: ${first.title}${more ? ` (+${more} more)` : ''}`;
-      const desc = n.items.map((x) => `- ${x.title} (${x.minutes} min)${x.how ? ` [${x.how}]` : ''}`).join('\n') + `\n\nAbout ${n.minutes} minutes. Open Trouble Ticket → Study plan.`;
+      const desc = n.items.map((x) => `- ${x.title} (${x.minutes} min)${x.how ? ` [${x.how}]` : ''}`).join('\n') + `\n\nAbout ${n.minutes} minutes. Open Harbor Point Night Shift → Study plan.`;
       L.push('BEGIN:VEVENT', 'UID:shift-' + icsDate(n.date) + '@trouble-ticket.local', 'DTSTAMP:' + stamp, ...when(n.date, n.minutes), 'SUMMARY:' + icsText(summary), 'DESCRIPTION:' + icsText(desc), 'END:VEVENT');
     }
     if (plan.exam) {

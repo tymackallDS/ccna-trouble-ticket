@@ -1,4 +1,4 @@
-/* Trouble Ticket — Hardware lab.
+/* Harbor Point Night Shift — Hardware lab.
  * Three activities: Cable it (pick the right cable), Port ID (clickable front panels),
  * and Know your gear (device family cards). The drawings are generic, not any vendor's artwork.
  */

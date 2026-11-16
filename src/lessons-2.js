@@ -1,4 +1,4 @@
-/* Trouble Ticket — lessons, part 2.
+/* Harbor Point Night Shift — lessons, part 2.
  * Exam domains 3.0 IP Connectivity, 4.0 IP Services, 5.0 Security Fundamentals,
  * 6.0 Automation and Programmability (CCNA 200-301 v1.1 objectives 3.1-6.7).
  * All text is original. Lesson format is shared with src/lessons-1.js.

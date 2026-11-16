@@ -1,4 +1,4 @@
-/* Trouble Ticket — mock exam question bank, part 1: domains 1.0 Network Fundamentals and 2.0 Network Access.
+/* Harbor Point Night Shift — mock exam question bank, part 1: domains 1.0 Network Fundamentals and 2.0 Network Access.
  * All questions are original. Part 2 (domains 3.0-6.0) lives in questions-2.js and uses the same format.
  *
  * Question format:

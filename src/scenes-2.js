@@ -1,4 +1,4 @@
-/* Trouble Ticket: "Watch it happen" concept scenes, part 2.
+/* Harbor Point Night Shift: "Watch it happen" concept scenes, part 2.
  * Exam domains 3.0 IP Connectivity, 4.0 IP Services, 5.0 Security Fundamentals,
  * 6.0 Automation and Programmability. Format: see the scene player in src/scenes.js.
  * All text is original. Addresses use RFC 1918 space inside Harbor Point and the

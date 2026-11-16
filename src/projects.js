@@ -1,4 +1,4 @@
-/* Trouble Ticket — guided lab projects for the Lab Sandbox (sandbox.js).
+/* Harbor Point Night Shift — guided lab projects for the Lab Sandbox (sandbox.js).
  * Each project: a Harbor Point story, steps, a starting canvas (devices may be partly built or
  * not cabled at all), live checks against the world, hints, and one reference solution.
  * Solutions are { deviceId: [commands] } or an ordered list of [deviceId, commands]; the pseudo

@@ -1,4 +1,4 @@
-/* Trouble Ticket — network model + simulated Cisco IOS CLI.
+/* Harbor Point Night Shift — network model + simulated Cisco IOS CLI.
  * Works in the browser (inlined by build.mjs) and in Node (tests import it).
  * Everything hangs off globalThis.TT so the build can concatenate plain scripts.
  */

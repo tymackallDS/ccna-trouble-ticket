@@ -1,4 +1,4 @@
-/* Trouble Ticket — course map.
+/* Harbor Point Night Shift — course map.
  * Lines up every day of Jeremy's IT Lab free CCNA 200-301 course with the
  * tickets, field-guide cards and labs in this app. Titles are day names only;
  * the videos themselves live on YouTube.

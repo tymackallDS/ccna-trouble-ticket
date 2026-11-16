@@ -1,4 +1,4 @@
-/* Trouble Ticket: optional sound. A generative "night shift" ambience and a few quiet effects.
+/* Harbor Point Night Shift: optional sound. A generative "night shift" ambience and a few quiet effects.
  *
  * Off by default. Nothing is created or played until the learner turns sound on from the speaker
  * button in the masthead. Everything is synthesized live with the Web Audio API: no audio files,

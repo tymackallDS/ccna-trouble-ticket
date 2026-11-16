@@ -1,4 +1,4 @@
-/* Trouble Ticket — Mock Exam module.
+/* Harbor Point Night Shift — Mock Exam module.
  * TT.renderExam(mainEl, opts) draws the exam start screen, a running exam or practice set, results, or study mode.
  * Route: #exam. Reads TT.questions (questions-1.js, questions-2.js) and TT.simChecks.
  * History lives in localStorage under 'trouble-ticket-exam-v1': { attempts: [...], missed: [ids] }.

@@ -1,4 +1,4 @@
-/* Trouble Ticket — "Watch it happen" scene player (prefix sc-). Theme-aware: only styles.css variables. */
+/* Harbor Point Night Shift — "Watch it happen" scene player (prefix sc-). Theme-aware: only styles.css variables. */
 
 .sc-player, .sc-svg {
   --sc-dev: var(--accent);

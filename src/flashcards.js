@@ -1,4 +1,4 @@
-/* Trouble Ticket: Flashcards data.
+/* Harbor Point Night Shift: Flashcards data.
  * 1015 original cards for CCNA 200-301 v1.1, tagged by deck, exam domain and objective.
  * Card: { id, deck, domain, obj, front, back, extra?, rev?, accept? }
  *   rev: true    the front is a command or number and the back explains it (not used for typed answers)

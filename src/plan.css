@@ -1,4 +1,4 @@
-/* Trouble Ticket — study plan (plan.js): the "Shift schedule" pinned to the NOC wall.
+/* Harbor Point Night Shift — study plan (plan.js): the "Shift schedule" pinned to the NOC wall.
  * Paper sheets with push pins, a work-order card for tonight, a 7-day strip and collapsible weeks. */
 
 .pl-wall { max-width: 1080px; margin: 0 auto; display: grid; gap: 18px; }

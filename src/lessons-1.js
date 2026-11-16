@@ -1,4 +1,4 @@
-/* Trouble Ticket — lessons, part 1: exam domains 1.0 Network Fundamentals and 2.0 Network Access
+/* Harbor Point Night Shift — lessons, part 1: exam domains 1.0 Network Fundamentals and 2.0 Network Access
  * (CCNA 200-301 v1.1 objectives 1.1-1.13 and 2.1-2.9). All text is original.
  *
  * LESSON DATA FORMAT (shared with src/lessons-2.js; rendered by src/lessons-ui.js)

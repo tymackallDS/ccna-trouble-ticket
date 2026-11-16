@@ -1,4 +1,4 @@
-/* Trouble Ticket — Lab Sandbox.
+/* Harbor Point Night Shift — Lab Sandbox.
  * A Packet Tracer-style builder on top of the simulator in engine.js: drop devices on a canvas,
  * cable them, configure them through the shared CLI, and work through guided projects (projects.js).
  *
@@ -388,7 +388,7 @@
   /** Validate a saved or imported lab. Returns an error string, or null when it is usable. */
   function validateState(o) {
     if (!o || typeof o !== 'object' || Array.isArray(o)) return 'That is not a lab file.';
-    if (o.format !== FORMAT) return 'That file is not a Trouble Ticket lab export.';
+    if (o.format !== FORMAT) return 'That file is not a Harbor Point Night Shift lab export.';
     if (o.v !== 1) return 'That lab file was made by a newer version.';
     if (!o.devices || typeof o.devices !== 'object' || Array.isArray(o.devices)) return 'The lab file has no device list.';
     const ids = Object.keys(o.devices);

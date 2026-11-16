@@ -1,4 +1,4 @@
-/* Trouble Ticket — the six tickets.
+/* Harbor Point Night Shift — the six tickets.
  * Each ticket: story, topology (for the diagram), a starting world with faults,
  * objectives checked live against the network model, hints, and a debrief.
  */

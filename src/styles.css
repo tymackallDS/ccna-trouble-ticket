@@ -1,4 +1,4 @@
-/* Trouble Ticket — styles
+/* Harbor Point Night Shift — styles
  * Layout idea: a NOC trouble-ticket on blueprint grid paper. The default theme is the night shift:
  * a network operations center at 2 a.m. (deep navy and charcoal, amber and green status lights,
  * red for alerts and the RESOLVED stamp). Light ("day shift") is opt-in with <html data-theme="light">.
@@ -117,9 +117,10 @@ h1, h2, h3 { text-wrap: balance; margin: 0; }
 .wordmark {
   font-family: var(--display);
   font-weight: 800;
-  font-size: clamp(34px, 5vw, 50px);
+  font-size: clamp(24px, 2.7vw, 36px);
   letter-spacing: 0.02em;
   line-height: 0.9;
+  white-space: nowrap;
   text-transform: uppercase;
   color: var(--ink);
   text-decoration: none;
@@ -280,7 +281,8 @@ nav.subtabs a:focus-visible { outline: 2px solid var(--accent); outline-offset: 
 /* phones: five rooms in one row, icon over a short label; the views sit beneath */
 @media (max-width: 600px) {
   .mast { padding: 14px 14px 0; gap: 10px; }
-  .wordmark { font-size: 27px; white-space: nowrap; }
+  .wordmark { font-size: 25px; line-height: 0.95; }
+  .wordmark span { display: block; }
   .tagline { font-size: 12.5px; }
   .fm-btn { position: absolute; top: 14px; right: 62px; width: 40px; height: 40px; min-height: 0; padding: 0; justify-content: center; margin: 0; }
   .fm-btn-l { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
